@@ -1,0 +1,7 @@
+* {padding:0; margin:0;}
+
+::selection{
+    background:transparent;
+    color: transparent;
+    text-shadow: none;
+}
