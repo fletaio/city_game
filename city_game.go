@@ -39,8 +39,6 @@ func Start() {
 	http.HandleFunc("/", pageHandler)
 
 	panic(http.ListenAndServe(":8080", nil))
-
-	select {}
 }
 
 // Handle HTTP request to either static file server or page server
