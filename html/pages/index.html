@@ -1,0 +1,52 @@
+<indexStyle>
+    <link href="/css/object.css" rel="stylesheet" type="text/css" />
+    <style id="cssControll"></style>
+</indexStyle>
+
+<panel>
+    <div id="tool">
+        <button id="hideBuilding" onclick="ViewChanger()">Hide Building</button>
+    </div>
+    <div id="info"></div>
+    <div>
+        <div id="touchpad"></div>
+        <div id="screen"></div>
+        <div id="cover" onclick="menuClose()"></div>
+        <div id="menu"></div>
+    </div>
+    <div id="logTool">
+        <button id="logClean" onclick="logClean()">Clean</button>
+    </div>
+    <div id="log"></div>
+</panel>
+
+<gamecode>
+    <script src="/js/common.js"></script>
+    <script src="/js/error.js"></script>
+    <script src="/js/script.js"></script>
+    <script src="/js/game.js"></script>
+    <script>
+var Tiles = [];
+
+var gConfig = {
+	Unit: 64,
+	Size: 16,
+}
+$(function () {
+    var jScreen = $("#screen,#cover,#touchpad");
+    jScreen.css("width", (gConfig.Unit*gConfig.Size)+"px");
+    jScreen.css("height", (gConfig.Unit*gConfig.Size)/2+"px");
+    jScreen.css("top", (gConfig.Unit/2*4)+"px");
+
+    var $touchpad = $("#touchpad");
+    var jScreen = $("#screen");
+    for(var i=0; i<gConfig.Size*gConfig.Size; i++) {
+        var x = i%gConfig.Size;
+        var y = parseInt(i/gConfig.Size);
+
+        var num = getNum(x, y)
+        Tiles.push(new Tile(jScreen, $touchpad, x, y, num));
+    }
+})
+    </script>
+</gamecode>
