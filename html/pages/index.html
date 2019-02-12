@@ -5,28 +5,23 @@
 </indexStyle>
 
 <panel>
-    <div id="tool">
-        <button id="hideBuilding" onclick="ViewChanger()">Hide Building</button>
-    </div>
-    <div id="info"></div>
-    <div id="menu"></div>
-    <div class="island">
-        <div id="tileCase">
-            <div id="touchpad"></div>
-            <div id="screen"></div>
-            <div id="cover" onclick="menuClose()"></div>
-        </div>
-        <div class="tileBackground">
-            <div class="tileBackground1"></div>
-            <div class="tileBackground2"></div>
-            <div class="tileBackground3"></div>
-            <div class="tileBackground4"></div>
+    <div class="islandCase">
+        <div class="islandMiddle">
+            <div class="skyBackground"></div>
         </div>
     </div>
-    <div id="logTool">
-        <button id="logClean" onclick="logClean()">Clean</button>
+
+    <div class="ui_layout">
+        <div id="tool" class="ui_element">
+            <button id="hideBuilding" onclick="ViewChanger()">Hide Building</button>
+        </div>
+        <div id="info" class="ui_element"></div>
+        <div id="menu" class="ui_element"></div>
+        <div id="logTool" class="ui_element">
+            <button id="logClean" onclick="logClean()">Clean</button>
+        </div>
+        <div id="log" class="ui_element"></div>
     </div>
-    <div id="log"></div>
 </panel>
 
 <gamecode>
@@ -39,15 +34,13 @@ var Tiles = [];
 
 var gConfig = {
 	Unit: 64,
-	Size: 16,
+    Size: 16,
 }
 $(function () {
     ChangeUnit(gConfig.Unit)
     var jScreen = $("#tileCase");
     jScreen.css("width", (gConfig.Size)+"rem");
     jScreen.css("height", (gConfig.Size)/2+"rem");
-    jScreen.css("top", "4.04rem");
-    jScreen.css("left", "0.68rem");
 
     var $touchpad = $("#touchpad");
     var jScreen = $("#screen");

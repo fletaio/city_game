@@ -3,16 +3,24 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-	<meta name="viewport" content="width=device-width,minimal-ui">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 	<meta name="robots" content="noindex">
 
+	<script src="/js/putEmptyPart.js"></script>
+	<link href="/css/loading.css" rel="stylesheet" type="text/css" />
 	<link href="/css/preset.css" rel="stylesheet" type="text/css" />
-	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+	<link href="https://fonts.googleapis.com/css?family=Geo" rel="stylesheet">
+	<script src="/js/jquery-2.2.0.min.js"></script>
+	<script src="/js/loading.js"></script>
+
 	{{gamecode}}
 
 	{{indexStyle}}
 </head>
 <body>
-	{{panel}}
+	{{loading}}
+	<div class="after-loading-content">
+		{{panel}}
+	</div>
 </body>
 </html>

@@ -7,10 +7,3 @@ var MENU = {
 	lv5 : {"Demolition":"Demolition", "Fleta!":"Upgrade"},
 	lv6 : {"Demolition":"Demolition"},
 }
-
-var BUILDING = {
-	Industrial : {
-		lv1 : "Industrial_Lv1.png",
-		lv5 : "Industrial_Lv5.png",
-	}
-}

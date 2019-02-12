@@ -27,24 +27,16 @@ function printLog(msg) {
 function directByNum(o, num) {
     switch (num) {
         case 0:
-            if (o.x > 0) {
-                o.x--
-            }
+            o.x--
             break;
         case 1:
-            if (o.y > 0) {
-                o.y--
-            }
+            o.y--
             break;
         case 2:
-            if (o.x < gConfig.Size-1) {
-                o.x++
-            }
+            o.x++
             break;
         case 3:
-            if (o.y < gConfig.Size-1) {
-                o.y++
-            }
+            o.y++
             break;
     }
     message("o.x " + o.x + " o.y " + o.y)
@@ -132,4 +124,68 @@ function ViewChanger() {
 
 function logClean () {
     $("#log").html("")
+}
+
+function lockUpValueRange (v, n1, n2) {
+    var min = (n1>n2)?n2:n1;
+    var max = (n1<=n2)?n2:n1;
+
+    if (min > v) {
+        v = min
+    }
+    if (max < v) {
+        v = max
+    }
+    return v
+}
+
+var Frequency = 0.8
+var interval = 900
+var speed = 30
+
+$(function () {
+    var $startField = $("#startField")
+    var $body = $("body")
+    var make = function () {
+        if (Math.random() < Frequency) {
+            var i = Math.floor(Math.random() * (14 - 1)) + 1;
+            if(i > 5) {
+                i = i % 4 + 2;
+            }
+            var top = Math.floor(Math.random() * ($body.height() - 1)) + 1;
+            $startField.prepend($("<img src='/images/background/stars_"+i+".png' style='top:"+top+"px;right:-100px;' />"))
+        }
+        sendLeft($startField.find("img"), $body.width())
+    }
+    var h = [];
+    var k = 0;
+    var bH = $body.height();
+    var bW = $body.width();
+    for (var j = 0 ; j < (speed*bH*bW)/1000000 ; j++) {
+        var i = Math.floor(Math.random() * (14 - 1)) + 1;
+        if(i > 5) {
+            i = i % 4 + 2;
+        }
+        var top = Math.floor(Math.random() * (bH - 1)) + 1;
+        var right = Math.floor(Math.random() * (bW - 1)) - 100;
+        h[k++] = "<img src='/images/background/stars_"+i+".png' style='top:"+top+"px;right:"+right+"px;' />"
+    }
+    $startField.html(h.join())
+    setInterval(make, interval)
+})
+
+function sendLeft ($eles, maxWidth) {
+    var deleteList = []
+    for (var i = 0 ; i < $eles.length ; i++ ) {
+        var t = $eles.eq(i);
+        var left = parseInt(t.css("right"))
+        t.css("right", (left+(speed*interval/1000))+"px")
+        if (left > maxWidth) {
+            deleteList.push(t)
+        }
+    }
+
+    for (var i = 0 ; i < deleteList.length ; i++ ) {
+        deleteList[i].remove()
+    }
 }
