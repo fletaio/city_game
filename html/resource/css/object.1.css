@@ -1,50 +1,43 @@
-#tileCase, #screen, #touchpad, #cover {
+#screen, #touchpad, #cover {
     position:absolute;
     left:0;
     top:0;
-    width:100%;
-    height:100%;
 }
-
 #touchpad > div,#screen > div {
-    width:1rem; height:0.5rem;
+    width:6.4rem; height:3.2rem;
 }
-.floor{width:1rem;}
+.floor{width:6.4rem;}
 
 #menu {
     display: none;
     z-index: 2;
 }
-
 #cover {
+    display: none;
     width:100%;
     height:100%;
     z-index: 2000;
-}
-#cover {
-    display: none;
     background-color: black;
     opacity: 0.0001;
 }
-
 #touchpad {
-    z-index:2;
-}
-#screen {
     z-index:1;
 }
-#touchpad span {display: none;font-size: 0.14rem; position: absolute; top:0.15rem;text-align: center;line-height: 0.14rem; width:100%;}
+#screen {
+    z-index:0;
+}
+#touchpad span {display: none;font-size: 0.5rem; position: absolute; top:0.7rem;text-align: center;line-height: 9px; width:100%;}
 
 #touchpad.hideBuilding {z-index:1;}
 #screen.hideBuilding {z-index:0;pointer-events: none;}
-/* #touchpad.hideBuilding .Industrial{background-color: #00f;}
+#touchpad.hideBuilding .Industrial{background-color: #00f;}
 #touchpad.hideBuilding .Residential{background-color: #0ff;}
-#touchpad.hideBuilding .Commercial{background-color: #f0f;} */
-/* #touchpad.hideBuilding span {display: block;} */
-/* #touchpad.hideBuilding .scaleArea {opacity: 0.2;} */
-#screen.hideBuilding .building.lvF{
+#touchpad.hideBuilding .Commercial{background-color: #f0f;}
+#touchpad.hideBuilding span {display: block;}
+#touchpad.hideBuilding .scaleArea {opacity: 0.2;}
+#screen.hideBuilding .building{
     pointer-events: none;
-    opacity: 0.3;
+    opacity: 0.7;
 }
 
 #touchpad >div,
@@ -53,45 +46,44 @@
 }
 #screen .building,
 #screen .floor {
-    width: 1rem;
+    width: 6.4rem;
     position: absolute;
     bottom:0;
 }
 #screen .building.lv1{
-    width: 0.5rem;
-    left: 0.25rem;
-    bottom: 0.25rem;
+    width: 3.2rem;
+    left: 1.6rem;
+    bottom: 1.6rem;
     z-index:1;
 }
 #screen .building.lv2{
-    width: 0.5rem;
-    left: 0.5rem;
-    bottom: 0.125rem;
+    width: 3.2rem;
+    left: 3.2rem;
+    bottom: 0.8rem;
     z-index:2;
 }
 #screen .building.lv3{
-    width: 0.5rem;
-    left: 0.25rem;
+    width: 3.2rem;
+    left: 1.6rem;
     z-index: 4;
 }
 #screen .building.lv4{
-    width: 0.5rem;
-    bottom: 0.125rem;
+    width: 3.2rem;
+    bottom: 0.8rem;
     z-index:3;
 }
 #screen .building.lv5{
-    width: 1rem;
+    width: 6.4rem;
     z-index:3;
 }
 #screen .building.lvF{
-    width: 2rem;
-    left: -0.5rem;
+    width: 12.8rem;
+    left: -3.2rem;
     z-index:3;
 }
 
 #screen .floor.lvF {
-    width: 2rem;
-    left: -0.5rem;
+    width: 12.8rem;
 }
 
 #info {
@@ -121,6 +113,11 @@
     position: absolute;
     bottom: -20%;
     left: 15%;
+
+    /* width: 2.85rem;
+    height: 2.85rem;
+    top: -2.44rem;
+    left: 0.58rem; */
 }
 
 .hoverArea {

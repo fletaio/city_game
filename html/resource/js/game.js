@@ -1,30 +1,18 @@
 $(document).on('click', '#touchpad', function(e) {
-	var point = {x:0, y:0};
-	if(e.type == 'touchstart' || e.type == 'touchmove' || e.type == 'touchend' || e.type == 'touchcancel'){
-		var touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
-		point.x = touch.pageX;
-		point.y = touch.pageY;
-	} else if (e.type=='click' || e.type == 'mousedown' || e.type == 'mouseup' || e.type == 'mousemove' || e.type == 'mouseover'|| e.type=='mouseout' || e.type=='mouseenter' || e.type=='mouseleave') {
-		point.x = e.pageX;
-		point.y = e.pageY;
-	}
-
-	var jScreen = $("#touchpad");
-	var top = parseInt(jScreen.css("top"));
-
-	var a = point.x*2/gConfig.Unit - gConfig.Size;
-	var b = (point.y - top/2)*4/gConfig.Unit - 2;
-
-	var x = Math.floor((a+b)/2) - 1;
-	var y = Math.floor((b-a)/2) - 1;
-
-	if(0 <= x && x < gConfig.Size && 0 <= y && y < gConfig.Size) {
-		var tile = Tiles[x + y *gConfig.Size];
+	var tile = getTileFromPoint(e)
+	if (typeof tile !== "undefined") {
 		tile.Menu();
 	}
 });
 
 $(document).on('mousemove', '#touchpad', function(e) {
+	var tile = getTileFromPoint(e)
+	if (typeof tile !== "undefined") {
+		tile.Hover()
+	}
+});
+
+function getTileFromPoint(e) {
 	var point = {x:0, y:0};
 	if(e.type == 'touchstart' || e.type == 'touchmove' || e.type == 'touchend' || e.type == 'touchcancel'){
 		var touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
@@ -36,20 +24,21 @@ $(document).on('mousemove', '#touchpad', function(e) {
 	}
 
 	var jScreen = $("#touchpad");
-	var top = parseInt(jScreen.css("top"));
+	var top = jScreen.offset().top;
+	var left = jScreen.offset().left;
 
-	var a = point.x*2/gConfig.Unit - gConfig.Size;
-	var b = (point.y - top/2)*4/gConfig.Unit - 2;
+	var a = (point.x-left)*2/gConfig.Unit - gConfig.Size;
+	var b = (point.y-top)/(gConfig.Unit/4) + 2;
 
 	var x = Math.floor((a+b)/2) - 1;
 	var y = Math.floor((b-a)/2) - 1;
 
-
 	if(0 <= x && x < gConfig.Size && 0 <= y && y < gConfig.Size) {
 		var tile = Tiles[x + y *gConfig.Size];
-		tile.Hover()
+		return tile
 	}
-});
+
+}
 
 function menuClose () {
 	$(".selected").removeClass("selected");
@@ -68,7 +57,7 @@ function Tile(jScreen, $touchpad, x, y, num) {
 	this.touch.append($("<span/>"));
 	this.obj = $("<div/>").appendTo(jScreen);
 	this.obj.css("z-index", x*gConfig.Size+y);
-	this.obj.append($("<image src='tile/base_floor/groundtiles_tile"+num+".png' style='position:absolute; width:"+gConfig.Unit+"px; bottom:0px;'/>"));
+	this.obj.append($("<image class='floor' src='/images/tile/base_floor/groundtiles_tile"+num+".png'>"));
 	this.obj.level = 0;
 	this.Resize();
 }
@@ -195,6 +184,7 @@ Tile.prototype.Remove = function() {
 	this.obj.level = 0;
 	this.Type = "empty";
 	this.touch.find(".hoverArea").attr("class", "hoverArea")
+	this.obj.find(".floor").attr("src", "/images/tile/building_floor.png").attr("class", "floor")
 
 	delete this.obj.headTile
 	return this
@@ -224,41 +214,25 @@ Tile.prototype.Build = function(type) {
 		this.touch.find(".hoverArea").addClass(type)
 		this.obj.level = 1;
 		this.Type = type;
-		this.obj.find("img").attr("src", "tile/building_floor.png");
-		//var jImg = $("<image class='building' src='building/construction.png' style='position:absolute; bottom:0px;'/>").appendTo(this.obj);
-		var jImg = $("<image class='building' src='building/"+this.Type+"_Lv1.png' style='position:absolute; bottom:0px;'/>").appendTo(this.obj);
-		jImg.css("width", (gConfig.Unit/2)+"px");
-		jImg.css("left", (gConfig.Unit/4)+"px");
-		jImg.css("bottom", (gConfig.Unit/4)+"px");
-		jImg.css("z-index", 1);
+		this.obj.find("img.floor").attr("src", "/images/tile/building_floor.png");
+		var jImg = $("<image class='building lv1' src='/images/building/"+this.Type+"_Lv1.png'/>").appendTo(this.obj);
 		break;
 	case 1:
 		this.obj.level = 2;
-		var jImg = $("<image class='building' src='building/"+this.Type+"_Lv1.png' style='position:absolute; bottom:0px;'/>").appendTo(this.obj);
-		jImg.css("width", (gConfig.Unit/2)+"px");
-		jImg.css("left", (gConfig.Unit*2/4)+"px");
-		jImg.css("bottom", (gConfig.Unit/2/4)+"px");
-		jImg.css("z-index", 2);
+		var jImg = $("<image class='building lv2' src='/images/building/"+this.Type+"_Lv1.png'/>").appendTo(this.obj);
 		break;
 	case 2:
 		this.obj.level = 3;
-		var jImg = $("<image class='building' src='building/"+this.Type+"_Lv1.png' style='position:absolute; bottom:0px;'/>").appendTo(this.obj);
-		jImg.css("width", (gConfig.Unit/2)+"px");
-		jImg.css("left", (gConfig.Unit/4)+"px");
-		jImg.css("z-index", 4);
+		var jImg = $("<image class='building lv3' src='/images/building/"+this.Type+"_Lv1.png'/>").appendTo(this.obj);
 		break;
 	case 3:
 		this.obj.level = 4;
-		var jImg = $("<image class='building' src='building/"+this.Type+"_Lv1.png' style='position:absolute; bottom:0px;'/>").appendTo(this.obj);
-		jImg.css("width", (gConfig.Unit/2)+"px");
-		jImg.css("bottom", (gConfig.Unit/2/4)+"px");
-		jImg.css("z-index", 3);
+		var jImg = $("<image class='building lv4' src='/images/building/"+this.Type+"_Lv1.png'/>").appendTo(this.obj);
 		break;
 	case 4:
 		this.obj.level = 5;
 		this.obj.find(".building").detach();
-		var jImg = $("<image class='building' src='building/"+this.Type+"_Lv5.png' style='position:absolute; bottom:0px;'/>").appendTo(this.obj);
-		jImg.css("width", (gConfig.Unit)+"px");
+		var jImg = $("<image class='building lv5' src='/images/building/"+this.Type+"_Lv5.png'/>").appendTo(this.obj);
 		break;
 	case 5:
 		var candidate = this.CheckLvRound()
@@ -280,9 +254,9 @@ Tile.prototype.Build = function(type) {
 			}
 
 			var tile = Tiles[maxCand];
-			var jImg = $("<image class='building' src='building/"+this.Type+"_LvFLETA.png' style='position:absolute; bottom:0px;'/>").appendTo(tile.obj)
-			jImg.css("width", (gConfig.Unit*2)+"px");
-			jImg.css("left", -(gConfig.Unit/2)+"px");
+			
+			tile.obj.find("img.floor").attr("src", "/images/tile/"+this.Type+"_LvFLETA-Tile.png").addClass("lvF");
+			var jImg = $("<image class='building lvF' src='/images/building/"+this.Type+"_LvFLETA.png'/>").appendTo(tile.obj)
 		}
 		break;
 	}
@@ -291,41 +265,11 @@ Tile.prototype.Build = function(type) {
 };
 
 Tile.prototype.Resize = function() {
-	$("#cssControll").html("#touchpad > div,#screen > div {width:"+gConfig.Unit+"px; height:"+ gConfig.Unit/2+"px;}")
-	this.touch.css("left", (gConfig.Unit*(gConfig.Size+this.x-this.y-1)/2) + "px");
-	this.touch.css("bottom", gConfig.Unit*gConfig.Size/2 - (gConfig.Unit*(this.x+this.y+2)/2)/2 + "px");
+	this.touch.css("left", ((gConfig.Size+this.x-this.y-1)/2) + "rem");
+	this.touch.css("bottom", gConfig.Size/2 - ((this.x+this.y+2)/2)/2 + "rem");
 
-	this.obj.css("left", (gConfig.Unit*(gConfig.Size+this.x-this.y-1)/2) + "px");
-	this.obj.css("bottom", gConfig.Unit*gConfig.Size/2 - (gConfig.Unit*(this.x+this.y+2)/2)/2 + "px");
-	this.obj.find("img").css("width", gConfig.Unit+"px");
-
-	switch(this.obj.level) {
-	case 6:
-		//TODO
-	case 5:
-		var jBuilding = this.obj.find(".building").eq(0);
-		jBuilding.css("width", (gConfig.Unit)+"px");
-		break;
-	case 4:
-		var jBuilding = this.obj.find(".building").eq(3);
-		jBuilding.css("width", (gConfig.Unit/2)+"px");
-		jBuilding.css("bottom", (gConfig.Unit/2/4)+"px");
-	case 3:
-		var jBuilding = this.obj.find(".building").eq(2);
-		jBuilding.css("width", (gConfig.Unit/2)+"px");
-		jBuilding.css("left", (gConfig.Unit/4)+"px");
-	case 2:
-		var jBuilding = this.obj.find(".building").eq(1);
-		jBuilding.css("width", (gConfig.Unit/2)+"px");
-		jBuilding.css("left", (gConfig.Unit*2/4)+"px");
-		jBuilding.css("bottom", (gConfig.Unit/2/4)+"px");
-	case 1:
-		var jBuilding = this.obj.find(".building").eq(0);
-		jBuilding.css("width", (gConfig.Unit/2)+"px");
-		jBuilding.css("left", (gConfig.Unit/4)+"px");
-		jBuilding.css("bottom", (gConfig.Unit/4)+"px");
-		break;
-	}
+	this.obj.css("left", ((gConfig.Size+this.x-this.y-1)/2) + "rem");
+	this.obj.css("bottom", gConfig.Size/2 - ((this.x+this.y+2)/2)/2 + "rem");
 	return this
 }
 
@@ -333,17 +277,6 @@ Tile.prototype.Resize = function() {
 
 function ChangeUnit(unit) {
 	gConfig.Unit = unit;
-
-	var jScreen = $("#screen");
-	jScreen.css("width", (gConfig.Unit*gConfig.Size)+"px");
-	jScreen.css("height", (gConfig.Unit*gConfig.Size)/2+"px");
-	jScreen.css("top", (gConfig.Unit/2*4)+"px");
-	var jTouchPad = $("#touchpad");
-	jTouchPad.css("width", (gConfig.Unit*gConfig.Size)+"px");
-	jTouchPad.css("height", (gConfig.Unit*gConfig.Size)/2+"px");
-	jTouchPad.css("top", (gConfig.Unit/2*4)+"px");
-
-	for(var i=0; i<Tiles.length; i++) {
-		Tiles[i].Resize();
-	}
+	$("#cssControll").html(".island{width:"+(gConfig.Size*1.086875)+"rem;height:"+(gConfig.Size*0.805)+"rem}")
+	$("html").css("font-size", gConfig.Unit+"px")
 }

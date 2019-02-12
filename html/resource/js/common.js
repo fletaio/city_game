@@ -32,13 +32,19 @@ function directByNum(o, num) {
             }
             break;
         case 1:
-            o.y--
+            if (o.y > 0) {
+                o.y--
+            }
             break;
         case 2:
-            o.x++
+            if (o.x < gConfig.Size-1) {
+                o.x++
+            }
             break;
         case 3:
-            o.y++
+            if (o.y < gConfig.Size-1) {
+                o.y++
+            }
             break;
     }
     message("o.x " + o.x + " o.y " + o.y)
@@ -73,13 +79,13 @@ document.addEventListener('keydown', function(event) {
         direction = event.keyCode-37
 
         var t = $("#menu")[0].target
-        if (typeof t !== "undefined") {
-            var o = {x:t.x,y:t.y}
-            directByNum(o, direction)
-            menuClose()
-            Tiles[o.x+o.y*gConfig.Size].Hover().Menu()
-
+        if (typeof t === "undefined") {
+            t = Tiles[0]
         }
+        var o = {x:t.x,y:t.y}
+        directByNum(o, direction)
+        menuClose()
+        Tiles[o.x+o.y*gConfig.Size].Hover().Menu()
     }
     switch (event.keyCode) {
         case 27: //esc
