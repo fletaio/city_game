@@ -13,8 +13,12 @@ function printInfo(x, y) {
     var $l = $("#info");
     var tile = Tiles[x + y * gConfig.Size]
     tile.UpdateInfo()
-    
-    $l.html("x : " + x + " y : "+y + " lv : " + tile.obj.level + " type : " + tile.Type)
+
+    if (tile.obj.BuildProcessing == true) {
+        $l.html("x : " + x + " y : "+y + " lv" + (tile.obj.level+1) + " " + tile.Type + " construction ")
+    } else {
+        $l.html("x : " + x + " y : "+y + " lv : " + tile.obj.level + " type : " + tile.Type)
+    }
 }
 
 function printLog(msg) {

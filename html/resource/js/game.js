@@ -1,8 +1,27 @@
+function initGame () {
+    ChangeUnit(gConfig.Unit)
+    var jScreen = $("#tileCase");
+    jScreen.css("width", (gConfig.Size)+"rem");
+    jScreen.css("height", (gConfig.Size)/2+"rem");
+
+    var $touchpad = $("#touchpad");
+    var jScreen = $("#screen");
+    for(var i=0; i<gConfig.Size*gConfig.Size; i++) {
+        var x = i%gConfig.Size;
+        var y = parseInt(i/gConfig.Size);
+
+        var num = getNum(x, y)
+        Tiles.push(new Tile(jScreen, $touchpad, x, y, num));
+    }
+
+}
+
 function Tile(jScreen, $touchpad, x, y, num) {
 	this.x = x;
 	this.y = y;
+	this.index = x+y*gConfig.Size;
 	newTouchDiv()
-	this.touch = newTouchDiv()
+	this.touch = newTouchDiv(this.index)
 	$touchpad.append(this.touch)
 	this.obj = newObjDiv(x,y,num);
 	jScreen.append(this.obj)
@@ -13,64 +32,64 @@ function Tile(jScreen, $touchpad, x, y, num) {
 
 function IsTile(tile) {
 	if (typeof tile === "undefined") {
-		return false
+		return false;
 	}
-	return tile.Symbol == Tile.Symbol
+	return tile.Symbol == Tile.Symbol;
 }
 
-Tile.Symbol = Symbol("Tile")
-Tile.prototype.Symbol = Tile.Symbol
+Tile.Symbol = Symbol("Tile");
+Tile.prototype.Symbol = Tile.Symbol;
 Tile.prototype.Type = "empty";
 
 Tile.prototype.Hover = function() {
-	this.UI.Hover()
+	this.UI.Hover();
 	printInfo(this.x, this.y);
 	return this;
 }
 
 Tile.prototype.SelectTile = function() {
-	this.UI.SelectTile()
+	this.UI.SelectTile();
 	return this;
 }
 
 function LvFTiles () {
-	this.maxCoordinate = 0
-	this.candidate = []
-	this.indexer = {}
-	this.headTile = null
+	this.maxCoordinate = 0;
+	this.candidate = [];
+	this.indexer = {};
+	this.headTile = null;
 }
 function IsLvFTiles(lvFTiles) {
 	if (typeof lvFTiles === "undefined") {
-		return false
+		return false;
 	}
-	return lvFTiles.Symbol == LvFTiles.Symbol
+	return lvFTiles.Symbol == LvFTiles.Symbol;
 }
-LvFTiles.Symbol = Symbol("LvFTiles")
-LvFTiles.prototype.Symbol = LvFTiles.Symbol
+LvFTiles.Symbol = Symbol("LvFTiles");
+LvFTiles.prototype.Symbol = LvFTiles.Symbol;
 LvFTiles.prototype.PutCandidate = function(tile) {
 	if (!IsTile(tile)) {
-		throw "is not Tile"
+		throw "is not Tile";
 	}
 	if (typeof this.level === "undefined") {
-		this.level = tile.obj.level
+		this.level = tile.obj.level;
 	} else if (this.level != tile.obj.level) {
-		return false
+		return false;
 	}
 	if (typeof this.Type === "undefined") {
-		this.Type == tile.Type
+		this.Type == tile.Type;
 	} else if (this.Type != tile.Type) {
-		return false
+		return false;
 	}
 
 	if (typeof this.indexer[tile.x] === "undefined") {
-		this.indexer[tile.x] = {}
+		this.indexer[tile.x] = {};
 	}
-	this.indexer[tile.x][tile.y] = tile.x + tile.y*gConfig.Size
+	this.indexer[tile.x][tile.y] = tile.x + tile.y*gConfig.Size;
 	if (this.maxCoordinate < this.indexer[tile.x][tile.y]) {
-		this.maxCoordinate = this.indexer[tile.x][tile.y]
+		this.maxCoordinate = this.indexer[tile.x][tile.y];
 	}
-	this.Is = undefined
-	this.candidate.push(tile)
+	this.Is = undefined;
+	this.candidate.push(tile);
 }
 LvFTiles.prototype.CheckLvF = function() {
 	if (typeof this.Is === "undefined") {
@@ -162,24 +181,19 @@ Tile.prototype.Build = function(type) {
 	}
 	switch(this.obj.level) {
 	case 0:
-		// this.obj.level = 1;
 		this.Type = type;
 		this.UI.BuildUpLv1()
 		break;
 	case 1:
-		// this.obj.level = 2;
 		this.UI.BuildUpLv2()
 		break;
 	case 2:
-		// this.obj.level = 3;
 		this.UI.BuildUpLv3()
 		break;
 	case 3:
-		// this.obj.level = 4;
 		this.UI.BuildUpLv4()
 		break;
 	case 4:
-		// this.obj.level = 5;
 		this.UI.BuildUpLv5()
 		break;
 	case 5:
@@ -205,17 +219,11 @@ Tile.prototype.Resize = function() {
 function ChangeUnit(unit) {
 	gConfig.Unit = unit;
 
-
 	var h = [], i =0
 	h[i++] = ".island{width:"+(gConfig.Size*1.086875)+"rem;height:"+(gConfig.Size*0.805)+"rem}"
-	
-// {
-//     top: 4.03rem;
-//     left: 0.7rem;
-// }
-
 	h[i++] = "#tileCase{top:"+(gConfig.Size*0.251875)+"rem;left:"+(gConfig.Size*0.04375)+"rem}"
 
 	$("#cssControll").html(h.join("\n"));
+
 	$("html").css("font-size", gConfig.Unit+"px");
 }

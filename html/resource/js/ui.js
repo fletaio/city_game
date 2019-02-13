@@ -5,7 +5,6 @@ function menuClose () {
 	delete $menu[0].target;
 	$menu.hide();
 	deleteMenu();
-	$("#cover").hide();
 }
 
 function deleteMenu() {
@@ -26,7 +25,6 @@ function menuOpen(tile) {
 	deleteMenu();
 	addMenu(MENU["lv"+tile.obj.level]);
 	message("menu open x : " + tile.x + " y : " + tile.y );
-	$("#cover").show();
 	var $menu = $("#menu");
 	$menu[0].target = tile;
 	tile.SelectTile();
@@ -165,11 +163,14 @@ TileUI.prototype.completBuilding = function (lv) {
 		for ( var i = 0 ; i < checker.candidate.length ; i++ ) {
 			var tile = checker.candidate[i];
 			tile.obj.level = 6;
+			tile.obj.BuildProcessing = false;
 			tile.UpdateInfo();
 		}
 		var fileTail = "_LvFLETA"
 	} else  {
 		this.Tile.obj.level++
+		this.Tile.obj.BuildProcessing = false
+		this.Tile.UpdateInfo();
 		if (this.Tile.obj.level < 5) {
 			var fileTail = "_Lv1"
 		} else {
@@ -177,8 +178,6 @@ TileUI.prototype.completBuilding = function (lv) {
 		}
 	}
 	this.Tile.obj.find("."+lv+".building").attr("src", "/images/building/"+this.Tile.Type+""+fileTail+".png")
-	this.Tile.obj.BuildProcessing = false
-	this.Tile.UpdateInfo();
 
 	var $menu = $("#menu");
 	if ($menu[0].target == this.Tile) {
@@ -186,8 +185,8 @@ TileUI.prototype.completBuilding = function (lv) {
 	}
 }
 
-function newTouchDiv() {
-	return $("<div/>")
+function newTouchDiv(index) {
+	return $("<div tileindex="+index+"/>")
 		.append($("<div class='scaleArea'><div class='hoverArea'/></div>"))
 		.append($("<span/>"))
 }

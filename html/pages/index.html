@@ -1,8 +1,33 @@
 <indexStyle>
     <link href="/css/background.css" rel="stylesheet" type="text/css" />
+    <link href="/css/login.css" rel="stylesheet" type="text/css" />
     <link href="/css/object.css" rel="stylesheet" type="text/css" />
+    <script src="/js/login.js"></script>
     <style id="cssControll"></style>
 </indexStyle>
+
+<login>
+    <div class="loginPage">
+        <div class="login-choose-view" step="init" >
+            <button class="login-login" onclick="nextStep('login')"></button>
+            <button class="login-join" onclick="nextStep('join')"></button>
+        </div>
+        <div class="login-login-view" step="login" >
+            <span class="id-field"><input type="text" id="loginId" /></span>
+            <span class="pw-field"><input type="text" id="loginPw" /></span>
+            <button class="login-login" onclick="login()"></button>
+        </div>
+        <div class="login-join-view" step="join" >
+            <span class="eth-addr-field"><input type="text" id="ethAddr" /></span>
+            <span class="id-field"><input type="text" id="joinId" /></span>
+            <span class="pw-field"><input type="text" id="joinPw" /></span>
+            <button class="login-join" onclick="join()"></button>
+        </div>
+        <!-- <button id="login-join"></button>
+        <button id="login-login"></button>
+        <button id="login-check"></button> -->
+    </div>
+</login>
 
 <panel>
     <div class="islandCase">
@@ -18,7 +43,6 @@
                     <div id="tileCase">
                         <div id="touchpad"></div>
                         <div id="screen"></div>
-                        <div id="cover"></div>
                     </div>
                     <div class="tileBackground">
                         <div class="tileBackground1"></div>
@@ -59,20 +83,7 @@ var gConfig = {
     Size: 16,
 }
 $(function () {
-    ChangeUnit(gConfig.Unit)
-    var jScreen = $("#tileCase");
-    jScreen.css("width", (gConfig.Size)+"rem");
-    jScreen.css("height", (gConfig.Size)/2+"rem");
-
-    var $touchpad = $("#touchpad");
-    var jScreen = $("#screen");
-    for(var i=0; i<gConfig.Size*gConfig.Size; i++) {
-        var x = i%gConfig.Size;
-        var y = parseInt(i/gConfig.Size);
-
-        var num = getNum(x, y)
-        Tiles.push(new Tile(jScreen, $touchpad, x, y, num));
-    }
+    initGame()
 })
 </script>
 </gamecode>

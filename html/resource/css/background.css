@@ -5,6 +5,7 @@ html, body {
 }
 
 body {
+    /* background: linear-gradient( to bottom, #040508 0%,  #1b2436 40%, #1b2436 70%,  #35b6f3 80%, #35b6f3 100%); */
     background: linear-gradient( to bottom, #040508 0%,  #040508 50%,  #35b6f3 50%, #35b6f3 100%);
     position: relative;
 }
@@ -28,6 +29,7 @@ body {
     display: table-cell;
     vertical-align: middle;
     width: 100%;
+    height: 100%;
     z-index:0;
 }
 .islandCenterDot{
@@ -80,11 +82,10 @@ body {
 
 .skyBackground{
     width: 100%;
-    background-image: url("/images/background/sky.png");
-    background-size: 30px 100%;
     height: 80%;
-    position: relative;
-    z-index:0;
+    background-image: url("/images/background/sky.png");
+    background-size: contain;
+    background-repeat: repeat-x;
 }
 
 #startField {}

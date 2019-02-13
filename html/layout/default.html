@@ -12,15 +12,27 @@
 	<link href="https://fonts.googleapis.com/css?family=Geo" rel="stylesheet">
 	<script src="/js/jquery-2.2.0.min.js"></script>
 	<script src="/js/loading.js"></script>
+	<script>
+		$(function () {
+			$("#PreLoadLayer").remove()
+		})
+	</script>
 
 	{{gamecode}}
 
 	{{indexStyle}}
 </head>
 <body>
-	{{loading}}
+
+    {{loading}}
 	<div class="after-loading-content">
-		{{panel}}
+		<section id="login">
+			{{login}}
+		</section>
+		<section id="game">
+			{{panel}}
+		</section>
 	</div>
+	<div id="PreLoadLayer" style="width:1px;height:1px;opacity: 0.01;position: absolute;top:0;right:0;">{{preloadResource}}</div>
 </body>
 </html>
