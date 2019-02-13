@@ -7,6 +7,10 @@
     right: 0;
     bottom: 0;
     background-color: #1b2436;
+    background-image: url("/images/background/Login_UI-mainBG.png");
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
     display: table;
 }
 

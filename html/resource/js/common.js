@@ -46,18 +46,6 @@ function getNum (x, y) {
     return (parseInt(Math.log2((x+1)*73)*100 + Math.log10((y+1)*4321)*100)%10+1);
 }
 
-function deleteMenu() {
-    $("#menu").html("")
-}
-
-function addMenu(funcs) {
-    //<button id="btn1" onclick="$('#menu')[0].target.Demolition()" value="DEMOLITION">Demolition</button>
-    for (var key in funcs) {
-        var btn = $("<button id=\""+funcs[key]+"\" onclick=\"$('#menu')[0].target.RunCommand('"+funcs[key]+"')\" value=\""+key+"\">"+key+"</button>")
-        $("#menu").append(btn)
-    }
-}
-
 function getXYFromIndex(i) {
     if (i>=0 && i<=gConfig.Size*gConfig.Size) {
         return {x : i%gConfig.Size, y : parseInt(i/gConfig.Size)}
@@ -77,7 +65,7 @@ document.addEventListener('keydown', function(event) {
         var o = {x:t.x,y:t.y}
         directByNum(o, direction)
         menuClose()
-        Tiles[o.x+o.y*gConfig.Size].Hover().Menu()
+        menuOpen(Tiles[o.x+o.y*gConfig.Size].Hover())
     }
     switch (event.keyCode) {
         case 27: //esc
@@ -146,14 +134,21 @@ var speed = 30
 $(function () {
     var $startField = $("#startField")
     var $body = $("body")
+
+    var getStar = function (right) {
+        if (typeof right === "undefined") {
+            right = -100
+        }
+        var i = Math.floor(Math.random() * (14 - 1)) + 1;
+        if(i > 5) {
+            i = i % 4 + 2;
+        }
+        var top =  Math.floor(Math.random() * ($body.height() - 1)) + 1;
+        return "<img src='/images/background/stars_"+i+".png' style='top:"+top+"px;right:"+right+"px;' />"
+    }
     var make = function () {
         if (Math.random() < Frequency) {
-            var i = Math.floor(Math.random() * (14 - 1)) + 1;
-            if(i > 5) {
-                i = i % 4 + 2;
-            }
-            var top = Math.floor(Math.random() * ($body.height() - 1)) + 1;
-            $startField.prepend($("<img src='/images/background/stars_"+i+".png' style='top:"+top+"px;right:-100px;' />"))
+            $startField.prepend($(getStar()))
         }
         sendLeft($startField.find("img"), $body.width())
     }
@@ -162,13 +157,8 @@ $(function () {
     var bH = $body.height();
     var bW = $body.width();
     for (var j = 0 ; j < (speed*bH*bW)/1000000 ; j++) {
-        var i = Math.floor(Math.random() * (14 - 1)) + 1;
-        if(i > 5) {
-            i = i % 4 + 2;
-        }
-        var top = Math.floor(Math.random() * (bH - 1)) + 1;
         var right = Math.floor(Math.random() * (bW - 1)) - 100;
-        h[k++] = "<img src='/images/background/stars_"+i+".png' style='top:"+top+"px;right:"+right+"px;' />"
+        h[k++] = getStar(right)
     }
     $startField.html(h.join())
     setInterval(make, interval)
@@ -179,7 +169,7 @@ function sendLeft ($eles, maxWidth) {
     for (var i = 0 ; i < $eles.length ; i++ ) {
         var t = $eles.eq(i);
         var left = parseInt(t.css("right"))
-        t.css("right", (left+(speed*interval/1000))+"px")
+        t.css("right", (left+(speed*(interval/1000)))+"px")
         if (left > maxWidth) {
             deleteList.push(t)
         }
