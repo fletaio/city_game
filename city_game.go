@@ -1,10 +1,13 @@
 package citygame
 
 import (
+	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"runtime"
 	"strings"
+	"time"
 
 	"git.fleta.io/fleta/city_game/template"
 )
@@ -35,6 +38,8 @@ func Start() {
 		TemplatePath: libPath + "/html/pages/",
 		LayoutPath:   libPath + "/html/layout/",
 	})
+
+	t.AddController("", &IndexController{})
 
 	http.HandleFunc("/", pageHandler)
 
@@ -71,4 +76,22 @@ func handleErrorCode(errorCode int, description string, w http.ResponseWriter) {
 	data, _ := ioutil.ReadFile(libPath + "/html/errors/error-1.html")
 
 	w.Write(data)
+}
+
+type IndexController struct{}
+
+func (i *IndexController) Index(r *http.Request) (map[string][]byte, error) {
+	v := map[string][]byte{
+		"time": []byte(fmt.Sprintf("%v", time.Now().UnixNano())),
+	}
+	log.Println(v)
+	return v, nil
+}
+
+func (i *IndexController) Test(r *http.Request) (map[string][]byte, error) {
+	v := map[string][]byte{
+		"time": []byte(fmt.Sprintf("%v", time.Now().UnixNano())),
+	}
+	log.Println(v)
+	return v, nil
 }

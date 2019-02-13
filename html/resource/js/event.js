@@ -36,7 +36,7 @@ function mouseup (e) {
 	})
 }
 function mousemove (e) {
-	if (islandMove) {
+	if (islandMove && !startTouchPitch) {
 		islandMoved = true;
 		var o = getPoint(e);
 		islandMoveFunc(o)
@@ -102,54 +102,70 @@ function mousewheel (e) {
 	islandMove = undefined;
 
 }
+
 var tpCache = []
+var startDiff = {}
 function touchstart (e) {
 	var ev = e.originalEvent
-	if (ev.targetTouches.length == 2) {
-		alert(ev.targetTouches.length)
-		for (var i=0; i < ev.targetTouches.length; i++) {
-			tpCache.push(ev.targetTouches[i]);
-		}
+	for (var i = 0 ; i < ev.targetTouches.length ; i++ ) {
+		tpCache.push(ev.targetTouches[i])
+	}
+	if (tpCache.length == 2) {
+		startDiff = {}
+		startDiff.x = Math.abs(tpCache[0].clientX - tpCache[1].clientX)
+		startDiff.y = Math.abs(tpCache[0].clientY - tpCache[1].clientY)
 	}
 }
-function touchend (e) {
 
+function touchend (e) {
+	tpCache = []
+	startDiff = {}
+	startTouchPitch = false
 }
+
+var startTouchPitch = false
+var timeIntervalFleg = true
 function touchmove (e) {
 	var ev = e.originalEvent
-	if (ev.targetTouches.length == 2 && ev.changedTouches.length == 2) {
-		// Check if the two target touches are the same ones that started
-		// the 2-touch
-		var point1=-1, point2=-1;
-		for (var i=0; i < tpCache.length; i++) {
-		  if (tpCache[i].identifier == ev.targetTouches[0].identifier) point1 = i;
-		  if (tpCache[i].identifier == ev.targetTouches[1].identifier) point2 = i;
+	if (tpCache.length == 2) {
+		startTouchPitch = true
+		for (var i = 0 ; i < ev.targetTouches.length ; i++ ) {
+			if (tpCache[0].identifier == ev.targetTouches[i].identifier) tpCache[0] = ev.targetTouches[i]
+			if (tpCache[1].identifier == ev.targetTouches[i].identifier) tpCache[1] = ev.targetTouches[i]
 		}
-		if (point1 >=0 && point2 >= 0) {
-		  // Calculate the difference between the start and move coordinates
-		  var diff1 = Math.abs(tpCache[point1].clientX - ev.targetTouches[0].clientX);
-		  var diff2 = Math.abs(tpCache[point2].clientX - ev.targetTouches[1].clientX);
-	 
-		  // This threshold is device dependent as well as application specific
-		  var PINCH_THRESHHOLD = ev.target.clientWidth / 10;
-		  if (diff1 >= PINCH_THRESHHOLD && diff2 >= PINCH_THRESHHOLD)
-			  ev.target.style.background = "green";
+
+		if (timeIntervalFleg) {
+			timeIntervalFleg = false
+
+			var endDiff = {
+				x : Math.abs(tpCache[0].clientX-tpCache[1].clientX),
+				y : Math.abs(tpCache[0].clientY-tpCache[1].clientY)
+			}
+		
+			var dist = calcDistance(startDiff, endDiff)
+		
+			var unit = lockUpValueRange(gConfig.Unit+dist, 10, 300)
+			if (gConfig.Unit !== unit) {
+				ChangeUnit(unit)
+				islandMoveFunc(islandMove)
+			}
+			setTimeout(function () {
+				timeIntervalFleg = true
+			}, 100)
 		}
-		else {
-		  // empty tpCache
-		  tpCache = new Array();
-		}
-	  }
+	
+	
+	}
 }
 $(document)
+	.on('mousedown touchstart', 'body', mousedown)
+	.on('mouseup touchend touchcancel', 'body', mouseup)
+	.on('mousemove touchmove', 'body', mousemove)
+	.on('mousewheel', 'body', mousewheel)
 	.on('touchstart', 'body', touchstart)
 	.on('touchend', 'body', touchend)
 	.on('touchcancel', 'body', touchend)
 	.on('touchmove', 'body', touchmove)
-	.on('mousedown touchstart', 'body', mousedown)
-	.on('mouseup touchend', 'body', mouseup)
-	.on('mousemove touchmove', 'body', mousemove)
-	.on('mousewheel', 'body', mousewheel)
 ;
 
 function getPoint(e) {

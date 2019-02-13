@@ -97,23 +97,6 @@
     color: #fff;
 }
 
-#logTool {
-    width: 20%;
-    position: fixed;
-    right: 0;
-    top: 0;
-    height: 20px;
-    overflow: auto;
-}
-#log {
-    width: 20%;
-    position: fixed;
-    right: 0;
-    top: 20px;
-    bottom:0;
-    overflow: auto;
-}
-
 .scaleArea {
     width: 70.7%;
     height: 141.4%;
