@@ -5,14 +5,14 @@ Tile.prototype.RunCommand = function(func) {
 		tile = this[func]();
 		menuOpen(tile);
 
-		// setTimeout(function () {
-		// 	if (func == "Demolition") {
-		// 		onMessage({_init:true}, {data : "{\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":"+buildingNum(tile.Type)+",\"level\":"+(tile.obj.level+1)+",\"type\":0}"})
-		// 	} else {
-		// 		onMessage({_init:true}, {data : "{\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":0,\"level\":"+(tile.obj.level+1)+",\"type\":1}"})
-		// 	}
-		// }, 100)
-		sendServer(func, tile)
+		setTimeout(function () {
+			if (func == "Demolition") {
+				onMessage({_init:true}, {data : "{\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":0,\"level\":0,\"type\":0}"})
+			} else {
+				onMessage({_init:true}, {data : "{\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":"+buildingNum(tile.Type)+",\"level\":"+(tile.obj.level+1)+",\"type\":1}"})
+			}
+		}, 100)
+		// sendServer(func, tile)
 	}
 
 	return tile

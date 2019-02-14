@@ -87,7 +87,8 @@ function Tile(jScreen, $touchpad, x, y, num, type, level) {
 	newTouchDiv()
 	this.touch = newTouchDiv(this.index)
 	$touchpad.append(this.touch)
-	this.obj = newObjDiv(x,y,num);
+	this.num = num
+	this.obj = newObjDiv(x, y, this.num);
 	jScreen.append(this.obj)
 	this.obj.level = level||0;
 	this.Type = type||"empty";
@@ -240,7 +241,7 @@ Tile.prototype._remove = function() {
 	this.obj.find(".building").detach();
 	this.obj.level = 0;
 	this.touch.find(".hoverArea").attr("class", "hoverArea");
-	this.obj.find(".floor").attr("src", "/images/tile/building_floor.png").attr("class", "floor");
+	this.obj.find(".floor").attr("src", "/images/tile/base_floor/groundtiles_tile"+this.num+".png").attr("class", "floor");
 
 	delete this.Type;
 	delete this.obj.headTile;
@@ -256,6 +257,8 @@ Tile.prototype.Remove = function() {
 	} else {
 		this._remove().UpdateInfo();
 	}
+	menuClose()
+	menuOpen(this)
 	return this;
 }
 

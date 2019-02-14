@@ -28,6 +28,8 @@ function menuOpen(tile) {
 	var $menu = $("#menu");
 	$menu[0].target = tile;
 	tile.SelectTile();
+	var offset = tile.obj.offset()
+	$menu.css("top", offset.top).css("left", offset.left)
 	$menu.show();
 }
 

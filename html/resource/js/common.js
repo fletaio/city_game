@@ -87,6 +87,7 @@ document.addEventListener('keydown', function(event) {
             break;
         case 68: //d
             $("button#Demolition").click()
+            break;
         case 85: //u
             $("button#Upgrade").click()
             break;

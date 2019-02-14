@@ -1,5 +1,5 @@
 var MENU = {
-	lv0 : {"Industrial District":"Industrial", "Residential District" : "Residential", "Commercial District" : "Commercial"},
+	lv0 : {"Industrial":"Industrial", "Residential" : "Residential", "Commercial" : "Commercial"},
 	lv1 : {"Demolition":"Demolition", "Upgrade":"Upgrade"},
 	lv2 : {"Demolition":"Demolition", "Upgrade":"Upgrade"},
 	lv3 : {"Demolition":"Demolition", "Upgrade":"Upgrade"},
