@@ -15,3 +15,24 @@
     overflow: auto;
     color: #fff;
 }
+
+#scoreboard {
+    color: #fff;
+}
+
+#scoreboard #dollar,
+#scoreboard #power,
+#scoreboard #demographic {
+    width: 11.3vh;
+    height: 4vh;
+    padding-left: 2.5vh;
+    font-size: 2vh;
+    line-height: 3.5vh;
+    text-align: center;
+    background-size: cover;
+    display: inline-block;
+}
+
+#scoreboard #dollar {background-image: url("/images/ui/dollar.png");}
+#scoreboard #power {background-image: url("/images/ui/power.png");}
+#scoreboard #demographic {background-image: url("/images/ui/demographic.png");}

@@ -4,9 +4,34 @@ function initGame () {
     jScreen.css("width", (gConfig.Size)+"rem");
     jScreen.css("height", (gConfig.Size)/2+"rem");
 
-
 	connectToServer(loginInfo.Addr)
 	loadTile()
+	scoreReloader()
+}
+
+function scoreReloader() {
+	scoreReloader.obj = setInterval(function () {
+		$.ajax({
+			type: "GET",
+			url : "/api/reports/"+loginInfo.Addr,
+			success : function (d) {
+				if (typeof d === "string") {
+					d = JSON.parse(d)
+				}
+				var $scoreBoard = $("#scoreboard")
+				for (var key in d) {
+					var $board = $scoreBoard.find("[key='"+key+"']")
+					if ($board.length > 0) {
+						$board.html(d[key])
+					}
+				}
+				
+			},
+			error: function(d) {
+			}
+		})
+	
+	}, 1000)
 }
 
 function loadTile() {
@@ -54,6 +79,7 @@ function loadTile() {
 
 }
 
+
 function Tile(jScreen, $touchpad, x, y, num, type, level) {
 	this.x = x;
 	this.y = y;
@@ -64,12 +90,15 @@ function Tile(jScreen, $touchpad, x, y, num, type, level) {
 	this.obj = newObjDiv(x,y,num);
 	jScreen.append(this.obj)
 	this.obj.level = level||0;
-	this.Type = type;
+	this.Type = type||"empty";
 	this.Resize();
 	this.UI = new TileUI(this)
 	if (this.obj.level > 0) {
 		if (this.obj.level < 6) {
-			this.UI["BuildUpLv"+this.obj.level]()
+			this.obj.level--
+			this.UI.BuildUp()
+			this.obj.level = level
+			this.UI.completBuilding(this.obj.level)
 		}
 	}
 }
@@ -207,50 +236,55 @@ Tile.prototype.UpdateInfo = function() {
 	return this
 }
 
-Tile.prototype.Remove = function() {
+Tile.prototype._remove = function() {
 	this.obj.find(".building").detach();
 	this.obj.level = 0;
-	this.Type = "empty";
 	this.touch.find(".hoverArea").attr("class", "hoverArea");
 	this.obj.find(".floor").attr("src", "/images/tile/building_floor.png").attr("class", "floor");
 
+	delete this.Type;
 	delete this.obj.headTile;
 	return this;
 }
 
-Tile.prototype.Build = function(type) {
+Tile.prototype.Remove = function() {
+	if (this.obj.level == 6) {
+		var checker = this.CheckLvRound(6)
+		for ( var i = 0 ; i < checker.candidate.length ; i++ ) {
+			checker.candidate[i]._remove().UpdateInfo();
+		}
+	} else {
+		this._remove().UpdateInfo();
+	}
+	return this;
+}
+
+Tile.prototype.ValidateBuild = function() {
+	//TODO check resource
+
 	if (this.obj.BuildProcessing == true) {
 		message("It is not possible to build on a tile under construction.")
-		return this
+		return false;
 	}
-	var targetTile = this;
-	switch(this.obj.level) {
-	case 0:
-		this.Type = type;
-		this.UI.BuildUpLv1()
-		break;
-	case 1:
-		this.UI.BuildUpLv2()
-		break;
-	case 2:
-		this.UI.BuildUpLv3()
-		break;
-	case 3:
-		this.UI.BuildUpLv4()
-		break;
-	case 4:
-		this.UI.BuildUpLv5()
-		break;
-	case 5:
+
+	if (this.obj.level == 5) {
 		var checker = this.CheckLvRound();
-		if (checker.CheckLvF()) {// buildable lvF
-			this.UI.BuildUpLv6(checker)
-			targetTile = checker.headTile;
+		if (!checker.CheckLvF()) {
+			return false;
 		}
-		break;
 	}
-	printInfo(this.x, this.y);
-	return targetTile;
+
+	return true;
+}
+
+Tile.prototype.Build = function(type) {
+	if (buildingNum(type) > 0) {
+		this.Type = type
+	}
+	if (this.ValidateBuild()) {
+		return this.UI.BuildUp();
+	}
+	return this
 };
 
 Tile.prototype.Resize = function() {

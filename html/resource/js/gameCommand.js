@@ -4,6 +4,14 @@ Tile.prototype.RunCommand = function(func) {
 		message("command : "+ func + " x : " + this.x + " y : " + this.y );
 		tile = this[func]();
 		menuOpen(tile);
+
+		// setTimeout(function () {
+		// 	if (func == "Demolition") {
+		// 		onMessage({_init:true}, {data : "{\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":"+buildingNum(tile.Type)+",\"level\":"+(tile.obj.level+1)+",\"type\":0}"})
+		// 	} else {
+		// 		onMessage({_init:true}, {data : "{\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":0,\"level\":"+(tile.obj.level+1)+",\"type\":1}"})
+		// 	}
+		// }, 100)
 		sendServer(func, tile)
 	}
 
@@ -11,14 +19,14 @@ Tile.prototype.RunCommand = function(func) {
 }
 
 Tile.prototype.Demolition = function() {
-	if (this.obj.level == 6) {
-		var checker = this.CheckLvRound(6)
-		for ( var i = 0 ; i < checker.candidate.length ; i++ ) {
-			Tiles[checker.candidate[i]].Remove().UpdateInfo();
-		}
-	} else {
-		this.Remove();
-	}
+	// if (this.obj.level == 6) {
+	// 	var checker = this.CheckLvRound(6)
+	// 	for ( var i = 0 ; i < checker.candidate.length ; i++ ) {
+	// 		Tiles[checker.candidate[i]].Remove().UpdateInfo();
+	// 	}
+	// } else {
+	// 	this.Remove();
+	// }
 	menuClose();
 	return this;
 }
@@ -43,6 +51,17 @@ function buildingType(num) {
 		return "Industrial"
 		case 3:
 		return "Residential"
+	}
+}
+
+function buildingNum(str) {
+	switch (str) {
+		case "Commercial":
+		return 1
+		case "Industrial":
+		return 2
+		case "Residential":
+		return 3
 	}
 }
 

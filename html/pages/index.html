@@ -18,12 +18,12 @@
             <button class="login-join" onclick="nextStep('join')"></button>
         </div>
         <div class="login-login-view" step="login" >
-            <span class="id-field"><input type="text" id="loginId" /></span>
+            <span class="id-field"><input type="text" id="loginId" class="focus" /></span>
             <span class="pw-field"><input type="text" id="loginPw" /></span>
             <button class="login-login" onclick="login()"></button>
         </div>
         <div class="login-join-view" step="join" >
-            <span class="eth-addr-field"><input type="text" id="ethAddr" /></span>
+            <span class="eth-addr-field"><input type="text" id="ethAddr" class="focus" /></span>
             <span class="id-field"><input type="text" id="joinId" /></span>
             <span class="pw-field"><input type="text" id="joinPw" /></span>
             <button class="login-join" onclick="join()"></button>
@@ -60,15 +60,17 @@
         </div>
     </div>
     <div class="ui_layout">
+        <div id="scoreboard">
+            <!-- {"balance":2748,"power_remained":0,"power_provided":20,"man_remained":4,"man_provided":15} -->
+            <span id="dollar" key="balance"></span>
+            <span id="power"><span key="power_remained"></span>/<span key="power_provided"></span></span>
+            <span id="demographic"><span key="man_remained"></span>/<span key="man_provided"></span></span>
+        </div>
         <div id="tool" class="ui_element">
             <button id="hideBuilding" onclick="ViewChanger()">Hide Building</button>
         </div>
         <div id="info" class="ui_element"></div>
         <div id="menu" class="ui_element"></div>
-        <div id="logTool" class="ui_element">
-            <button id="logClean" onclick="logClean()">Clean</button>
-        </div>
-        <div id="log" class="ui_element"></div>
     </div>
 </panel>
 

@@ -4,8 +4,7 @@ function message(msg) {
     } else {
         var m = "message : " + msg
     }
-    console.log(m)
-    printLog(m)
+    // console.log(m)
 
 }
 
@@ -69,7 +68,9 @@ document.addEventListener('keydown', function(event) {
         var o = {x:t.x,y:t.y}
         directByNum(o, direction)
         menuClose()
-        menuOpen(Tiles[o.x+o.y*gConfig.Size].Hover())
+        if (Tiles[o.x+o.y*gConfig.Size]) {
+            menuOpen(Tiles[o.x+o.y*gConfig.Size].Hover())
+        }
     }
     switch (event.keyCode) {
         case 27: //esc

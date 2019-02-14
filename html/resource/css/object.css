@@ -41,7 +41,7 @@
 #touchpad.hideBuilding .Commercial{background-color: #f0f;} */
 /* #touchpad.hideBuilding span {display: block;} */
 /* #touchpad.hideBuilding .scaleArea {opacity: 0.2;} */
-#screen.hideBuilding .building.lvF{
+#screen.hideBuilding .building.lv6{
     pointer-events: none;
     opacity: 0.3;
 }
@@ -82,13 +82,13 @@
     width: 1rem;
     z-index:3;
 }
-#screen .building.lvF{
+#screen .building.lv6{
     width: 2rem;
     left: -0.5rem;
     z-index:3;
 }
 
-#screen .floor.lvF {
+#screen .floor.lv6 {
     width: 2rem;
     left: -0.5rem;
 }

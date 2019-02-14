@@ -229,8 +229,7 @@ function connectToServer (addr) {
 
 }
 
-function onMessage(ws,  e)
-{
+function onMessage(ws,  e) {
 	console.log("MSG", e.data);
 	if(!ws._init) {
 		ws._init = true;
@@ -243,9 +242,11 @@ function onMessage(ws,  e)
 		switch(noti.type) {
 		case 0://Demolition
 			console.log("Demolition applied", noti.x, noti.y);
+			Tiles[+noti.x + +noti.y * gConfig.Size].Remove()
 			break;
 		case 1://Upgrade
-			console.log("Upgrade applied", noti.x, noti.y, noti.area_type, noti.target_level);
+			console.log("Upgrade applied", noti.x, noti.y, noti.area_type, noti.level);
+			Tiles[+noti.x + +noti.y * gConfig.Size].UI.completBuilding(noti.level)
 			break;
 		}
 	}

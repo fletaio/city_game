@@ -15,6 +15,7 @@ function initStep () {
 function nextStep (step) {
     $("[step]").hide()
     $("[step='"+step+"']").show()
+    $("[step='"+step+"'].focus, [step='"+step+"'] .focus").focus()
 }
 
 function validate (str) {
