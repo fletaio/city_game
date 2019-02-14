@@ -1,3 +1,13 @@
+var loginInfo;
+function LoginInfo(key, addr, seq) {
+    this.Key = key;
+    this.Addr = addr;
+    this.Seq = seq;
+}
+
+LoginInfo.Simbol = Symbol("LoginInfo");
+LoginInfo.prototype.Simbol = LoginInfo.Simbol;
+
 function initStep () {
     nextStep ("init")
 }
@@ -7,21 +17,102 @@ function nextStep (step) {
     $("[step='"+step+"']").show()
 }
 
+function validate (str) {
+    if (str.length < 4) {
+        return false;
+    }
+}
+
 function join () {
-    $("#ethAddr").val()
-    $("#joinId").val()
-    $("#joinPw").val()
-    alert("join")
+    var ethAddr = $("#ethAddr").val()
+    var userid = $("#joinId").val()
+    var userpw = $("#joinPw").val()
+
+    if (validate(userid)) {
+        alert("check id")
+        return
+    }
+    if (validate(userpw)) {
+        alert("check pw")
+        return
+    }
+    if (validate(ethAddr)) {
+        alert("check ethAddr")
+        return
+    }
+
+    var key = getPubKey(userid, userpw)
+    var pk = key.getPublic().encodeCompressed("hex")
+
+    $.ajax({
+        type: "POST",
+        url : "/api/accounts",
+        data : {
+            "public_key": pk,
+            "user_id": userid,
+            "reward": ethAddr
+        },
+        success : function (d) {
+            d = JSON.parse(d)
+            alert("Address Issue Success : "+ d.address + ", go to login")
+            nextStep("login")
+        },
+        error: function(d) {
+            alert("error")
+        }
+    })
 }
 
 function login () {
-    $("#loginId").val()
-    $("#loginPw").val()
-    alert("login")
-    loginSuccess()
+    var userid = $("#loginId").val()
+    var userpw = $("#loginPw").val()
+
+    if (validate(userid)) {
+        alert("check id")
+        return
+    }
+    if (validate(userpw)) {
+        alert("check pw")
+        return
+    }
+
+    var key = getPubKey(userid, userpw)
+    var pk = key.getPublic().encodeCompressed("hex")
+
+    $.ajax({
+        type: "POST",
+        url : "/api/accounts",
+        data : {
+            "public_key": pk,
+            "user_id": userid
+        },
+        success : function (d) {
+            d = JSON.parse(d)
+            loginInfo = new LoginInfo(key, d.address, d.seq)
+            alert("login Success")
+            loginSuccess()
+        },
+        error: function(d) {
+            alert("error")
+        }
+    })
+
 }
 
 function loginSuccess() {
     $("#login").hide()
     $("#game").show()
+    initGame()
+}
+
+function getPubKey (userid, userpw) {
+    userid = SHA2(userid);
+	userpw = SHA2(userpw);
+	var salt = SHA2("this is fleta city game");
+	var keyHex = SHA2(userid+"#"+userpw+"#"+salt);
+	var key = ec.keyPair({
+		priv: keyHex,
+		privEnc: "hex",
+    });
+    return key.getPublic().encodeCompressed("hex")
 }

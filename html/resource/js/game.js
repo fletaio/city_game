@@ -14,6 +14,33 @@ function initGame () {
         Tiles.push(new Tile(jScreen, $touchpad, x, y, num));
     }
 
+	loadTile()
+}
+
+function loadTile() {
+	$.ajax({
+		type: "GET",
+		url : "/api/games/"+loginInfo.Addr,
+		success : function (d) {
+			d = JSON.parse(d)
+			console.log("init game")
+			console.log(d)
+			/*
+				"height": HEIGHT_INT,
+				"point_height": POINT_HEIGHT_INT,
+				"point_balance": POINT_BALANCE_INT,
+				"tiles": [{
+					"area_type": AREA_TYPE_INT,
+					"level": LEVEL_INT,
+					"build_height": BUILD_HEIGHT_INT
+				}]
+			*/
+		},
+		error: function(d) {
+			alert("error")
+		}
+	})
+
 }
 
 function Tile(jScreen, $touchpad, x, y, num) {
@@ -177,8 +204,9 @@ Tile.prototype.Remove = function() {
 Tile.prototype.Build = function(type) {
 	if (this.obj.BuildProcessing == true) {
 		message("It is not possible to build on a tile under construction.")
-		return
+		return this
 	}
+	var targetTile = this;
 	switch(this.obj.level) {
 	case 0:
 		this.Type = type;
@@ -200,11 +228,12 @@ Tile.prototype.Build = function(type) {
 		var checker = this.CheckLvRound();
 		if (checker.CheckLvF()) {// buildable lvF
 			this.UI.BuildUpLv6(checker)
+			targetTile = checker.headTile;
 		}
 		break;
 	}
 	printInfo(this.x, this.y);
-	return this;
+	return targetTile;
 };
 
 Tile.prototype.Resize = function() {
