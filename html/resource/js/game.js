@@ -4,16 +4,8 @@ function initGame () {
     jScreen.css("width", (gConfig.Size)+"rem");
     jScreen.css("height", (gConfig.Size)/2+"rem");
 
-    var $touchpad = $("#touchpad");
-    var jScreen = $("#screen");
-    for(var i=0; i<gConfig.Size*gConfig.Size; i++) {
-        var x = i%gConfig.Size;
-        var y = parseInt(i/gConfig.Size);
 
-        var num = getNum(x, y)
-        Tiles.push(new Tile(jScreen, $touchpad, x, y, num));
-    }
-
+	connectToServer(loginInfo.Addr)
 	loadTile()
 }
 
@@ -22,9 +14,28 @@ function loadTile() {
 		type: "GET",
 		url : "/api/games/"+loginInfo.Addr,
 		success : function (d) {
-			d = JSON.parse(d)
+            if (typeof d === "string") {
+                d = JSON.parse(d)
+            }
 			console.log("init game")
-			console.log(d)
+			console.log(d.tiles)
+
+			var $touchpad = $("#touchpad");
+			var jScreen = $("#screen");
+		
+			gConfig.Size = Math.pow(d.tiles.length, 0.5)
+			for(var i=0; i<d.tiles.length; i++) {
+				var x = i%gConfig.Size;
+				var y = parseInt(i/gConfig.Size);
+
+				var num = getNum(x, y)
+				if (d.tiles[i]) {
+					Tiles.push(new Tile(jScreen, $touchpad, x, y, num, buildingType(d.tiles[i].area_type), d.tiles[i].level));
+				} else {
+					Tiles.push(new Tile(jScreen, $touchpad, x, y, num));
+				}
+			}
+		
 			/*
 				"height": HEIGHT_INT,
 				"point_height": POINT_HEIGHT_INT,
@@ -43,7 +54,7 @@ function loadTile() {
 
 }
 
-function Tile(jScreen, $touchpad, x, y, num) {
+function Tile(jScreen, $touchpad, x, y, num, type, level) {
 	this.x = x;
 	this.y = y;
 	this.index = x+y*gConfig.Size;
@@ -52,9 +63,15 @@ function Tile(jScreen, $touchpad, x, y, num) {
 	$touchpad.append(this.touch)
 	this.obj = newObjDiv(x,y,num);
 	jScreen.append(this.obj)
-	this.obj.level = 0;
+	this.obj.level = level||0;
+	this.Type = type;
 	this.Resize();
 	this.UI = new TileUI(this)
+	if (this.obj.level > 0) {
+		if (this.obj.level < 6) {
+			this.UI["BuildUpLv"+this.obj.level]()
+		}
+	}
 }
 
 function IsTile(tile) {

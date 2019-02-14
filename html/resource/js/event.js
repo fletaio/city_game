@@ -197,3 +197,56 @@ function getTileFromPoint(point) {
 		return tile;
 	}
 }
+
+function connectToServer (addr) {
+	var wsUri = "ws://localhost:8080/websocket/"+addr;
+	function connect() {
+		var ws = new WebSocket(wsUri)
+		ws._init = false;
+		ws.onopen = function(e) { onOpen(ws, e) };
+		ws.onclose = function(e) { onClose(ws, e) };
+		ws.onerror = function(e) { onError(ws, e) };
+		ws.onmessage = function(e) { onMessage(ws, e) };
+		return ws;
+	}
+
+	var ws = connect();
+	function onOpen(ws,  e)
+	{
+		console.log("CONNECTED");
+	}
+
+	function onClose(ws,  e)
+	{
+		console.log("DISCONNECTED");
+		// ws = connect();
+	}
+
+	function onError(ws,  e)
+	{
+		console.log("ERROR", e);
+	}
+
+}
+
+function onMessage(ws,  e)
+{
+	console.log("MSG", e.data);
+	if(!ws._init) {
+		ws._init = true;
+
+		var msg = new Buffer(e.data, "hex");
+		var sig = loginInfo.Key.sign(msg);
+		ws.send(buf2hex(sig.r.toArrayLike(Buffer, "be", 32)) + buf2hex(sig.s.toArrayLike(Buffer, "be", 32)) + "0" + sig.recoveryParam);
+	} else {
+		var noti = JSON.parse(e.data);
+		switch(noti.type) {
+		case 0://Demolition
+			console.log("Demolition applied", noti.x, noti.y);
+			break;
+		case 1://Upgrade
+			console.log("Upgrade applied", noti.x, noti.y, noti.area_type, noti.target_level);
+			break;
+		}
+	}
+}

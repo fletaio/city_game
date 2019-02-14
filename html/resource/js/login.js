@@ -46,14 +46,17 @@ function join () {
 
     $.ajax({
         type: "POST",
+        dataType : "json",
         url : "/api/accounts",
-        data : {
+        data : JSON.stringify({
             "public_key": pk,
             "user_id": userid,
             "reward": ethAddr
-        },
+        }),
         success : function (d) {
-            d = JSON.parse(d)
+            if (typeof d === "string") {
+                d = JSON.parse(d)
+            }
             alert("Address Issue Success : "+ d.address + ", go to login")
             nextStep("login")
         },
@@ -82,12 +85,14 @@ function login () {
     $.ajax({
         type: "POST",
         url : "/api/accounts",
-        data : {
+        data : JSON.stringify({
             "public_key": pk,
             "user_id": userid
-        },
+        }),
         success : function (d) {
-            d = JSON.parse(d)
+            if (typeof d === "string") {
+                d = JSON.parse(d)
+            }
             loginInfo = new LoginInfo(key, d.address, d.seq)
             alert("login Success")
             loginSuccess()
@@ -114,5 +119,5 @@ function getPubKey (userid, userpw) {
 		priv: keyHex,
 		privEnc: "hex",
     });
-    return key.getPublic().encodeCompressed("hex")
+    return key
 }

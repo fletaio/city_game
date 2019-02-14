@@ -35,32 +35,43 @@ Tile.prototype.Upgrade = function() {
 	return this.Build();
 }
 
+function buildingType(num) {
+	switch (num) {
+		case 1:
+		return "Commercial"
+		case 2:
+		return "Industrial"
+		case 3:
+		return "Residential"
+	}
+}
+
 function sendServer(func, tile) {
-	switch (func) {
-		case "Demolition":
+	if (func == "Demolition") {
 		$.ajax({
 			type: "POST",
 			url : "/api/games/"+loginInfo.Addr+"/commands/demolition",
-			data : {
-				"seq": loginInfo.Seq,
+			data : JSON.stringify({
+				"seq": loginInfo.Seq+1,
 				"x": tile.x,
 				"y": tile.y
-			},
+			}),
 			success : function (d) {
+				if (typeof d === "string") {
+					d = JSON.parse(d)
+				}
 				/*
 					"type": 2,
 					"tx_hex": TRANSACTION_HEX,
 					"hash_hex": HASH_HEX
 				 */
-				d = JSON.parse(d)
 				commit(d)
 			},
 			error: function(d) {
 				alert("error")
 			}
 		})
-	
-			break;
+	} else if (func == "Upgrade" || func == "Commercial" || func == "Industrial" || func == "Residential" ) {
 /*
 	/api/games/ADDRESS_STRING/commands/upgrade
 	* REQUEST
@@ -72,43 +83,40 @@ function sendServer(func, tile) {
 		"target_level": LEVEL_INT
 	}
 */
+		var tileType = tile.Type||func
 
-		case "Upgrade":
-		var tileType = tile.Type;
-		case "Commercial":
-		case "Industrial":
-		case "Residential":
-		var tileType = tileType|func
-
+		var areaType = 0;
 		switch (tileType) {
 			case "Commercial":
-				var areaType = 1
+				areaType = 1
 				break;
 			case "Industrial":
-				var areaType = 2
+				areaType = 2
 				break;
 			case "Residential":
-				var areaType = 3
+				areaType = 3
 				break;
 		}
 		{
 			$.ajax({
 				type: "POST",
 				url : "/api/games/"+loginInfo.Addr+"/commands/upgrade",
-				data : {
-					"seq": loginInfo.Seq,
+				data : JSON.stringify({
+					"seq": loginInfo.Seq+1,
 					"x": tile.x,
 					"y": tile.y,
 					"area_type": areaType,
-					"target_level": tile.obj.level
-				},
+					"target_level": tile.obj.level+1
+				}),
 				success : function (d) {
+					if (typeof d === "string") {
+						d = JSON.parse(d)
+					}
 					/*
 						"type": 3,
 						"tx_hex": TRANSACTION_HEX,
 						"hash_hex": HASH_HEX
 					 */
-					d = JSON.parse(d)
 					commit(d)
 				},
 				error: function(d) {
@@ -116,9 +124,6 @@ function sendServer(func, tile) {
 				}
 			})
 		}
-
-		default:
-			break;
 	}
 
 }
@@ -141,11 +146,11 @@ function commit(data) {
 	$.ajax({
 		type: "POST",
 		url : "/api/games/"+loginInfo.Addr+"/commands/commit",
-		data : {
+		data : JSON.stringify({
 			"type": data.type,
 			"tx_hex": data.tx_hex,
 			"sig_hex": SIG_HEX
-		},
+		}),
 		success : function (d) {
 			loginInfo.Seq++
 		},
