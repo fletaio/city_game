@@ -238,7 +238,9 @@ function onMessage(ws,  e) {
 		var sig = loginInfo.Key.sign(msg);
 		ws.send(buf2hex(sig.r.toArrayLike(Buffer, "be", 32)) + buf2hex(sig.s.toArrayLike(Buffer, "be", 32)) + "0" + sig.recoveryParam);
 	} else {
-		var noti = JSON.parse(e.data);
+		if (typeof e.data === "string") {
+			var noti = JSON.parse(e.data);
+		}
 		switch(noti.type) {
 		case 0://Demolition
 			console.log("Demolition applied", noti.x, noti.y);

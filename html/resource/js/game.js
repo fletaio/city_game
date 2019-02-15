@@ -6,9 +6,7 @@ function initGame () {
 
 	connectToServer(loginInfo.Addr)
 	loadTile()
-	/*
 	scoreReloader()
-	*/
 }
 
 function scoreReloader() {
@@ -18,7 +16,7 @@ function scoreReloader() {
 	}, 500)
 }
 
-/*
+
 function scoreReloader() {
 	scoreReloader.obj = setInterval(function () {
 		$.ajax({
@@ -43,7 +41,6 @@ function scoreReloader() {
 	
 	}, 1000)
 }
-*/
 
 function loadTile() {
 	$.ajax({
@@ -178,7 +175,9 @@ LvFTiles.prototype.PutCandidate = function(tile) {
 	} else if (this.level != tile.obj.level) {
 		return false;
 	}
-	if (this.type != tile.type) {
+	if (typeof this.type === "undefined") {
+		this.type = tile.type;
+	} else if (this.type != tile.type) {
 		return false;
 	}
 
@@ -207,7 +206,7 @@ LvFTiles.prototype.CheckLvF = function() {
 			}
 			if ((x.length == 2 && y.length == 2) && 
 				(Math.abs(x[0]-x[1]) == 1 && Math.abs(y[0]-y[1]) == 1)) {
-				this.headTile = Tiles[this.maxCoordinate]
+				this.headTile = gGame.tiles[this.maxCoordinate]
 				this.Is = true
 			}
 		}
@@ -306,11 +305,11 @@ Tile.prototype.ValidateBuild = function() {
 }
 
 Tile.prototype.Build = function(type) {
-	this.type = type
+	this.type = type||this.type
 	if (this.ValidateBuild()) {
 		return this.UI.BuildUp();
 	}
-	return this
+	return false
 };
 
 Tile.prototype.Resize = function() {
