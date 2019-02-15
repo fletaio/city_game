@@ -240,7 +240,10 @@ function onMessage(ws,  e) {
 	} else {
 		if (typeof e.data === "string") {
 			var noti = JSON.parse(e.data);
+		} else {
+			var noti = e.data;
 		}
+		loginInfo.pushUTXO(noti.utxo)
 		switch(noti.type) {
 		case 0://Demolition
 			console.log("Demolition applied", noti.x, noti.y);
@@ -248,16 +251,92 @@ function onMessage(ws,  e) {
 			gGame.height = noti.height;
 			gGame.point_height = noti.point_height;
 			gGame.point_balance = noti.point_balance;
-			gGame.Update();
+			updateResource(gGame.Update());
 			break;
 		case 1://Upgrade
-			console.log("Upgrade applied", noti.x, noti.y, noti.area_type, noti.level);
-			gGame.tiles[+noti.x + +noti.y * gConfig.Size].UI.completBuilding(noti.level)
-			gGame.height = noti.height;
-			gGame.point_height = noti.point_height;
-			gGame.point_balance = noti.point_balance;
-			gGame.Update();
+			var tile = gGame.tiles[noti.x + +noti.y * gConfig.Size]
+			if (typeof noti.error == "undefined" || noti.error == "") {
+				console.log("Upgrade applied", noti.x, noti.y, noti.area_type, noti.level);
+				//gGame.tiles[+noti.x + +noti.y * gConfig.Size].UI.completBuilding(noti.level)
+				gGame.height = noti.height;
+				gGame.point_height = noti.point_height;
+				gGame.point_balance = noti.point_balance;
+				if (noti.level == 6) {
+					var headTile = tile.obj.headTile
+					var o = {x:headTile.x,y:headTile.y}
+					for (var i = 0 ; i < 3 ; i++) {
+						directByNum(o, i)
+						var t = gGame.tiles[o.x + o.y * gConfig.Size];
+						t.build_height = noti.height;
+						t.level = noti.level;
+					}
+				}
+				tile.build_height = noti.height;
+				tile.level = noti.level;
+				updateResource(gGame.Update());
+			} else { //false
+				alert(language[noti.error]||noti.error)
+				if(noti.level == 1) {
+					tile.Remove()
+				} else {
+					tile.level = noti.level-1;
+				}
+				tile.build_height = tile.build_height_old;
+				if (noti.level == 5) {
+					var headTile = tile.obj.headTile
+					var o = {x:headTile.x,y:headTile.y}
+					for (var i = 0 ; i < 3 ; i++) {
+						directByNum(o, i)
+						var t = gGame.tiles[o.x + o.y * gConfig.Size];
+						t.build_height = t.build_height_old;
+					}
+				}
+			}
 			break;
 		}
 	}
 }
+
+document.addEventListener('keydown', function(event) {
+    console.log(event.keyCode)
+    if (event.keyCode >= 37 && event.keyCode <= 40) {// arrow
+        direction = event.keyCode-37
+
+        var t = $("#menu")[0].target
+        if (typeof t === "undefined") {
+            t = gGame.tiles[0]
+        }
+        var o = {x:t.x,y:t.y}
+        directByNum(o, direction)
+        menuClose()
+        if (gGame.tiles[o.x+o.y*gConfig.Size]) {
+            menuOpen(gGame.tiles[o.x+o.y*gConfig.Size].Hover())
+        }
+    }
+    switch (event.keyCode) {
+        case 27: //esc
+            menuClose()
+            break;
+        case 73: //i 
+            $("button#Industrial").click()
+            break;
+        case 82: //r
+            $("button#Residential").click()
+            break;
+        case 67: //c
+            $("button#Commercial").click()
+            break;
+        case 68: //d
+            $("button#Demolition").click()
+            break;
+        case 85: //u
+            $("button#Upgrade").click()
+            break;
+        case 72: //h
+            $("button#hideBuilding").click()
+            break;
+    
+        default:
+            break;
+    }
+});

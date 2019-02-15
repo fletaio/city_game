@@ -42,6 +42,7 @@
     top:0;
     left:0;
     display: none;
+    z-index: 100001;
 }
 
 #menu #Demolition,
@@ -78,6 +79,17 @@
     border: none;
     white-space: nowrap;
     cursor: pointer;
+}
+
+#menu button.disable {
+    -webkit-filter: grayscale(100%);
+    filter: grayscale(100%);
+    opacity: 0.5;
+}
+#menu button::before.disable {
+    -webkit-filter: grayscale(100%);
+    filter: grayscale(100%);
+    opacity: 0.5;
 }
 
 #menu #Industrial::before,

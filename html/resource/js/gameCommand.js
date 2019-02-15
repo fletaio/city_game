@@ -2,34 +2,36 @@ Tile.prototype.RunCommand = function(func) {
 	var tile = this;
 	if (typeof this[func] === "function") {
 		message("command : "+ func + " x : " + this.x + " y : " + this.y );
+
+		var utxo = loginInfo.popUTXO()
+		if (!utxo) {
+			alert(language["too fast"])
+			return 
+		}
 		tile = this[func]();
 		if (IsTile(tile)){
 			menuOpen(tile);
-	
 			// setTimeout(function () {
+			// 	var balance = parseInt($("#dollar[key='balance']").html())
+			// 	balance -=  gBuildingDefine[tile.type][tile.obj.level].cost_usage
+			// 	var height = gGame.height
 			// 	if (func == "Demolition") {
-			// 		onMessage({_init:true}, {data : "{\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":0,\"level\":0,\"type\":0}"})
+			// 		onMessage({_init:true}, {data : "{\"point_height\":"+height+",\"point_balance\":"+balance+",\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":0,\"level\":0,\"type\":0,\"height\":"+gGame.height+"}"})
 			// 	} else {
-			// 		onMessage({_init:true}, {data : "{\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":"+tile.type+",\"level\":"+(tile.obj.level+1)+",\"type\":1}"})
+			// 		onMessage({_init:true}, {data : "{\"point_height\":"+height+",\"point_balance\":"+balance+",\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":"+tile.type+",\"level\":"+(tile.obj.level+1)+",\"type\":1,\"height\":"+gGame.height+"}"})
 			// 	}
 			// }, 100)
+			sendServer(func, tile, utxo)
+		} else {
+			loginInfo.pushUTXO(utxo)
 		}
-		sendServer(func, tile)
 	}
 	return tile
 }
 
 Tile.prototype.Demolition = function() {
-	// if (this.obj.level == 6) {
-	// 	var checker = this.CheckLvRound(6)
-	// 	for ( var i = 0 ; i < checker.candidate.length ; i++ ) {
-	// 		gGame.tiles[checker.candidate[i]].Remove().UpdateInfo();
-	// 	}
-	// } else {
-	// 	this.Remove();
-	// }
 	menuClose();
-	return this;
+	return this.obj.headTile||this;
 }
 Tile.prototype.Industrial = function() {
 	return this.Build(IndustrialType);
@@ -66,13 +68,13 @@ function buildingNum(str) {
 	}
 }
 
-function sendServer(func, tile) {
+function sendServer(func, tile, utxo) {
 	if (func == "Demolition") {
 		$.ajax({
 			type: "POST",
 			url : "/api/games/"+loginInfo.Addr+"/commands/demolition",
 			data : JSON.stringify({
-				"seq": loginInfo.Seq+1,
+				"utxo": utxo,
 				"x": tile.x,
 				"y": tile.y
 			}),
@@ -84,10 +86,11 @@ function sendServer(func, tile) {
 					"type": 2,
 					"tx_hex": TRANSACTION_HEX,
 					"hash_hex": HASH_HEX
-				 */
+					*/
 				commit(d)
 			},
 			error: function(d) {
+				loginInfo.pushUTXO(utxo)
 				alert("error")
 			}
 		})
@@ -103,17 +106,17 @@ function sendServer(func, tile) {
 		"target_level": LEVEL_INT
 	}
 */
-		var area_type = buildingNum(func);
+		var area_type = tile.type||buildingNum(func);
 		{
 			$.ajax({
 				type: "POST",
 				url : "/api/games/"+loginInfo.Addr+"/commands/upgrade",
 				data : JSON.stringify({
-					"seq": loginInfo.Seq+1,
+					"utxo": utxo,
 					"x": tile.x,
 					"y": tile.y,
 					"area_type": area_type,
-					"target_level": tile.obj.level+1
+					"target_level": tile.obj.level
 				}),
 				success : function (d) {
 					if (typeof d === "string") {
@@ -123,10 +126,11 @@ function sendServer(func, tile) {
 						"type": 3,
 						"tx_hex": TRANSACTION_HEX,
 						"hash_hex": HASH_HEX
-					 */
+					*/
 					commit(d)
 				},
 				error: function(d) {
+					loginInfo.pushUTXO(utxo)
 					alert("error")
 				}
 			})
@@ -159,7 +163,6 @@ function commit(data) {
 			"sig_hex": SIG_HEX
 		}),
 		success : function (d) {
-			loginInfo.Seq++
 		},
 		error: function(d) {
 			alert("commit error")

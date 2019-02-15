@@ -1,12 +1,22 @@
 var loginInfo;
-function LoginInfo(key, addr, seq) {
+function LoginInfo(key, addr, utxos) {
     this.Key = key;
     this.Addr = addr;
-    this.Seq = seq;
+	this.utxos = utxos;
 }
 
 LoginInfo.Simbol = Symbol("LoginInfo");
 LoginInfo.prototype.Simbol = LoginInfo.Simbol;
+
+LoginInfo.prototype.popUTXO = function() {
+	var utxo = this.utxos[0];
+	this.utxos.splice(0, 1);
+	return utxo;
+}
+
+LoginInfo.prototype.pushUTXO = function(utxo) {
+	this.utxos.push(utxo);
+}
 
 function initStep () {
     nextStep ("init")
@@ -90,7 +100,7 @@ function login () {
             if (typeof d === "string") {
                 d = JSON.parse(d)
             }
-            loginInfo = new LoginInfo(key, d.address, d.seq)
+            loginInfo = new LoginInfo(key, d.address, d.utxos)
             alert("login Success")
             loginSuccess()
         },

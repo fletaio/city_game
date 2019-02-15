@@ -11,20 +11,24 @@ function message(msg) {
 function printInfo(x, y) {
     var $l = $("#info");
     var tile = gGame.tiles[x + y * gConfig.Size]
-    tile.UpdateInfo()
-
-    if (tile.obj.BuildProcessing == true) {
-        $l.html("x : " + x + " y : "+y + " lv" + (tile.obj.level+1) + " " + tile.TypeName() + " construction ")
-    } else {
-        $l.html("x : " + x + " y : "+y + " lv : " + tile.obj.level + " type : " + tile.TypeName())
-    }
+    $l.html("x : " + x + " y : "+y + " lv : " + tile.obj.level + " type : " + tile.TypeName() + ((tile.obj.BuildProcessing == true)?" construction":""))
 }
 
 function printLog(msg) {
     var $l = $("#log");
     $l.append($("<p>").html(msg))
     $l.scrollTop($l[0].scrollHeight)
+}
 
+function getNum (x, y) {
+    return (parseInt(Math.log2((x+1)*73)*100 + Math.log10((y+1)*4321)*100)%10+1);
+}
+
+function getXYFromIndex(i) {
+    if (i>=0 && i<=gConfig.Size*gConfig.Size) {
+        return {x : i%gConfig.Size, y : parseInt(i/gConfig.Size)}
+    }
+    throw "getXYFromIndex i is out of index"
 }
 
 function directByNum(o, num) {
@@ -44,60 +48,6 @@ function directByNum(o, num) {
     }
     message("o.x " + o.x + " o.y " + o.y)
 }
-
-function getNum (x, y) {
-    return (parseInt(Math.log2((x+1)*73)*100 + Math.log10((y+1)*4321)*100)%10+1);
-}
-
-function getXYFromIndex(i) {
-    if (i>=0 && i<=gConfig.Size*gConfig.Size) {
-        return {x : i%gConfig.Size, y : parseInt(i/gConfig.Size)}
-    }
-    throw "getXYFromIndex i is out of index"
-}
-
-document.addEventListener('keydown', function(event) {
-    console.log(event.keyCode)
-    if (event.keyCode >= 37 && event.keyCode <= 40) {// arrow
-        direction = event.keyCode-37
-
-        var t = $("#menu")[0].target
-        if (typeof t === "undefined") {
-            t = gGame.tiles[0]
-        }
-        var o = {x:t.x,y:t.y}
-        directByNum(o, direction)
-        menuClose()
-        if (gGame.tiles[o.x+o.y*gConfig.Size]) {
-            menuOpen(gGame.tiles[o.x+o.y*gConfig.Size].Hover())
-        }
-    }
-    switch (event.keyCode) {
-        case 27: //esc
-            menuClose()
-            break;
-        case 73: //i 
-            $("button#Industrial").click()
-            break;
-        case 82: //r
-            $("button#Residential").click()
-            break;
-        case 67: //c
-            $("button#Commercial").click()
-            break;
-        case 68: //d
-            $("button#Demolition").click()
-        case 85: //u
-            $("button#Upgrade").click()
-            break;
-        case 72: //h
-            $("button#hideBuilding").click()
-            break;
-    
-        default:
-            break;
-    }
-});
 
 var hideBuilding = "Hide Building"
 var viewBuilding = "View Building"

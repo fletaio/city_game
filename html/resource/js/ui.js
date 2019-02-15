@@ -11,10 +11,17 @@ function deleteMenu() {
     $("#menu").html("")
 }
 
-function addMenu(funcs) {
+function addMenu(tile, funcs) {
     for (var key in funcs) {
-        var btn = $("<button id=\""+funcs[key]+"\" onclick=\"$('#menu')[0].target.RunCommand('"+funcs[key]+"')\" value=\""+key+"\">"+key+"</button>")
-        $("#menu").append(btn)
+		var able = buildableResource(tile, funcs[key])
+		var btn = $("<button id=\""+funcs[key]+"\" value=\""+key+"\">"+key+"</button>")
+		if (able != true) {
+			btn.addClass("disable")
+			btn.attr("onclick", "alert('"+able+"')")
+		} else {
+			btn.attr("onclick", "$('#menu')[0].target.RunCommand('"+funcs[key]+"')")
+		}
+		$("#menu").append(btn)
     }
 }
 
@@ -23,14 +30,14 @@ function menuOpen(tile) {
 		return
 	}
 	deleteMenu();
-	addMenu(MENU["lv"+tile.obj.level]);
+	addMenu(tile, MENU["lv"+tile.obj.level]);
 	message("menu open x : " + tile.x + " y : " + tile.y );
 	var $menu = $("#menu");
 	$menu[0].target = tile;
 	tile.SelectTile();
 	var offset = tile.obj.offset()
-	$menu.css("top", offset.top).css("left", offset.left)
-	$menu.show();
+	// $menu.css("top", offset.top).css("left", offset.left)
+	tile.touch.append($menu.show())
 }
 
 function TileUI(tile) {
@@ -73,21 +80,21 @@ TileUI.prototype.BuildUp = function() {
 	var targetTile = this.Tile;
 	this.Tile.touch.find(".hoverArea").addClass(this.Tile.TypeName());
 	this.Tile.obj.find("img.floor").attr("src", "/images/tile/building_floor.png");
-	if (this.Tile.obj.level < 4) {
-		for (var i = 0 ; i < this.Tile.obj.level+1 ; i++) {
-			if (i == this.Tile.obj.level) {
-				var $img = $("<img class='building lv"+(this.Tile.obj.level+1)+"' src='/images/building/construction.png'/>")
+	if (this.Tile.obj.level < 5) {
+		for (var i = 0 ; i < this.Tile.obj.level ; i++) {
+			if (i == this.Tile.obj.level-1) {
+				var $img = $("<img class='building lv"+(this.Tile.obj.level)+"' src='/images/building/construction.png'/>")
 			} else {
 				var $img = $("<img class='building lv"+(i+1)+"' src='/images/building/"+this.Tile.TypeName()+"_lv1.png'/>")
 			}
 			this.Tile.obj.append($img);
 		}
-	} else if (this.Tile.obj.level == 4) {
+	} else if (this.Tile.obj.level == 5) {
 		this.Tile.obj.find(".building").detach();
 		var $img = $("<img class='building lv5' src='/images/building/construction.png'/>")
 		this.Tile.obj.append($img);
-	} else if (this.Tile.obj.level == 5) {
-		var checker = this.Tile.CheckLvRound();
+	} else if (this.Tile.obj.level == 6) {
+		var checker = this.Tile.CheckLvRound(6);
 		if (checker.CheckLvF()) {// buildable lvF
 			var headTile = gGame.tiles[checker.maxCoordinate];
 			for ( var i = 0 ; i < checker.candidate.length ; i++ ) {
@@ -97,7 +104,7 @@ TileUI.prototype.BuildUp = function() {
 				tile.UI.startBuild()
 			}
 			message("fleta!! " + tile.x + " : " + tile.y);
-	
+
 			var $img = $("<img class='building lv6' src='/images/building/construction.png'/>")
 			headTile.obj.append($img);
 			targetTile = headTile
@@ -109,19 +116,20 @@ TileUI.prototype.BuildUp = function() {
 
 TileUI.prototype.completBuilding = function (lv) {
 	if (lv == 6) {
-		var checker = this.Tile.obj.headTile.CheckLvRound()
+		var checker = this.Tile.obj.headTile.CheckLvRound(6)
+		headTile = tile
 		for ( var i = 0 ; i < checker.candidate.length ; i++ ) {
 			var tile = checker.candidate[i];
 			tile.obj.level = lv;
+			console.log("completBuilding lv 6 " + tile.obj.level)
 			tile.obj.BuildProcessing = false;
-			tile.UpdateInfo();
 		}
 		this.Tile.obj.headTile.obj.find("img.floor").attr("src", "/images/tile/"+this.Tile.TypeName()+"_LvFLETA-Tile.png").addClass("lv6");
 		var fileTail = "_LvFLETA"
 	} else  {
 		this.Tile.obj.level = lv
+		console.log("completBuilding " + this.Tile.obj.level)
 		this.Tile.obj.BuildProcessing = false
-		this.Tile.UpdateInfo();
 		if (this.Tile.obj.level < 5) {
 			var fileTail = "_Lv1"
 		} else {
@@ -139,7 +147,6 @@ TileUI.prototype.completBuilding = function (lv) {
 function newTouchDiv(index) {
 	return $("<div tileindex="+index+"/>")
 		.append($("<div class='scaleArea'><div class='hoverArea'/></div>"))
-		.append($("<span/>"))
 }
 
 function newObjDiv(x,y,num) {
