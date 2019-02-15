@@ -267,6 +267,7 @@ Tile.prototype._remove = function() {
 
 	delete this.type;
 	delete this.obj.headTile;
+	delete this.obj.BuildProcessing;
 	return this;
 }
 

@@ -138,8 +138,8 @@ function buildableResource(tile, type) {
 		return true
 	}
 	type = tile.type||buildingNum(type)
-	if (type && tile.obj.level > 0) {
-		var cost = gBuildingDefine[type][tile.obj.level-1];
+	if (type) {
+		var cost = gBuildingDefine[type][tile.obj.level+1];
 		if (typeof cost.cost_usage != "undefined" && currentResource.balance < cost.cost_usage) {
 			return language["not enough balance"]
 		}
