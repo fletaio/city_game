@@ -290,7 +290,6 @@ Tile.prototype.ValidateBuild = function() {
 
 	var able = buildableResource(this);
 	if (able !== true) {
-		alert(able);
 		return false;
 	}
 
