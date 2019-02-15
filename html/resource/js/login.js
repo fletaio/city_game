@@ -84,12 +84,8 @@ function login () {
     var pk = key.getPublic().encodeCompressed("hex")
 
     $.ajax({
-        type: "POST",
-        url : "/api/accounts",
-        data : JSON.stringify({
-            "public_key": pk,
-            "user_id": userid
-        }),
+        type: "GET",
+        url : "/api/accounts?pubkey="+pk,
         success : function (d) {
             if (typeof d === "string") {
                 d = JSON.parse(d)
@@ -99,7 +95,13 @@ function login () {
             loginSuccess()
         },
         error: function(d) {
-            alert("error")
+			switch(d.responseText) {
+			case "not exist account":
+				alert("Account or password in correct");
+				break;
+			default:
+				alert(d.responseText);
+			}
         }
     })
 

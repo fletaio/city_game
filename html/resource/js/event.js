@@ -58,8 +58,8 @@ function islandMoveFunc(o, wheelSign) {
 			var x = $island.offset().left+(iw/2)
 			var y = $island.offset().top+(ih/2)
 
-			var dx = wheelSign*(x-Tiles[tileindex].obj.offset().left)/(gConfig.Unit/10)
-			var dy = wheelSign*(y-Tiles[tileindex].obj.offset().top)/(gConfig.Unit/10)
+			var dx = wheelSign*(x-gGame.tiles[tileindex].obj.offset().left)/(gConfig.Unit/10)
+			var dy = wheelSign*(y-gGame.tiles[tileindex].obj.offset().top)/(gConfig.Unit/10)
 		} else {
 			var dx = 0
 			var dy = 0
@@ -193,7 +193,7 @@ function getTileFromPoint(point) {
 	var y = Math.floor((b-a)/2) - 1;
 
 	if(0 <= x && x < gConfig.Size && 0 <= y && y < gConfig.Size) {
-		var tile = Tiles[x + y *gConfig.Size];
+		var tile = gGame.tiles[x + y *gConfig.Size];
 		return tile;
 	}
 }
@@ -242,11 +242,19 @@ function onMessage(ws,  e) {
 		switch(noti.type) {
 		case 0://Demolition
 			console.log("Demolition applied", noti.x, noti.y);
-			Tiles[+noti.x + +noti.y * gConfig.Size].Remove()
+			gGame.tiles[+noti.x + +noti.y * gConfig.Size].Remove()
+			gGame.height = noti.height;
+			gGame.point_height = noti.point_height;
+			gGame.point_balance = noti.point_balance;
+			gGame.Update();
 			break;
 		case 1://Upgrade
 			console.log("Upgrade applied", noti.x, noti.y, noti.area_type, noti.level);
-			Tiles[+noti.x + +noti.y * gConfig.Size].UI.completBuilding(noti.level)
+			gGame.tiles[+noti.x + +noti.y * gConfig.Size].UI.completBuilding(noti.level)
+			gGame.height = noti.height;
+			gGame.point_height = noti.point_height;
+			gGame.point_balance = noti.point_balance;
+			gGame.Update();
 			break;
 		}
 	}

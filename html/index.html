@@ -54,10 +54,20 @@ $(document).on('click', '#touchpad', function(e) {
 	var y = Math.floor((b-a)/2) - 1;
 
 	if(0 <= x && x < gConfig.Size && 0 <= y && y < gConfig.Size) {
-		var tile = Tiles[x + y *gConfig.Size];
+		var tile = gGame.tiles[x + y *gConfig.Size];
 		tile.Build();
 	}
 });
+
+function Game() {
+	this.height = 0;
+	this.point_height = 0;
+	this.point_balance = 0;
+	this.tiles = [];
+	this.define_map = null;
+}
+
+var gGame = new Game();
 
 /*
 jTouchPad.click(function(e) {
@@ -162,7 +172,6 @@ Tile.prototype.Resize = function() {
 }
 
 
-var Tiles = [];
 var jScreen = $("#screen");
 jScreen.css("width", (gConfig.Unit*gConfig.Size)+"px");
 jScreen.css("height", (gConfig.Unit*gConfig.Size)/2+"px");
@@ -175,7 +184,7 @@ for(var i=0; i<gConfig.Size*gConfig.Size; i++) {
 	var x = i%gConfig.Size;
 	var y = parseInt(i/gConfig.Size);
 	var num = (parseInt(Math.log2((x+1)*73)*100 + Math.log10((y+1)*4321)*100)%10+1);
-	Tiles.push(new Tile(jScreen, x, y, num));
+	gGame.tiles.push(new Tile(jScreen, x, y, num));
 }
 
 function ChangeUnit(unit) {
@@ -190,8 +199,8 @@ function ChangeUnit(unit) {
 	jTouchPad.css("height", (gConfig.Unit*gConfig.Size)/2+"px");
 	jTouchPad.css("top", (gConfig.Unit/2*4)+"px");
 
-	for(var i=0; i<Tiles.length; i++) {
-		Tiles[i].Resize();
+	for(var i=0; i<gGame.tiles.length; i++) {
+		gGame.tiles[i].Resize();
 	}
 }
 </script>

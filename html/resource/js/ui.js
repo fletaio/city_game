@@ -71,14 +71,14 @@ TileUI.prototype.startBuild = function() {
 TileUI.prototype.BuildUp = function() {
 	this.startBuild()
 	var targetTile = this.Tile;
-	this.Tile.touch.find(".hoverArea").addClass(this.Tile.Type);
+	this.Tile.touch.find(".hoverArea").addClass(this.Tile.TypeName());
 	this.Tile.obj.find("img.floor").attr("src", "/images/tile/building_floor.png");
 	if (this.Tile.obj.level < 4) {
 		for (var i = 0 ; i < this.Tile.obj.level+1 ; i++) {
 			if (i == this.Tile.obj.level) {
 				var $img = $("<img class='building lv"+(this.Tile.obj.level+1)+"' src='/images/building/construction.png'/>")
 			} else {
-				var $img = $("<img class='building lv"+(i+1)+"' src='/images/building/"+this.Tile.Type+"_lv1.png'/>")
+				var $img = $("<img class='building lv"+(i+1)+"' src='/images/building/"+this.Tile.TypeName()+"_lv1.png'/>")
 			}
 			this.Tile.obj.append($img);
 		}
@@ -89,7 +89,7 @@ TileUI.prototype.BuildUp = function() {
 	} else if (this.Tile.obj.level == 5) {
 		var checker = this.Tile.CheckLvRound();
 		if (checker.CheckLvF()) {// buildable lvF
-			var headTile = Tiles[checker.maxCoordinate];
+			var headTile = gGame.tiles[checker.maxCoordinate];
 			for ( var i = 0 ; i < checker.candidate.length ; i++ ) {
 				var tile = checker.candidate[i];
 				tile.obj.find(".building").detach();
@@ -116,7 +116,7 @@ TileUI.prototype.completBuilding = function (lv) {
 			tile.obj.BuildProcessing = false;
 			tile.UpdateInfo();
 		}
-		this.Tile.obj.headTile.obj.find("img.floor").attr("src", "/images/tile/"+this.Tile.Type+"_LvFLETA-Tile.png").addClass("lv6");
+		this.Tile.obj.headTile.obj.find("img.floor").attr("src", "/images/tile/"+this.Tile.TypeName()+"_LvFLETA-Tile.png").addClass("lv6");
 		var fileTail = "_LvFLETA"
 	} else  {
 		this.Tile.obj.level = lv
@@ -128,7 +128,7 @@ TileUI.prototype.completBuilding = function (lv) {
 			var fileTail = "_Lv5"
 		}
 	}
-	this.Tile.obj.find(".lv"+lv+".building").attr("src", "/images/building/"+this.Tile.Type+""+fileTail+".png")
+	this.Tile.obj.find(".lv"+lv+".building").attr("src", "/images/building/"+this.Tile.TypeName()+""+fileTail+".png")
 
 	var $menu = $("#menu");
 	if ($menu[0].target == this.Tile) {

@@ -6,9 +6,19 @@ function initGame () {
 
 	connectToServer(loginInfo.Addr)
 	loadTile()
+	/*
 	scoreReloader()
+	*/
 }
 
+function scoreReloader() {
+	scoreReloader.obj = setInterval(function () {
+		gGame.height++;
+		gGame.Update();
+	}, 500)
+}
+
+/*
 function scoreReloader() {
 	scoreReloader.obj = setInterval(function () {
 		$.ajax({
@@ -33,6 +43,7 @@ function scoreReloader() {
 	
 	}, 1000)
 }
+*/
 
 function loadTile() {
 	$.ajax({
@@ -48,16 +59,20 @@ function loadTile() {
 			var $touchpad = $("#touchpad");
 			var jScreen = $("#screen");
 		
-			gConfig.Size = Math.pow(d.tiles.length, 0.5)
+			gConfig.Size = Math.pow(d.tiles.length, 0.5);
+			gGame.define_map = d.define_map;
+			gGame.height = d.height;
+			gGame.point_height = d.point_height;
+			gGame.point_balance = d.point_balance;
 			for(var i=0; i<d.tiles.length; i++) {
 				var x = i%gConfig.Size;
 				var y = parseInt(i/gConfig.Size);
 
 				var num = getNum(x, y)
 				if (d.tiles[i]) {
-					Tiles.push(new Tile(jScreen, $touchpad, x, y, num, buildingType(d.tiles[i].area_type), d.tiles[i].level));
+					gGame.tiles.push(new Tile(jScreen, $touchpad, x, y, num, d.tiles[i].area_type, d.tiles[i].level , d.tiles[i].build_height));
 				} else {
-					Tiles.push(new Tile(jScreen, $touchpad, x, y, num));
+					gGame.tiles.push(new Tile(jScreen, $touchpad, x, y, num));
 				}
 			}
 		
@@ -80,7 +95,7 @@ function loadTile() {
 }
 
 
-function Tile(jScreen, $touchpad, x, y, num, type, level) {
+function Tile(jScreen, $touchpad, x, y, num, type, level, build_height) {
 	this.x = x;
 	this.y = y;
 	this.index = x+y*gConfig.Size;
@@ -91,7 +106,8 @@ function Tile(jScreen, $touchpad, x, y, num, type, level) {
 	this.obj = newObjDiv(x, y, this.num);
 	jScreen.append(this.obj)
 	this.obj.level = level||0;
-	this.Type = type||"empty";
+	this.build_height = build_height||0;
+	this.type = type||null;
 	this.Resize();
 	this.UI = new TileUI(this)
 	if (this.obj.level > 0) {
@@ -99,7 +115,9 @@ function Tile(jScreen, $touchpad, x, y, num, type, level) {
 			this.obj.level--
 			this.UI.BuildUp()
 			this.obj.level = level
-			this.UI.completBuilding(this.obj.level)
+			if(this.build_height <= gGame.height + gGame.define_map[type][level-1].build_time*2) {
+				this.UI.completBuilding(this.obj.level)
+			}
 		}
 	}
 }
@@ -113,7 +131,18 @@ function IsTile(tile) {
 
 Tile.Symbol = Symbol("Tile");
 Tile.prototype.Symbol = Tile.Symbol;
-Tile.prototype.Type = "empty";
+Tile.prototype.TypeName = function() {
+	switch(this.type) {
+	case CommercialType:
+		return "Commercial";
+	case IndustrialType:
+		return "Industrial";
+	case ResidentialType:
+		return "Residential";
+	default:
+		return "empty";
+	}
+}
 
 Tile.prototype.Hover = function() {
 	this.UI.Hover();
@@ -149,9 +178,7 @@ LvFTiles.prototype.PutCandidate = function(tile) {
 	} else if (this.level != tile.obj.level) {
 		return false;
 	}
-	if (typeof this.Type === "undefined") {
-		this.Type == tile.Type;
-	} else if (this.Type != tile.Type) {
+	if (this.type != tile.type) {
 		return false;
 	}
 
@@ -198,23 +225,23 @@ Tile.prototype.CheckLvRound = function(checkLv) {
 		var o = {x : this.x, y : this.y};
 	}
 
-	var tile = Tiles[o.x + o.y *gConfig.Size];
-	var type = tile.Type;
+	var tile = gGame.tiles[o.x + o.y *gConfig.Size];
+	var type = tile.type;
 	if (tile.obj.level != checkLv) {
 		return false;
 	}
 
 	var checker = new LvFTiles();
 	for ( var i = 0 ; i < 4 ; i++ ) {
-		var tile = Tiles[o.x + o.y * gConfig.Size];
+		var tile = gGame.tiles[o.x + o.y * gConfig.Size];
 
-		if (tile.obj.level == checkLv && type == tile.Type) {
+		if (tile.obj.level == checkLv && type == tile.type) {
 			for ( var j = i ; j < i+4 ; j++ ) {
 				directByNum(o, j%4);
 				if (o.x >= 0 && o.x < gConfig.Size && o.y >= 0 && o.y < gConfig.Size) {
-					var tile = Tiles[o.x + o.y * gConfig.Size];
+					var tile = gGame.tiles[o.x + o.y * gConfig.Size];
 					if (typeof tile !== "undefined") {
-						if (tile.obj.level == checkLv && type == tile.Type) {
+						if (tile.obj.level == checkLv && type == tile.type) {
 							checker.PutCandidate(tile)
 						}
 					}
@@ -232,7 +259,7 @@ Tile.prototype.UpdateInfo = function() {
 	if (this.obj.level == 0) {
 		this.touch.find("span").html("");
 	} else {
-		this.touch.find("span").html(this.Type + "<br>lv" + this.obj.level);
+		this.touch.find("span").html(this.type + "<br>lv" + this.obj.level);
 	}
 	return this
 }
@@ -243,7 +270,7 @@ Tile.prototype._remove = function() {
 	this.touch.find(".hoverArea").attr("class", "hoverArea");
 	this.obj.find(".floor").attr("src", "/images/tile/base_floor/groundtiles_tile"+this.num+".png").attr("class", "floor");
 
-	delete this.Type;
+	delete this.type;
 	delete this.obj.headTile;
 	return this;
 }
@@ -257,8 +284,6 @@ Tile.prototype.Remove = function() {
 	} else {
 		this._remove().UpdateInfo();
 	}
-	menuClose()
-	menuOpen(this)
 	return this;
 }
 
@@ -281,9 +306,7 @@ Tile.prototype.ValidateBuild = function() {
 }
 
 Tile.prototype.Build = function(type) {
-	if (buildingNum(type) > 0) {
-		this.Type = type
-	}
+	this.type = type
 	if (this.ValidateBuild()) {
 		return this.UI.BuildUp();
 	}

@@ -5,16 +5,15 @@ Tile.prototype.RunCommand = function(func) {
 		tile = this[func]();
 		menuOpen(tile);
 
-		setTimeout(function () {
-			if (func == "Demolition") {
-				onMessage({_init:true}, {data : "{\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":0,\"level\":0,\"type\":0}"})
-			} else {
-				onMessage({_init:true}, {data : "{\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":"+buildingNum(tile.Type)+",\"level\":"+(tile.obj.level+1)+",\"type\":1}"})
-			}
-		}, 100)
-		// sendServer(func, tile)
+		// setTimeout(function () {
+		// 	if (func == "Demolition") {
+		// 		onMessage({_init:true}, {data : "{\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":0,\"level\":0,\"type\":0}"})
+		// 	} else {
+		// 		onMessage({_init:true}, {data : "{\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":"+buildingNum(tile.Type)+",\"level\":"+(tile.obj.level+1)+",\"type\":1}"})
+		// 	}
+		// }, 100)
+		sendServer(func, tile)
 	}
-
 	return tile
 }
 
@@ -22,7 +21,7 @@ Tile.prototype.Demolition = function() {
 	// if (this.obj.level == 6) {
 	// 	var checker = this.CheckLvRound(6)
 	// 	for ( var i = 0 ; i < checker.candidate.length ; i++ ) {
-	// 		Tiles[checker.candidate[i]].Remove().UpdateInfo();
+	// 		gGame.tiles[checker.candidate[i]].Remove().UpdateInfo();
 	// 	}
 	// } else {
 	// 	this.Remove();
@@ -31,13 +30,13 @@ Tile.prototype.Demolition = function() {
 	return this;
 }
 Tile.prototype.Industrial = function() {
-	return this.Build("Industrial");
+	return this.Build(IndustrialType);
 }
 Tile.prototype.Residential = function() {
-	return this.Build("Residential");
+	return this.Build(ResidentialType);
 }
 Tile.prototype.Commercial = function() {
-	return this.Build("Commercial");
+	return this.Build(CommercialType);
 }
 Tile.prototype.Upgrade = function() {
 	return this.Build();
@@ -102,20 +101,7 @@ function sendServer(func, tile) {
 		"target_level": LEVEL_INT
 	}
 */
-		var tileType = tile.Type||func
-
-		var areaType = 0;
-		switch (tileType) {
-			case "Commercial":
-				areaType = 1
-				break;
-			case "Industrial":
-				areaType = 2
-				break;
-			case "Residential":
-				areaType = 3
-				break;
-		}
+		var area_type = buildingNum(func);
 		{
 			$.ajax({
 				type: "POST",
@@ -124,7 +110,7 @@ function sendServer(func, tile) {
 					"seq": loginInfo.Seq+1,
 					"x": tile.x,
 					"y": tile.y,
-					"area_type": areaType,
+					"area_type": area_type,
 					"target_level": tile.obj.level+1
 				}),
 				success : function (d) {

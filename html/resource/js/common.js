@@ -10,13 +10,13 @@ function message(msg) {
 
 function printInfo(x, y) {
     var $l = $("#info");
-    var tile = Tiles[x + y * gConfig.Size]
+    var tile = gGame.tiles[x + y * gConfig.Size]
     tile.UpdateInfo()
 
     if (tile.obj.BuildProcessing == true) {
-        $l.html("x : " + x + " y : "+y + " lv" + (tile.obj.level+1) + " " + tile.Type + " construction ")
+        $l.html("x : " + x + " y : "+y + " lv" + (tile.obj.level+1) + " " + tile.TypeName() + " construction ")
     } else {
-        $l.html("x : " + x + " y : "+y + " lv : " + tile.obj.level + " type : " + tile.Type)
+        $l.html("x : " + x + " y : "+y + " lv : " + tile.obj.level + " type : " + tile.TypeName())
     }
 }
 
@@ -63,13 +63,13 @@ document.addEventListener('keydown', function(event) {
 
         var t = $("#menu")[0].target
         if (typeof t === "undefined") {
-            t = Tiles[0]
+            t = gGame.tiles[0]
         }
         var o = {x:t.x,y:t.y}
         directByNum(o, direction)
         menuClose()
-        if (Tiles[o.x+o.y*gConfig.Size]) {
-            menuOpen(Tiles[o.x+o.y*gConfig.Size].Hover())
+        if (gGame.tiles[o.x+o.y*gConfig.Size]) {
+            menuOpen(gGame.tiles[o.x+o.y*gConfig.Size].Hover())
         }
     }
     switch (event.keyCode) {
@@ -87,7 +87,6 @@ document.addEventListener('keydown', function(event) {
             break;
         case 68: //d
             $("button#Demolition").click()
-            break;
         case 85: //u
             $("button#Upgrade").click()
             break;
