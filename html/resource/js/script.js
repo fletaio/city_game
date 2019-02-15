@@ -137,9 +137,12 @@ function buildableResource(tile, type) {
 	if (type == "Demolition") {
 		return true
 	}
+	if (tile.obj.BuildProcessing == true) {
+		return false;
+	}
 	type = tile.type||buildingNum(type)
 	if (type) {
-		var cost = gBuildingDefine[type][tile.obj.level+1];
+		var cost = gBuildingDefine[type][tile.obj.level];
 		if (typeof cost.cost_usage != "undefined" && currentResource.balance < cost.cost_usage) {
 			return language["not enough balance"]
 		}
@@ -157,6 +160,9 @@ function buildableResource(tile, type) {
 			if (checker.candidate[i].obj.BuildProcessing == true) {
 				return language["BuildProcessing not finished"]
 			}
+		}
+		if (checker.CheckLvF()!=true) {
+			return language["not enough lv5 building"]
 		}
 	}
 

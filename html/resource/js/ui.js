@@ -117,12 +117,14 @@ TileUI.prototype.BuildUp = function() {
 TileUI.prototype.completBuilding = function (lv) {
 	if (lv == 6) {
 		var checker = this.Tile.obj.headTile.CheckLvRound(6)
-		headTile = tile
 		for ( var i = 0 ; i < checker.candidate.length ; i++ ) {
 			var tile = checker.candidate[i];
-			tile.obj.level = lv;
-			console.log("completBuilding lv 6 " + tile.obj.level)
 			tile.obj.BuildProcessing = false;
+			tile.obj.level = lv;
+			if (tile.index !== tile.obj.headTile.index) {
+				tile.obj.level = 0;
+			}
+			console.log("completBuilding lv 6 " + tile.obj.level)
 		}
 		this.Tile.obj.headTile.obj.find("img.floor").attr("src", "/images/tile/"+this.Tile.TypeName()+"_LvFLETA-Tile.png").addClass("lv6");
 		var fileTail = "_LvFLETA"

@@ -199,7 +199,7 @@ function getTileFromPoint(point) {
 }
 
 function connectToServer (addr) {
-	var wsUri = "ws://220.76.209.238:8080//websocket/"+addr;
+	var wsUri = "ws://220.76.209.238:8080/websocket/"+addr;
 	function connect() {
 		var ws = new WebSocket(wsUri)
 		ws._init = false;
@@ -246,12 +246,16 @@ function onMessage(ws,  e) {
 		loginInfo.pushUTXO(noti.utxo)
 		switch(noti.type) {
 		case 0://Demolition
-			console.log("Demolition applied", noti.x, noti.y);
-			gGame.tiles[+noti.x + +noti.y * gConfig.Size].Remove()
-			gGame.height = noti.height;
-			gGame.point_height = noti.point_height;
-			gGame.point_balance = noti.point_balance;
-			updateResource(gGame.Update());
+			var tile = gGame.tiles[noti.x + +noti.y * gConfig.Size]
+			if (typeof noti.error == "undefined" || noti.error == "") {
+				console.log("Demolition applied", noti.x, noti.y);
+				gGame.tiles[+noti.x + +noti.y * gConfig.Size].Remove()
+				gGame.height = noti.height;
+				gGame.point_height = noti.point_height;
+				gGame.point_balance = noti.point_balance;
+				updateResource(gGame.Update());
+			}
+
 			break;
 		case 1://Upgrade
 			var tile = gGame.tiles[noti.x + +noti.y * gConfig.Size]
