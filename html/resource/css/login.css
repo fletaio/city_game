@@ -32,7 +32,6 @@
     margin: 0 auto;
     background-repeat: no-repeat;
 }
-
 .login-choose-view {
     padding-top: 56vh;
     background-image: url(/images/ui/Login_UI-Logo.png);
@@ -45,7 +44,7 @@
 .login-login-view {
     background-image: url(/images/ui/Login_UI-Join_Window.png);
     padding-top: 47vh;
-    padding-bottom: 4vh;
+    padding-bottom: 1vh;
     background-size: 51vh;
     background-position: center 16vh;
 }
@@ -58,9 +57,18 @@
 }
 
 .login-join-view .login-join {
+    margin-bottom: 2vh;
+}
+.login-join-view .login-login {
     margin-bottom: 5vh;
 }
 
+.login-login-view .login-login {
+    margin-bottom: 2vh;
+}
+.login-login-view .login-join {
+    margin-bottom: 2vh;
+}
 
 .id-field,
 .pw-field,

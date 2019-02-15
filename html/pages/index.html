@@ -22,12 +22,14 @@
             <span class="id-field"><input type="text" id="loginId" class="focus" /></span>
             <span class="pw-field"><input type="text" id="loginPw" /></span>
             <button class="login-login" onclick="login()"></button>
+            <button class="login-join" onclick="nextStep('join')"></button>
         </div>
         <div class="login-join-view" step="join" >
             <span class="eth-addr-field"><input type="text" id="ethAddr" class="focus" /></span>
             <span class="id-field"><input type="text" id="joinId" /></span>
             <span class="pw-field"><input type="text" id="joinPw" /></span>
             <button class="login-join" onclick="join()"></button>
+            <button class="login-login" onclick="nextStep('login')"></button>
         </div>
         <!-- <button id="login-join"></button>
         <button id="login-login"></button>
