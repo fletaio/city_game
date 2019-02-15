@@ -199,7 +199,7 @@ function getTileFromPoint(point) {
 }
 
 function connectToServer (addr) {
-	var wsUri = "ws://localhost:8080/websocket/"+addr;
+	var wsUri = "ws://220.76.209.238:8080//websocket/"+addr;
 	function connect() {
 		var ws = new WebSocket(wsUri)
 		ws._init = false;
