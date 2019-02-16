@@ -73,7 +73,7 @@ function join () {
             nextStep("login")
         },
         error: function(d) {
-            alert("error")
+            alert(language["Duplicate id or ether addr"])
         }
     })
 }
