@@ -1,5 +1,6 @@
 function menuClose () {
 	$("#alertUI").hide()
+	$(".tooltip").remove()
 	$(".selected").removeClass("selected");
 	$(".hover").removeClass("hover");
 	$menu = $("#menu");
@@ -16,18 +17,71 @@ function addMenu(tile, funcs) {
     for (var key in funcs) {
 		var able = buildableResource(tile, funcs[key])
 		var btn = $("<button id=\""+funcs[key]+"\" value=\""+key+"\">"+key+"</button>")
+
 		if (able != true) {
 			btn.addClass("disable")
 			btn.attr("onclick", "event.stopPropagation();alert('"+able+"');")
 		} else {
 			btn.attr("onclick", "event.stopPropagation();$('#menu')[0].target.RunCommand('"+funcs[key]+"');")
 		}
+		if (funcs[key] !== "Demolition") {
+			var $tooltip = $("#tooltip").clone();
+			var $this = btn
+
+			$tooltip.removeAttr("id")
+			$tooltip.attr("class", "tooltip " + funcs[key])
+			
+			if (tile.obj.level == 0) {
+				var type = buildingNum($this.attr("id"))
+			} else {
+				var type = tile.type
+			}
+			var r = gBuildingDefine[type][tile.obj.level]
+			$tooltip.find("#needDollar").html(r.cost_usage)
+			$tooltip.find("#needPower").html(r.power_usage)
+			$tooltip.find("#needDemographic").html(r.man_usage)
+			$tooltip.find("#resource").html("+"+r.output+"/s").attr("class", buildingType(type))
+
+
+			var time = secondToDate(r.build_time);
+			if (time.length > 8) {
+				$tooltip.find("#needTime").html(time).attr("class", "date")
+			} else if (time.length > 5) {
+				$tooltip.find("#needTime").html(time).attr("class", "hour")
+			} else {
+				$tooltip.find("#needTime").html(time).attr("class", "")
+			}
+
+			$("#menu").append($tooltip)
+		}
 		$("#menu").append(btn)
     }
 }
 
+function secondToDate(sec) {
+	var ss = sec%60
+	sec = parseInt(sec/60)
+	var mm = sec%60
+	var hh = parseInt(sec/60)
+	if (hh > 0) {
+		return [
+			hh,
+			("0"+mm).substr(-2),
+			("0"+ss).substr(-2)
+		].join(":")
+	}
+	return [
+		("0"+mm).substr(-2),
+		("0"+ss).substr(-2)
+	].join(":")
+}
+
+Date.prototype.yyyymmdd = function() {
+};
+
 function menuOpen(tile) {
 	$("#alertUI").hide()
+	$(".tooltip").remove()
 	if (!IsTile(tile)) {
 		return
 	}
@@ -138,13 +192,11 @@ TileUI.prototype.completBuilding = function (lv) {
 			if (tile.index !== tile.obj.headTile.index) {
 				tile.obj.level = 0;
 			}
-			console.log("completBuilding lv 6 " + tile.obj.level)
 		}
 		this.Tile.obj.headTile.obj.find("img.floor").attr("src", "/images/tile/"+this.Tile.TypeName()+"_LvFLETA-Tile.png").addClass("lv6");
 		var fileTail = "_LvFLETA"
 	} else  {
 		this.Tile.obj.level = lv
-		console.log("completBuilding " + this.Tile.obj.level)
 		this.Tile.obj.BuildProcessing = false
 		if (this.Tile.obj.level < 5) {
 			var fileTail = "_Lv1"
@@ -209,7 +261,7 @@ function newTouchDiv(index) {
 
 function newObjDiv(x,y,num) {
 	return $("<div/>")
-		.css("z-index", x+y)
+		.css("z-index", x*gConfig.Size+y)
 		.append($("<img class='floor' src='/images/tile/base_floor/groundtiles_tile"+num+".png'>"))
 }
 

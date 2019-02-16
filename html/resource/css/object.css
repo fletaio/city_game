@@ -73,9 +73,6 @@
     left: -0.5rem;
 }
 
-#info {
-    color: #fff;
-}
 
 .scaleArea {
     width: 70.7%;
@@ -96,14 +93,6 @@
     cursor: pointer;
 }
 
-.hover .scaleArea,
-.selected .scaleArea  {
-    opacity: 0.5;
-}
-.selected .hoverArea {
-    background-color: #0f0;
-}
-
 .hover .hoverArea {
-    border: 2px solid #0f0;
+    border: 2px solid #0f08;
 }

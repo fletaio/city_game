@@ -1,11 +1,11 @@
 <indexStyle>
-    <link href="/css/background.css?1=4" rel="stylesheet" type="text/css" />
-    <link href="/css/login.css?1=4" rel="stylesheet" type="text/css" />
-    <link href="/css/object.css" rel="stylesheet" type="text/css" />
-    <link href="/css/ui.css?1=6" rel="stylesheet" type="text/css" />
-    <link href="/css/zindex.css?1=4" rel="stylesheet" type="text/css" />
-    <script src="/js/login.js?1=4"></script>
-    <script src="/js/language.js?1=4"></script>
+    <link href="/css/background.css?1=7" rel="stylesheet" type="text/css" />
+    <link href="/css/login.css?1=7" rel="stylesheet" type="text/css" />
+    <link href="/css/object.css?1=7" rel="stylesheet" type="text/css" />
+    <link href="/css/ui.css?1=7" rel="stylesheet" type="text/css" />
+    <link href="/css/zindex.css?1=7" rel="stylesheet" type="text/css" />
+    <script src="/js/login.js?1=7"></script>
+    <script src="/js/language.js?1=7"></script>
 
     <script src="/js/sign/common.js"></script>
     <script src="/js/sign/crypto.min.js"></script>
@@ -66,7 +66,8 @@
     </div>
     <div class="ui_layout">
         <div id="scoreboard">
-            <span id="dollar" key="balance"></span>
+                
+            <span id="dollar"><span key="balance"></span><br/><span key="add_balance"></span></span>
             <!-- <span id="power"><span key="power_remained"></span>/<span key="power_provided"></span></span>
             <span id="demographic"><span key="man_remained"></span>/<span key="man_provided"></span></span> -->
             <span id="power"><span key="power_remained"></span></span></span>
@@ -77,14 +78,21 @@
     <button id="hideBuilding" onclick="event.stopPropagation();ViewChanger()"></button>
     <div id="menu"></div>
     <div id="alertUI"><button class="alertUI_ok" onclick="event.stopPropagation();UIAlert.okOnclick()"></button><button class="alertUI_cancel" onclick="event.stopPropagation();UIAlert.cancelOnclick()"></button></div>
+    <div id="tooltip">
+        <div id="needDemographic"></div>
+        <div id="needDollar"></div>
+        <div id="needPower"></div>
+        <div id="needTime"></div>
+        <div id="resource"></div>
+    </div>
 </panel>
 
 <gamecode>
-<script src="/js/common.js?1=4"></script>
-<script src="/js/error.js?1=4"></script>
-<script src="/js/script.js?1=4"></script>
-<script src="/js/ui.js?1=6"></script>
-<script src="/js/event.js?1=4"></script>
-<script src="/js/game.js?1=4"></script>
-<script src="/js/gameCommand.js?1=4"></script>
+<script src="/js/common.js?1=7"></script>
+<script src="/js/error.js?1=7"></script>
+<script src="/js/script.js?1=7"></script>
+<script src="/js/ui.js?1=7"></script>
+<script src="/js/event.js?1=7"></script>
+<script src="/js/game.js?1=7"></script>
+<script src="/js/gameCommand.js?1=7"></script>
 </gamecode>

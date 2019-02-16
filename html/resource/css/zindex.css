@@ -73,3 +73,8 @@
 #alertUI {
     z-index: 100002;
 }
+
+.tooltip {
+    z-index: 100003;
+}
+

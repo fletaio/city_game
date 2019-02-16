@@ -31,11 +31,33 @@
     text-align: center;
     background-size: cover;
     display: inline-block;
+    position: absolute;
+    top: 0.1vh;
 }
 
 #scoreboard #dollar {background-image: url("/images/ui/dollar.png");}
 #scoreboard #power {background-image: url("/images/ui/power.png");}
 #scoreboard #demographic {background-image: url("/images/ui/demographic.png");}
+
+#scoreboard #dollar{
+    line-height: 1.3vh;
+    font-size: 1.5vh;
+    padding-top: 0.5vh;
+}
+
+#scoreboard #power {
+    left: 11.3vh;
+}
+#scoreboard #demographic {
+    left: 22.6vh;
+}
+
+#info {
+    color: #fff;
+    position: absolute;
+    top: 4.5vh;
+    width: 10vw;
+}
 
 #menu {
     position: absolute;
@@ -50,7 +72,7 @@
 
 #menu #Demolition,
 #menu #Industrial {
-    left: -1.3rem;
+    left: -1.5rem;
     top: -0.32rem;
 }
 #menu #Residential{
@@ -59,7 +81,7 @@
 }
 #menu #Upgrade,
 #menu #Commercial{
-    left: 1rem;
+    left: 1.17rem;
     top: -0.32rem;
 }
 
@@ -301,3 +323,84 @@
     left: 0.1rem;
     top: -2rem;
 }
+
+#touchpad .selected {
+    background-image: url(/images/ui/tile_select.png);
+    background-size: 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+#tooltip {
+    display: none;
+}
+.tooltip {
+    position: absolute;
+    top:0;
+    left:0;
+}
+.tooltip #resource,
+.tooltip #needDemographic,
+.tooltip #needDollar,
+.tooltip #needPower,
+.tooltip #needTime {
+    position: absolute;
+    left: 0;
+    height: 0.24rem;
+    width: 0.65rem;
+    background-repeat: no-repeat;
+    background-size: 100%;
+    line-height: 0.2rem;
+    color: #fff;
+    font-size: 0.15rem;
+    padding-left: 0.1rem;
+    text-align: center;
+}
+
+.tooltip #needDemographic {
+    background-image: url("/images/ui/demographic.png");
+    top:0rem;
+}
+.tooltip #needDollar {
+    background-image: url("/images/ui/dollar.png");
+    top: 0;
+    left: 0.65rem;
+}
+.tooltip #needPower {
+    background-image: url("/images/ui/power.png");
+    top: 0.23rem;
+}
+.tooltip #needTime {
+    background-image: url("/images/ui/power.png");
+    top: 0.23rem;
+    left: 0.65rem;
+}
+.tooltip #needTime.hour {
+    font-size: 0.1rem;
+}
+
+.tooltip.Demolition,
+.tooltip.Industrial {
+    left: -1.5rem;
+    top: 0.88rem;
+}
+.tooltip.Residential {
+    left: -0.15rem;
+    top: 1.73rem;
+}
+.tooltip.Upgrade,
+.tooltip.Commercial {
+    left: 1.17rem;
+    top: 0.88rem;
+}
+
+.tooltip #resource {
+    top: 0.46rem;
+    height: 0.47rem;
+    width: 1.3rem;
+    font-size: 0.3rem;
+    line-height: 0.4rem;
+}
+
+.tooltip #resource.Residential {background-image: url("/images/ui/demographic.png");}
+.tooltip #resource.Commercial {background-image: url("/images/ui/dollar.png");}
+.tooltip #resource.Industrial {background-image: url("/images/ui/power.png");}

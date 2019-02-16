@@ -25,7 +25,11 @@ function updateResource(resource) {
 	for (var key in resource) {
 		var $board = $scoreBoard.find("[key='"+key+"']")
 		if ($board.length > 0) {
-			$board.html(resource[key])
+			if (key == "add_balance") {
+				$board.html("(+"+resource[key]+"/s)")
+			} else {
+				$board.html(resource[key])
+			}
 		}
 	}
 
@@ -313,7 +317,6 @@ Tile.prototype.ValidateBuild = function() {
 Tile.prototype.Build = function(type) {
 	this.type = type||this.type
 	if (this.ValidateBuild()) {
-		console.log("build : " + gGame.height)
 		if (this.obj.level == 5) {
 			var checker = this.CheckLvRound();
 			var headTile = gGame.tiles[checker.maxCoordinate];

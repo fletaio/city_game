@@ -25,7 +25,6 @@ var islandMove = undefined;
 var downPosition;
 var islandMoved = false;
 function mousedown (e) {
-	console.log("mousedown")
 	var o = getPoint(e);
 	downPosition = {x:o.x,y:o.y};
 	islandMove = {x:o.x,y:o.y};
@@ -42,7 +41,6 @@ function mousemove (e) {
 		var o = getPoint(e);
 		if (islandMoved == false) {
 			var d = calcDistance(downPosition, o);
-			console.log(d)
 			if (d >= 5 || d <= -5) {
 				islandMoved = true;
 			}
@@ -73,7 +71,6 @@ function islandMoveFunc(o, wheelSign) {
 			var dy = 0
 		}
 
-		console.log(dx + " : " + dy + "("+o.x + " : " + o.y+")")
 	} else {
 		var dx = o.x-islandMove.x
 		var dy = o.y-islandMove.y
@@ -238,7 +235,6 @@ function connectToServer (addr) {
 }
 
 function onMessage(ws,  e) {
-	console.log("MSG", e.data);
 	if(!ws._init) {
 		ws._init = true;
 
@@ -256,7 +252,6 @@ function onMessage(ws,  e) {
 		case 0://Demolition
 			var tile = gGame.tiles[noti.x + +noti.y * gConfig.Size]
 			if (typeof noti.error == "undefined" || noti.error == "") {
-				console.log("Demolition applied", noti.x, noti.y);
 				tile.UI.distructionEffect(function (tileUI) {
 					tileUI.Tile.Remove()
 				})
@@ -270,7 +265,6 @@ function onMessage(ws,  e) {
 		case 1://Upgrade
 			var tile = gGame.tiles[noti.x + +noti.y * gConfig.Size]
 			if (typeof noti.error == "undefined" || noti.error == "") {
-				console.log("Upgrade applied", noti.x, noti.y, noti.area_type, noti.level);
 				//gGame.tiles[+noti.x + +noti.y * gConfig.Size].UI.completBuilding(noti.level)
 				gGame.height = noti.height;
 				gGame.point_height = noti.point_height;
@@ -313,7 +307,6 @@ function onMessage(ws,  e) {
 
 function addKeyShotcut () {
 	document.addEventListener('keydown', function(event) {
-		// console.log(event.keyCode)
 		if (event.keyCode >= 37 && event.keyCode <= 40) {// arrow
 			direction = event.keyCode-37
 	

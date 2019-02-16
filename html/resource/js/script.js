@@ -24,12 +24,18 @@ Game.prototype.Update = function() {
 	}
 	var used = new Resource();
 	var provide = new Resource(this.point_balance + parseInt(base.balance/2)*parseInt(forward_height), base.power_remained, base.man_remained);
+
+	var addBalance = 0
 	for (var k in gGame.tiles) {
 		var tile = gGame.tiles[k];
 		if (tile.obj.level > 0) {
 			var bd = gBuildingDefine[tile.type][tile.obj.level-1];
 			used.man_remained += bd.man_usage||0;
 			used.power_remained += bd.power_usage||0;
+
+			if (tile.type == CommercialType) {
+				addBalance += bd.output;
+			}
 
 			var ConstructionHeight = tile.build_height + bd.build_time*2
 			if (this.height < ConstructionHeight) {
@@ -42,15 +48,15 @@ Game.prototype.Update = function() {
 			case CommercialType:
 				if (this.height > ConstructionHeight) {
 					if (ConstructionHeight <= this.point_height) {
-						provide.balance += parseInt(bd.output/2) * parseInt(forward_height);
+						provide.balance += bd.output/2 * parseInt(forward_height);
 					} else {
 						if (tile.build_height <= this.point_height) {
-							provide.balance += parseInt(bd.output/2) * parseInt(forward_height-(ConstructionHeight-this.point_height));
+							provide.balance += bd.output/2 * parseInt(forward_height-(ConstructionHeight-this.point_height));
 						} else {
-							provide.balance += parseInt(bd.output/2) * parseInt(this.height-ConstructionHeight);
+							provide.balance += bd.output/2 * parseInt(this.height-ConstructionHeight);
 							if (tile.obj.level > 1) {
 								var prevbd = gBuildingDefine[tile.type][tile.obj.level-2];
-								provide.balance += parseInt(prevbd.output/2) * parseInt(tile.build_height-this.point_height);
+								provide.balance += prevbd.output/2 * parseInt(tile.build_height-this.point_height);
 							}
 						}
 					}
@@ -71,7 +77,6 @@ Game.prototype.Update = function() {
 			if(sTile.build_height + gGame.define_map[sTile.type][sTile.obj.level-1].build_time*2 <= gGame.height) {
 				if (sTile.obj.BuildProcessing == true) {
 					sTile.UI.completBuilding(tile.obj.level)
-					console.log(tile.obj.level + " : " + sTile.build_height + " : " + gGame.define_map[sTile.type][sTile.obj.level-1].build_time*2  + " : " +  gGame.height)
 				}
 			}
 		}
@@ -87,6 +92,7 @@ Game.prototype.Update = function() {
 		power_provided: provide.power_remained,
 		man_remained:   currentResource.men,
 		man_provided:   provide.man_remained,
+		add_balance:   addBalance,
 	};
 }
 
