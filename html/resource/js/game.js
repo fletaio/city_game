@@ -7,6 +7,7 @@ function initGame () {
 	connectToServer(loginInfo.Addr)
 	loadTile()
 	scoreReloader()
+	addKeyShotcut()
 }
 
 function scoreReloader() {

@@ -303,52 +303,54 @@ function onMessage(ws,  e) {
 	}
 }
 
-document.addEventListener('keydown', function(event) {
-    console.log(event.keyCode)
-    if (event.keyCode >= 37 && event.keyCode <= 40) {// arrow
-        direction = event.keyCode-37
-
-        var t = $("#menu")[0].target
-        if (typeof t === "undefined") {
-            t = gGame.tiles[0]
-        }
-        var o = {x:t.x,y:t.y}
-        directByNum(o, direction)
-        menuClose()
-        if (gGame.tiles[o.x+o.y*gConfig.Size]) {
-            menuOpen(gGame.tiles[o.x+o.y*gConfig.Size].Hover())
-        }
-    }
-    switch (event.keyCode) {
-        case 27: //esc
-            menuClose()
-            break;
-        case 73: //i 
-            $("button#Industrial").click()
-            break;
-        case 82: //r
-            $("button#Residential").click()
-            break;
-        case 67: //c
-            $("button#Commercial").click()
-            break;
-        case 68: //d
-            $("button#Demolition").click()
-            break;
-        case 85: //u
-            $("button#Upgrade").click()
-            break;
-        case 72: //h
-            $("button#hideBuilding").click()
-            break;
-        case 79: //o
-            $("#alertUI .alertUI_ok").click()
-            break;
-        case 88: //x
-			$("#alertUI .alertUI_cancel").click()
-            break;
-    
-        default:
-            break;
-    }
-});
+function addKeyShotcut () {
+	document.addEventListener('keydown', function(event) {
+		// console.log(event.keyCode)
+		if (event.keyCode >= 37 && event.keyCode <= 40) {// arrow
+			direction = event.keyCode-37
+	
+			var t = $("#menu")[0].target
+			if (typeof t === "undefined") {
+				t = gGame.tiles[0]
+			}
+			var o = {x:t.x,y:t.y}
+			directByNum(o, direction)
+			menuClose()
+			if (gGame.tiles[o.x+o.y*gConfig.Size]) {
+				menuOpen(gGame.tiles[o.x+o.y*gConfig.Size].Hover())
+			}
+		}
+		switch (event.keyCode) {
+			case 27: //esc
+				menuClose()
+				break;
+			case 73: //i 
+				$("button#Industrial").click()
+				break;
+			case 82: //r
+				$("button#Residential").click()
+				break;
+			case 67: //c
+				$("button#Commercial").click()
+				break;
+			case 68: //d
+				$("button#Demolition").click()
+				break;
+			case 85: //u
+				$("button#Upgrade").click()
+				break;
+			case 72: //h
+				$("button#hideBuilding").click()
+				break;
+			case 79: //o
+				$("#alertUI .alertUI_ok").click()
+				break;
+			case 88: //x
+				$("#alertUI .alertUI_cancel").click()
+				break;
+		
+			default:
+				break;
+		}
+	});
+}

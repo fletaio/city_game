@@ -18,18 +18,12 @@ function addMenu(tile, funcs) {
 		var btn = $("<button id=\""+funcs[key]+"\" value=\""+key+"\">"+key+"</button>")
 		if (able != true) {
 			btn.addClass("disable")
-			btn.attr("onclick", "event.stopPropagation();alert('"+language["under construction"]+"');")
+			btn.attr("onclick", "event.stopPropagation();alert('"+able+"');")
 		} else {
 			btn.attr("onclick", "event.stopPropagation();$('#menu')[0].target.RunCommand('"+funcs[key]+"');")
 		}
 		$("#menu").append(btn)
     }
-}
-
-function disableAlert (e){
-	console.log(e)
-	e.stopPropagation();
-	alert('"+language["under construction"]+"');
 }
 
 function menuOpen(tile) {
