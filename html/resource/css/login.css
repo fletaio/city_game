@@ -25,6 +25,7 @@
     display: none;
 }
 
+.login-policy-view,
 .login-login-view,
 .login-join-view,
 .login-choose-view {
@@ -41,19 +42,61 @@
 
 .login-choose-view .login-login {margin-bottom:3vh;}
 
-.login-login-view {
+.login-join-view,
+.login-policy-view,
+.login-login-view{
     background-image: url(/images/ui/Login_UI-Join_Window.png);
-    padding-top: 47vh;
-    padding-bottom: 1vh;
-    background-size: 51vh;
-    background-position: center 16vh;
-}
-
-.login-join-view {
-    background-image: url(/images/ui/Login_UI-Join_Window.png);
-    padding-top: 37vh;
     background-size: 51vh;
     background-position: center 5vh;
+}
+
+.login-login-view {
+    padding-top: 37vh;
+    padding-bottom: 1vh;
+}
+
+.login-policy-view {
+    padding-top: 32vh;
+}
+.login-join-view {
+    padding-top: 35vh;
+}
+
+.login-policy-view p,
+.login-policy-view textarea,
+.login-policy-view input {
+    margin: 0 auto;
+}
+
+.login-policy-view p {
+    width: 45vh;
+    text-align: left;
+    color: #fff;
+    font-size: 2vh;
+    padding-top: 2vh;
+    padding-bottom: 0.7vh;
+}
+.login-policy-view textarea {
+    width: 45vh;
+    height: 15vh;
+    resize: none;
+}
+.login-policy-view input::before {
+    content: "agree";
+    color: #fff;
+    font-size: 1.5vh;
+    display: block;
+    padding-left: 2vh;
+}
+.login-policy-view input {
+    width: 2vh;
+    text-align: left;
+    display: block;
+    margin-left: 6vh;
+}
+
+.login-policy-view .login-check {
+    margin: 3vh 0;
 }
 
 .login-join-view .login-join {
@@ -132,6 +175,7 @@
 
 .login-check{
     width: 23vh;
+    margin: 0 auto;
 }
 .login-login,
 .login-join {

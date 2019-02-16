@@ -26,6 +26,7 @@ function nextStep (step) {
     $("[step]").hide()
     $("[step='"+step+"']").show()
     $("[step='"+step+"'].focus, [step='"+step+"'] .focus").focus()
+    $("[step='"+step+"']").find("input").val("").removeAttr("checked")
 }
 
 function validate (str) {

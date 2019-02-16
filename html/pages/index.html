@@ -16,13 +16,22 @@
     <div class="loginPage">
         <div class="login-choose-view" step="init" >
             <button class="login-login" onclick="nextStep('login')"></button>
-            <button class="login-join" onclick="nextStep('join')"></button>
+            <button class="login-join" onclick="nextStep('policy')"></button>
         </div>
         <div class="login-login-view" step="login" >
             <span class="id-field"><input type="text" id="loginId" class="focus" /></span>
             <span class="pw-field"><input type="text" id="loginPw" /></span>
             <button class="login-login" onclick="login()"></button>
-            <button class="login-join" onclick="nextStep('join')"></button>
+            <button class="login-join" onclick="nextStep('policy')"></button>
+        </div>
+        <div class="login-policy-view" step="policy" >
+            <p>Privacy Policy</p>
+            <textarea readonly="readonly" class="PrivacyPolicy">{{privacy_policy}}</textarea>
+            <input type="checkbox" id="PrivacyPolicy" name="PrivacyPolicy" />
+            <p>Terms and Conditions of Use</p>
+            <textarea readonly="readonly" class="termsOfUse" >{{terms_use}}</textarea>
+            <input type="checkbox" id="termsOfUse" name="termsOfUse" />
+            <button class="login-check" onclick="($('#PrivacyPolicy').prop('checked') && $('#termsOfUse').prop('checked'))?nextStep('join'):alert(language['Available after agreeing'])"></button>
         </div>
         <div class="login-join-view" step="join" >
             <span class="eth-addr-field"><input type="text" id="ethAddr" class="focus" /></span>
@@ -31,9 +40,6 @@
             <button class="login-join" onclick="join()"></button>
             <button class="login-login" onclick="nextStep('login')"></button>
         </div>
-        <!-- <button id="login-join"></button>
-        <button id="login-login"></button>
-        <button id="login-check"></button> -->
     </div>
 </login>
 

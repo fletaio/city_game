@@ -46,7 +46,11 @@ function menuOpen(tile) {
 	var $menu = $("#menu");
 	$menu[0].target = tile;
 	tile.SelectTile();
-	tile.touch.append($menu.show())
+	if (tile.obj.headTile) {
+		tile.obj.headTile.touch.append($menu.show())
+	} else {
+		tile.touch.append($menu.show())
+	}
 }
 
 function TileUI(tile) {
@@ -60,9 +64,15 @@ TileUI.prototype.Hover = function () {
 
 TileUI.prototype.SelectTile = function () {
 	$(".selected").removeClass("selected");
-	if (this.Tile.obj.level == 6) {
-		var head = this.Tile.obj.headTile;
-		head.UI.SelectUpperLvTile(6);
+	if (this.Tile.obj.headTile) {
+		var headTile = this.Tile.obj.headTile;
+		headTile.touch.addClass("selected");
+		var o = {x:headTile.x,y:headTile.y}
+		for (var i = 0 ; i < 3 ; i++) {
+			directByNum(o, i)
+			var t = gGame.tiles[o.x + o.y * gConfig.Size];
+			t.touch.addClass("selected");
+		}
 	} else {
 		this.Tile.touch.addClass("selected");
 	}

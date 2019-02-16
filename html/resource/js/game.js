@@ -273,13 +273,15 @@ Tile.prototype._remove = function() {
 
 Tile.prototype.Remove = function() {
 	if (this.obj.level == 6) {
-		var checker = this.CheckLvRound(6);
-		for ( var i = 0 ; i < checker.candidate.length ; i++ ) {
-			checker.candidate[i]._remove();
+		var headTile = this.obj.headTile
+		var o = {x:headTile.x,y:headTile.y}
+		for (var i = 0 ; i < 3 ; i++) {
+			directByNum(o, i)
+			var t = gGame.tiles[o.x + o.y * gConfig.Size];
+			t._remove();
 		}
-	} else {
-		this._remove();
 	}
+	this._remove();
 	menuClose();
 	menuOpen(this);
 	return this;

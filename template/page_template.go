@@ -89,6 +89,11 @@ func (p *Template) Route(r *http.Request, urlpath string) (data []byte, err erro
 	if err != nil {
 		return nil, err
 	}
+	// file build
+	data, err = p.pageFileBuilder(data)
+	if err != nil {
+		return nil, err
+	}
 
 	// controller build
 	sPath := strings.Split(purePath, "/")
