@@ -17,7 +17,8 @@ function addMenu(tile, funcs) {
 		var btn = $("<button id=\""+funcs[key]+"\" value=\""+key+"\">"+key+"</button>")
 		if (able != true) {
 			btn.addClass("disable")
-			btn.attr("onclick", "alert('"+able+"')")
+			
+			btn.attr("onclick", "alert('"+language["under construction"]+"')")
 		} else {
 			btn.attr("onclick", "$('#menu')[0].target.RunCommand('"+funcs[key]+"')")
 		}
@@ -25,18 +26,26 @@ function addMenu(tile, funcs) {
     }
 }
 
+function disableAlert (e){
+	console.log(e)
+	e.stopPropagation();
+	alert('"+language["under construction"]+"');
+}
+
 function menuOpen(tile) {
 	if (!IsTile(tile)) {
 		return
 	}
 	deleteMenu();
-	addMenu(tile, MENU["lv"+tile.obj.level]);
+	if (tile.obj.headTile) {
+		addMenu(tile.obj.headTile, MENU["lv"+tile.obj.headTile.obj.level]);
+	} else {
+		addMenu(tile, MENU["lv"+tile.obj.level]);
+	}
 	message("menu open x : " + tile.x + " y : " + tile.y );
 	var $menu = $("#menu");
 	$menu[0].target = tile;
 	tile.SelectTile();
-	var offset = tile.obj.offset()
-	// $menu.css("top", offset.top).css("left", offset.left)
 	tile.touch.append($menu.show())
 }
 

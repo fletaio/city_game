@@ -119,3 +119,9 @@
 #menu #Demolition:hover::before {background-image: url("/images/ui/Ingame-buttons-build-button-basic-DM-select.png");}
 #menu #Upgrade:hover::before {background-image: url("/images/ui/Ingame-buttons-build-button-basic-UG-select.png");}
 
+#menu #Industrial.disable:hover::before {background-image: url("/images/ui/Ingame-buttons-build-button-basic-ID.png");}
+#menu #Residential.disable:hover::before {background-image: url("/images/ui/Ingame-buttons-build-button-basic-RS.png");}
+#menu #Commercial.disable:hover::before {background-image: url("/images/ui/Ingame-buttons-build-button-basic-BZ.png");}
+#menu #Demolition.disable:hover::before {background-image: url("/images/ui/Ingame-buttons-build-button-basic-DM.png");}
+#menu #Upgrade.disable:hover::before {background-image: url("/images/ui/Ingame-buttons-build-button-basic-UG.png");}
+
