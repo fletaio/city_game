@@ -1,32 +1,35 @@
-Tile.prototype.RunCommand = function(func) {
-	var tile = this;
+Tile.prototype.RunCommand = function(func, e) {
 	if (typeof this[func] === "function") {
-		message("command : "+ func + " x : " + this.x + " y : " + this.y );
+		(function (This) {
+			var tile = This;
+			UIAlert.Alert(func, function () {
+				message("command : "+ func + " x : " + tile.x + " y : " + tile.y );
 
-		var utxo = loginInfo.popUTXO()
-		if (!utxo) {
-			alert(language["too fast"])
-			return 
-		}
-		tile = this[func]();
-		if (IsTile(tile)){
-			menuOpen(tile);
-			// setTimeout(function () {
-			// 	var balance = parseInt($("#dollar[key='balance']").html())
-			// 	balance -=  gBuildingDefine[tile.type][tile.obj.level].cost_usage
-			// 	var height = gGame.height
-			// 	if (func == "Demolition") {
-			// 		onMessage({_init:true}, {data : "{\"point_height\":"+height+",\"point_balance\":"+balance+",\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":0,\"level\":0,\"type\":0,\"height\":"+gGame.height+"}"})
-			// 	} else {
-			// 		onMessage({_init:true}, {data : "{\"point_height\":"+height+",\"point_balance\":"+balance+",\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":"+tile.type+",\"level\":"+(tile.obj.level+1)+",\"type\":1,\"height\":"+gGame.height+"}"})
-			// 	}
-			// }, 100)
-			sendServer(func, tile, utxo)
-		} else {
-			loginInfo.pushUTXO(utxo)
-		}
+				var utxo = loginInfo.popUTXO()
+				if (!utxo) {
+					alert(language["too fast"])
+					return
+				}
+				tile = tile[func]();
+				if (IsTile(tile)){
+					menuOpen(tile);
+					// setTimeout(function () {
+					// 	var balance = parseInt($("#dollar[key='balance']").html())
+					// 	balance -=  gBuildingDefine[tile.type][tile.obj.level].cost_usage
+					// 	var height = gGame.height
+					// 	if (func == "Demolition") {
+					// 		onMessage({_init:true}, {data : "{\"point_height\":"+height+",\"point_balance\":"+balance+",\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":0,\"level\":0,\"type\":0,\"height\":"+gGame.height+"}"})
+					// 	} else {
+					// 		onMessage({_init:true}, {data : "{\"point_height\":"+height+",\"point_balance\":"+balance+",\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":"+tile.type+",\"level\":"+(tile.obj.level+1)+",\"type\":1,\"height\":"+gGame.height+"}"})
+					// 	}
+					// }, 100)
+					sendServer(func, tile, utxo)
+				} else {
+					loginInfo.pushUTXO(utxo)
+				}
+			})
+		})(this)
 	}
-	return tile
 }
 
 Tile.prototype.Demolition = function() {

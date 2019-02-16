@@ -1,4 +1,5 @@
 function menuClose () {
+	$("#alertUI").hide()
 	$(".selected").removeClass("selected");
 	$(".hover").removeClass("hover");
 	$menu = $("#menu");
@@ -17,10 +18,9 @@ function addMenu(tile, funcs) {
 		var btn = $("<button id=\""+funcs[key]+"\" value=\""+key+"\">"+key+"</button>")
 		if (able != true) {
 			btn.addClass("disable")
-			
-			btn.attr("onclick", "alert('"+language["under construction"]+"')")
+			btn.attr("onclick", "event.stopPropagation();alert('"+language["under construction"]+"');")
 		} else {
-			btn.attr("onclick", "$('#menu')[0].target.RunCommand('"+funcs[key]+"')")
+			btn.attr("onclick", "event.stopPropagation();$('#menu')[0].target.RunCommand('"+funcs[key]+"');")
 		}
 		$("#menu").append(btn)
     }
@@ -33,6 +33,7 @@ function disableAlert (e){
 }
 
 function menuOpen(tile) {
+	$("#alertUI").hide()
 	if (!IsTile(tile)) {
 		return
 	}
@@ -158,11 +159,53 @@ TileUI.prototype.completBuilding = function (lv) {
 		}
 	}
 	this.Tile.obj.find(".lv"+lv+".building").attr("src", "/images/building/"+this.Tile.TypeName()+""+fileTail+".png")
+	this.constructEffect()
 
 	var $menu = $("#menu");
 	if ($menu[0].target == this.Tile) {
 		menuOpen(this.Tile)
 	}
+}
+
+TileUI.prototype.distructionEffect = function(callback) {
+	this.buildEffect("distructionEffect", callback)
+}
+
+TileUI.prototype.constructEffect = function(callback) {
+	this.buildEffect("constructEffect", callback)
+}
+
+TileUI.prototype.buildEffect = function(type, callback) {
+	if (this.Tile.obj.headTile) {
+		var tile = this.Tile.obj.headTile
+	} else {
+		var tile = this.Tile
+	}
+
+	var effect = $("<div class='lv"+tile.obj.level+" buildEffect "+type+"'/>")
+	tile.touch.append(effect);
+	(function (effect, tile, callback) {
+		setTimeout(function () {
+			if (typeof callback === "function") {
+				callback(tile.UI)
+			}
+			effect.remove()
+		}, 1500)
+	})(effect, tile, callback)
+
+	if (tile.obj.level == 6 && type == "constructEffect") {
+		tile.UI.fletaEffect()
+	}
+}
+
+TileUI.prototype.fletaEffect = function() {
+	var effect = $("<div class='buildEffect FLETAAnimation'/>")
+	this.Tile.touch.append(effect);
+	(function (effect) {
+		setTimeout(function () {
+			effect.remove()
+		}, 3000)
+	})(effect)
 }
 
 function newTouchDiv(index) {
@@ -175,3 +218,34 @@ function newObjDiv(x,y,num) {
 		.css("z-index", x+y)
 		.append($("<img class='floor' src='/images/tile/base_floor/groundtiles_tile"+num+".png'>"))
 }
+
+var UIAlert = {}
+
+UIAlert.Alert = function(btn, okFunc, cancelFunc) {
+	UIAlert.btn = $("#"+btn);
+	UIAlert.okFunc = okFunc;
+	UIAlert.cancelFunc = cancelFunc;
+	UIAlert.show()
+}
+
+UIAlert.show = function () {
+	var $touch = $("#menu").parent()
+	if (typeof UIAlert.alertUI === "undefined") {
+		UIAlert.alertUI = $("#alertUI")
+	}
+	UIAlert.alertUI.attr("class", UIAlert.btn.attr("id"))
+	$touch.append(UIAlert.alertUI)
+	UIAlert.alertUI.show()
+}
+
+UIAlert.okOnclick = function () {
+	UIAlert.okFunc()
+	UIAlert.alertUI.hide()
+};
+
+UIAlert.cancelOnclick = function () {
+	if (typeof UIAlert.cancelFunc === "function") {
+		UIAlert.cancelFunc()
+	}
+	UIAlert.alertUI.hide()
+};

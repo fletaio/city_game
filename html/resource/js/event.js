@@ -55,8 +55,8 @@ function islandMoveFunc(o, wheelSign) {
 	if (wheelSign) {
 		var tileindex = $("[tileindex].hover").attr("tileindex")
 		if (typeof tileindex !== "undefined") {
-			var x = $island.offset().left+(iw/2)
-			var y = $island.offset().top+(ih/2)
+			var x = $island.offset().left+(iw/2) - gConfig.Unit/2
+			var y = $island.offset().top+(ih/2) - gConfig.Unit/4
 
 			var dx = wheelSign*(x-gGame.tiles[tileindex].obj.offset().left)/(gConfig.Unit/10)
 			var dy = wheelSign*(y-gGame.tiles[tileindex].obj.offset().top)/(gConfig.Unit/10)
@@ -249,7 +249,9 @@ function onMessage(ws,  e) {
 			var tile = gGame.tiles[noti.x + +noti.y * gConfig.Size]
 			if (typeof noti.error == "undefined" || noti.error == "") {
 				console.log("Demolition applied", noti.x, noti.y);
-				gGame.tiles[+noti.x + +noti.y * gConfig.Size].Remove()
+				tile.UI.distructionEffect(function (tileUI) {
+					tileUI.Tile.Remove()
+				})
 				gGame.height = noti.height;
 				gGame.point_height = noti.point_height;
 				gGame.point_balance = noti.point_balance;
@@ -338,6 +340,12 @@ document.addEventListener('keydown', function(event) {
             break;
         case 72: //h
             $("button#hideBuilding").click()
+            break;
+        case 79: //o
+            $("#alertUI .alertUI_ok").click()
+            break;
+        case 88: //x
+			$("#alertUI .alertUI_cancel").click()
             break;
     
         default:

@@ -42,7 +42,10 @@
     top:0;
     left:0;
     display: none;
-    z-index: 100001;
+}
+
+#menu button {
+    pointer-events: fill;
 }
 
 #menu #Demolition,
@@ -125,3 +128,176 @@
 #menu #Demolition.disable:hover::before {background-image: url("/images/ui/Ingame-buttons-build-button-basic-DM.png");}
 #menu #Upgrade.disable:hover::before {background-image: url("/images/ui/Ingame-buttons-build-button-basic-UG.png");}
 
+#hideBuilding {
+    width: 15vh;
+    height: 6vh;
+    position: absolute;
+    left: 3vh;
+    bottom: 3vh;
+    background-color: transparent;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: bottom;
+    border: none;
+    cursor: pointer;
+    transition: background-image .2s ease-in;
+    background-image: url(/images/ui/Ingame-button-view_toggle-glass.png);
+}
+#hideBuilding:focus {outline:0;}
+
+
+#hideBuilding.hideBuilding {
+    background-image: url(/images/ui/Ingame-button-hide_toggle-sunglass.png);
+}
+#hideBuilding::before {
+    content: " ";
+    width: 5.7vh;
+    height: 5.7vh;
+    margin: 0;
+    display: block;
+    position: absolute;
+    right: 0vh;
+    bottom: 0.11vh;
+    transition: background-image .2s ease-in, right .2s ease-in, transform .2s ease-in, -moz-transform .2s ease-in, -webkit-transform .2s ease-in;
+    background-image: url(/images/ui/Ingame-button-view_toggle.png);
+    background-size: 100%;
+    background-repeat: no-repeat;
+}
+#hideBuilding.hideBuilding::before {
+    background-image: url(/images/ui/Ingame-button-hide_toggle.png);
+    right: 9.3vh;
+    -moz-transform: rotate(-360deg);
+    -webkit-transform: rotate(-360deg);
+    transform:rotate(-360deg);
+}
+
+.buildEffect.lv1 {
+    top: 0.02rem;
+    left: 0.12rem;
+}
+.buildEffect.lv2 {
+    top: 0.14rem;
+    left: 0.38rem;
+}
+.buildEffect.lv3 {
+    top: 0.27rem;
+    left: 0.13rem;
+}
+.buildEffect.lv4 {
+    top: 0.15rem;
+    left: -0.12rem;
+}
+.buildEffect.lv5 {
+    width: 1.25rem;
+    height: 0.5rem;
+    top: 0.07rem;
+    left: -0.125rem;
+}
+.buildEffect.lv6 {
+    width: 2.5rem;
+    height: 1rem;
+    top: -0.37rem;
+    left: -0.75rem;
+}
+
+.buildEffect {
+    width: 0.75rem;
+    height: 0.25rem;
+    display: block;
+    margin:0 auto;
+    position: absolute;
+}
+
+.constructEffect {
+    background: url(/images/animate/Construction_Effect.png) 0 0 no-repeat;
+    background-size: 1400%;
+    animation: like-gif steps(13) 1.5s both;
+}
+
+.distructionEffect {
+    background: url(/images/animate/Distruction_Effect.png) 0 0 no-repeat;
+    background-size: 900%;
+    animation: like-gif steps(8) 1.5s infinite both;
+}
+
+@keyframes like-gif {
+    0% {
+        background-position: 0%;
+    }
+    100% {
+        background-position: 100%;
+    }
+}
+
+.FLETAAnimation {
+    width: 1rem;
+    height: 0.32rem;
+    top: -0.3rem;
+    left:0;
+    display: block;
+    margin:0 auto;
+    background: url(/images/animate/FLETA_Animation.gif) 0 0 no-repeat;
+    background-size: 100%;
+    position: absolute;
+}
+
+#alertUI {
+    width: 3rem;
+    height: 1.5rem;
+    position: absolute;
+    top:0;
+    left: 3vh;
+    bottom: 51vh;
+    background-image: url(/images/ui/Ingame-buttons-RUSure-cautionBox.png);
+    background-color: transparent;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: bottom;
+    border: none;
+    display: none;
+}
+
+#alertUI .alertUI_ok,
+#alertUI .alertUI_cancel {
+    position: absolute;
+    font-size: 0.2rem;
+    width: 0.36rem;
+    height: 0.36rem;
+    top: 0.83rem;
+    text-align: center;
+    background-color: transparent;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: bottom;
+    border: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+#alertUI .alertUI_ok {
+    left: 0.34rem;
+    background-image: url(/images/ui/Ingame-buttons-buttonO.png);
+}
+#alertUI .alertUI_cancel{
+    right: 0.33rem;
+    background-image: url(/images/ui/Ingame-buttons-buttonX.png);
+}
+
+#alertUI .alertUI_ok:hover {background-image: url(/images/ui/Ingame-buttons-buttonO_select.png);}
+#alertUI .alertUI_cancel:hover {background-image: url(/images/ui/Ingame-buttons-buttonX_select.png);}
+
+
+#alertUI.Demolition,
+#alertUI.Industrial {
+    left: -2.2rem;
+    top: -2rem;
+}
+#alertUI.Residential {
+    left: -1.0rem;
+    top: -1.2rem;
+}
+#alertUI.Upgrade,
+#alertUI.Commercial {
+    left: 0.1rem;
+    top: -2rem;
+}

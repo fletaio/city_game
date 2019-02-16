@@ -283,7 +283,6 @@ Tile.prototype.Remove = function() {
 	}
 	this._remove();
 	menuClose();
-	menuOpen(this);
 	return this;
 }
 
@@ -349,10 +348,9 @@ function ChangeUnit(unit) {
 	gConfig.Unit = unit;
 
 	var h = [], i =0
-	h[i++] = ".island{width:"+(gConfig.Size*1.086875)+"rem;height:"+(gConfig.Size*0.805)+"rem}"
-	h[i++] = "#tileCase{top:"+(gConfig.Size*0.251875)+"rem;left:"+(gConfig.Size*0.04375)+"rem}"
+	h[i++] = ".island{width:"+(gConfig.Size*1.12625)+"rem;height:"+(gConfig.Size*0.84875)+"rem}"
+	h[i++] = "#tileCase{top:"+(gConfig.Size*0.251875)+"rem;left:"+(gConfig.Size*0.0625)+"rem}"
 
 	$("#cssControll").html(h.join("\n"));
-
 	$("html").css("font-size", gConfig.Unit+"px");
 }

@@ -49,19 +49,17 @@ function directByNum(o, num) {
     message("o.x " + o.x + " o.y " + o.y)
 }
 
-var hideBuilding = "Hide Building"
-var viewBuilding = "View Building"
 function ViewChanger() {
     var $btn = $("#hideBuilding")
 
-    if ($btn.html() == hideBuilding) {
-        $btn.html(viewBuilding)
-        $("#touchpad").addClass("hideBuilding")
-        $("#screen").addClass("hideBuilding")
-    } else {
-        $btn.html(hideBuilding)
+    if ($btn.hasClass("hideBuilding")) {
+        $btn.removeClass("hideBuilding")
         $("#touchpad").removeClass("hideBuilding")
         $("#screen").removeClass("hideBuilding")
+    } else {
+        $btn.addClass("hideBuilding")
+        $("#touchpad").addClass("hideBuilding")
+        $("#screen").addClass("hideBuilding")
     }
 }
 
@@ -87,7 +85,7 @@ var interval = 900
 var speed = 30
 
 $(function () {
-    var $startField = $("#startField")
+    var $starField = $("#starField")
     var $body = $("body")
 
     var getStar = function (right) {
@@ -103,9 +101,9 @@ $(function () {
     }
     var make = function () {
         if (Math.random() < Frequency) {
-            $startField.prepend($(getStar()))
+            $starField.prepend($(getStar()))
         }
-        sendLeft($startField.find("img"), $body.width())
+        sendLeft($starField.find("img"), $body.width())
     }
     var h = [];
     var k = 0;
@@ -115,7 +113,7 @@ $(function () {
         var right = Math.floor(Math.random() * (bW - 1)) - 100;
         h[k++] = getStar(right)
     }
-    $startField.html(h.join())
+    $starField.html(h.join())
     setInterval(make, interval)
 })
 
