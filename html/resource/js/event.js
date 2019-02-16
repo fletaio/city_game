@@ -22,10 +22,12 @@ $(document).on('mousemove', '#touchpad', function(e) {
 });
 
 var islandMove = undefined;
+var downPosition;
 var islandMoved = false;
 function mousedown (e) {
 	console.log("mousedown")
 	var o = getPoint(e);
+	downPosition = {x:o.x,y:o.y};
 	islandMove = {x:o.x,y:o.y};
 	islandMoved = false;
 }
@@ -37,8 +39,14 @@ function mouseup (e) {
 }
 function mousemove (e) {
 	if (islandMove && !startTouchPitch) {
-		islandMoved = true;
 		var o = getPoint(e);
+		if (islandMoved == false) {
+			var d = calcDistance(downPosition, o);
+			console.log(d)
+			if (d >= 5 || d <= -5) {
+				islandMoved = true;
+			}
+		}
 		islandMoveFunc(o)
 	}
 }
@@ -142,7 +150,7 @@ function touchmove (e) {
 				y : Math.abs(tpCache[0].clientY-tpCache[1].clientY)
 			}
 		
-			var dist = calcDistance(startDiff, endDiff)
+			var dist = calcDistance(startDiff, endDiff)/10
 		
 			var unit = lockUpValueRange(gConfig.Unit+dist, 10, 300)
 			if (gConfig.Unit !== unit) {

@@ -235,6 +235,7 @@ UIAlert.show = function () {
 UIAlert.okOnclick = function () {
 	UIAlert.okFunc()
 	UIAlert.alertUI.hide()
+	menuClose()
 };
 
 UIAlert.cancelOnclick = function () {

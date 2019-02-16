@@ -261,25 +261,25 @@
 #alertUI .alertUI_cancel {
     position: absolute;
     font-size: 0.2rem;
-    width: 0.36rem;
-    height: 0.36rem;
-    top: 0.83rem;
+    width: 0.72rem;
+    height: 0.72rem;
+    top: 0.65rem;
     text-align: center;
     background-color: transparent;
-    background-size: contain;
+    background-size: 50%;
     background-repeat: no-repeat;
-    background-position: bottom;
+    background-position: center;
     border: none;
     white-space: nowrap;
     cursor: pointer;
 }
 
 #alertUI .alertUI_ok {
-    left: 0.34rem;
+    left: 0.16rem;
     background-image: url(/images/ui/Ingame-buttons-buttonO.png);
 }
 #alertUI .alertUI_cancel{
-    right: 0.33rem;
+    right: 0.16rem;
     background-image: url(/images/ui/Ingame-buttons-buttonX.png);
 }
 

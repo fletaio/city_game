@@ -135,5 +135,5 @@ function sendLeft ($eles, maxWidth) {
 
 
 function calcDistance (start, end) {
-    return (Math.pow(Math.pow(end.x, 2) + Math.pow(end.y, 2), 0.5) - Math.pow(Math.pow(start.x, 2) + Math.pow(start.y, 2), 0.5))/10
+    return Math.pow(Math.pow(end.x, 2) + Math.pow(end.y, 2), 0.5) - Math.pow(Math.pow(start.x, 2) + Math.pow(start.y, 2), 0.5)
 }

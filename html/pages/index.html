@@ -2,7 +2,7 @@
     <link href="/css/background.css?1=4" rel="stylesheet" type="text/css" />
     <link href="/css/login.css?1=4" rel="stylesheet" type="text/css" />
     <link href="/css/object.css" rel="stylesheet" type="text/css" />
-    <link href="/css/ui.css?1=4" rel="stylesheet" type="text/css" />
+    <link href="/css/ui.css?1=6" rel="stylesheet" type="text/css" />
     <link href="/css/zindex.css?1=4" rel="stylesheet" type="text/css" />
     <script src="/js/login.js?1=4"></script>
     <script src="/js/language.js?1=4"></script>
@@ -74,7 +74,7 @@
         </div>
         <div id="info" class="ui_element"></div>
     </div>
-    <button id="hideBuilding" onclick="ViewChanger()"></button>
+    <button id="hideBuilding" onclick="event.stopPropagation();ViewChanger()"></button>
     <div id="menu"></div>
     <div id="alertUI"><button class="alertUI_ok" onclick="event.stopPropagation();UIAlert.okOnclick()"></button><button class="alertUI_cancel" onclick="event.stopPropagation();UIAlert.cancelOnclick()"></button></div>
 </panel>
@@ -83,7 +83,7 @@
 <script src="/js/common.js?1=4"></script>
 <script src="/js/error.js?1=4"></script>
 <script src="/js/script.js?1=4"></script>
-<script src="/js/ui.js?1=4"></script>
+<script src="/js/ui.js?1=6"></script>
 <script src="/js/event.js?1=4"></script>
 <script src="/js/game.js?1=4"></script>
 <script src="/js/gameCommand.js?1=4"></script>
