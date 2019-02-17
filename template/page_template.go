@@ -196,7 +196,11 @@ func (p *Template) pageCleaner(data []byte) []byte {
 func (p *Template) pageBuilder(data []byte, m map[string][]byte) ([]byte, error) {
 	var validID = regexp.MustCompile(`{{(.*?)}}`)
 	return validID.ReplaceAllFunc(data, func(b []byte) []byte {
-		key := strings.ToLower(string(b[2 : len(b)-2]))
+		key := string(b[2 : len(b)-2])
+		if v, has := m[key]; has {
+			return v
+		}
+		key = strings.ToLower(key)
 		if v, has := m[key]; has {
 			return v
 		}

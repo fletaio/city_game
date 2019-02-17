@@ -235,6 +235,7 @@ function connectToServer (addr) {
 }
 
 function onMessage(ws,  e) {
+	console.log(e.data)
 	if(!ws._init) {
 		ws._init = true;
 
