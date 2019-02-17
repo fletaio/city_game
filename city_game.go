@@ -14,9 +14,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	citygame "git.fleta.io/fleta/city_game/city_game_context"
+	blockexplorer "git.fleta.io/fleta/city_game/block_explorer"
 
-	blockexplorer "git.fleta.io/fleta/block_explorer"
+	citygame "git.fleta.io/fleta/city_game/city_game_context"
 
 	"git.fleta.io/fleta/city_game/template"
 	"git.fleta.io/fleta/common"
