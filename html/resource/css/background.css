@@ -6,8 +6,11 @@ html, body {
 
 body {
     /* background: linear-gradient( to bottom, #040508 0%,  #1b2436 40%, #1b2436 70%,  #35b6f3 80%, #35b6f3 100%); */
-    background: linear-gradient( to bottom, #040508 0%,  #040508 50%,  #35b6f3 50%, #35b6f3 100%);
-    position: relative;
+    /* background-image: linear-gradient( to bottom, #040508 0%,  #040508 50%,  #35b6f3 50%, #35b6f3 100%); */
+    background-image: -webkit-linear-gradient(top, #040508 0%,  #040508 50%,  #35b6f3 50%, #35b6f3 100%); /* For Chrome 25 and Safari 6, iOS 6.1, Android 4.3 */
+    background-image:    -moz-linear-gradient(to bottom, #040508 0%,  #040508 50%,  #35b6f3 50%, #35b6f3 100%); /* For Firefox (3.6 to 15) */
+    background-image:      -o-linear-gradient(to bottom, #040508 0%,  #040508 50%,  #35b6f3 50%, #35b6f3 100%); /* For old Opera (11.1 to 12.0) */ 
+    background-image:         linear-gradient(to bottom, #040508 0%,  #040508 50%,  #35b6f3 50%, #35b6f3 100%); /* Standard syntax; must be last */    position: relative;
 }
 
 .ui_layout {
