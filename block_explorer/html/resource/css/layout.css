@@ -51,6 +51,7 @@
 }
 .header .container .stack .brand .floting a img{
     width: 143px;
+    position: absolute;
 }
 .header .header-head{
     display: table-cell;

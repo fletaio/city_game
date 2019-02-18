@@ -248,6 +248,10 @@ function onMessage(ws,  e) {
 		} else {
 			var noti = e.data;
 		}
+
+		gGame.height = noti.point_height
+		gGame.point_balance = noti.point_height
+
 		loginInfo.pushUTXO(noti.utxo)
 		switch(noti.type) {
 		case 0://Demolition
