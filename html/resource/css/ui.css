@@ -311,7 +311,7 @@
 
 #alertUI.Demolition,
 #alertUI.Industrial {
-    left: -2.2rem;
+    left: -2.34rem;
     top: -2rem;
 }
 #alertUI.Residential {
@@ -320,7 +320,7 @@
 }
 #alertUI.Upgrade,
 #alertUI.Commercial {
-    left: 0.1rem;
+    left: 0.35rem;
     top: -2rem;
 }
 
