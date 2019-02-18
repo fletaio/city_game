@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -13,7 +14,10 @@ import (
 	"strings"
 	"time"
 
-	"git.fleta.io/fleta/block_explorer/template"
+	citygame "git.fleta.io/fleta/city_game/city_game_context"
+	"git.fleta.io/fleta/common"
+
+	"git.fleta.io/fleta/city_game/block_explorer/template"
 	"git.fleta.io/fleta/common/util"
 	"git.fleta.io/fleta/core/kernel"
 	"github.com/dgraph-io/badger"
@@ -66,6 +70,7 @@ type countInfo struct {
 
 //NewBlockExplorer TODO
 func NewBlockExplorer(dbPath string, Kernel *kernel.Kernel) (*BlockExplorer, error) {
+	os.Remove(dbPath) //TODO REMOVE THIS CODE
 	opts := badger.DefaultOptions
 	opts.Dir = dbPath
 	opts.ValueDir = dbPath
@@ -156,6 +161,13 @@ func NewBlockExplorer(dbPath string, Kernel *kernel.Kernel) (*BlockExplorer, err
 		}
 	}
 
+	// e.Kernel.Loader().
+	// loader := GameKernel.Loader()
+	// var rootAddress common.Address
+	// if bs := loader.AccountData(rootAddress, KeyHashID); len(bs) > 0 {
+
+	// UpdateScore(gd *citygame.GameData, height uint32, addr common.Address)
+
 	go func(e *BlockExplorer) {
 		for {
 			time.Sleep(time.Second)
@@ -206,7 +218,7 @@ func (e *BlockExplorer) updateChainInfoCount() error {
 
 		if err := e.db.Update(func(txn *badger.Txn) error {
 			//start block hash update
-			err = e.updateHashs(txn, height)
+			err = e.updateHashs(txn, height, currHeight)
 			if err != nil {
 				return err
 			}
@@ -242,7 +254,7 @@ func (e *BlockExplorer) updateChainInfoCount() error {
 	return nil
 }
 
-func (e *BlockExplorer) updateHashs(txn *badger.Txn, height uint32) error {
+func (e *BlockExplorer) updateHashs(txn *badger.Txn, height uint32, currHeight uint32) error {
 	b, err := e.Kernel.Block(height)
 	if err != nil {
 		return err
@@ -266,17 +278,33 @@ func (e *BlockExplorer) updateHashs(txn *badger.Txn, height uint32) error {
 		if err != nil {
 			return err
 		}
-		height = util.BytesToUint32(value)
+		height := util.BytesToUint32(value)
 		txn.Set(formulatorAddr, util.Uint32ToBytes(height+1))
 	}
 
 	txs := b.Body.Transactions
 	for i, tx := range txs {
-		h := tx.Hash().String()
+		h := tx.Hash()
 		v := append(value, util.Uint32ToBytes(uint32(i))...)
-		if err := txn.Set([]byte(h), v); err != nil {
+		if err := txn.Set(h[:], v); err != nil {
 			return err
 		}
+
+		name, _ := e.Kernel.Transactor().NameByType(tx.Type())
+		if name == "fletacity.CreateAccount" {
+			caTx := tx.(*citygame.CreateAccountTx)
+
+			coord := &common.Coordinate{Height: height, Index: uint16(i)}
+			addr := common.NewAddress(coord, e.Kernel.ChainCoord(), 0)
+			if err := txn.Set([]byte("GameAddr"+addr.String()), []byte(caTx.UserID)); err != nil {
+				return err
+			}
+			if err := txn.Set([]byte("GameId"+caTx.UserID), addr[:]); err != nil {
+				return err
+			}
+			e.UpdateScore(nil, currHeight, addr, caTx.UserID)
+		}
+
 	}
 	return nil
 }
@@ -318,6 +346,7 @@ func appendListLimit(ci []countInfo, count int, limit int) []countInfo {
 func (e *BlockExplorer) StartExplorer() {
 
 	e.Template.AddController("", NewExplorerController(e.db, e))
+	e.Template.AddController("score", &ScoreController{kn: e.Kernel})
 
 	http.HandleFunc("/data/", e.dataHandler)
 	http.HandleFunc("/", e.pageHandler)
@@ -375,8 +404,6 @@ func (e *BlockExplorer) dataHandler(w http.ResponseWriter, r *http.Request) {
 	order := r.URL.Path[len("/data/"):]
 
 	switch order {
-	case "formulators.data":
-		e.printJSON(e.formulators(), w)
 	case "transactions.data":
 		e.printJSON(e.transactions(), w)
 	case "currentChainInfo.data":
@@ -389,5 +416,99 @@ func (e *BlockExplorer) dataHandler(w http.ResponseWriter, r *http.Request) {
 		e.printJSON(e.paginationBlocks(r), w)
 	case "paginationTxs.data":
 		e.printJSON(e.paginationTxs(r), w)
+	case "totalScore.data":
+		e.printJSON(e.totalScore(r), w)
+	case "allScore.data":
+		e.printJSON(e.allScore(r), w)
 	}
+}
+
+func (e *BlockExplorer) UpdateScore(gd *citygame.GameData, height uint32, addr common.Address, userId string) {
+	if gd == nil {
+		gd = citygame.NewGameData(height)
+		bs := e.Kernel.Loader().AccountData(addr, []byte("game"))
+		if len(bs) == 0 {
+			log.Println("addr : ", addr.String())
+			return
+		}
+		if _, err := gd.ReadFrom(bytes.NewReader(bs)); err != nil {
+			return
+		}
+	}
+	if err := e.db.Update(func(txn *badger.Txn) error {
+		if userId == "" {
+			item, err := txn.Get([]byte("GameAddr" + addr.String()))
+			if err != nil {
+				return err
+			} else {
+				value, err := item.ValueCopy(nil)
+				if err != nil {
+					return err
+				}
+				userId = string(value)
+			}
+		}
+		buf := &bytes.Buffer{}
+		_, err := e.CurrentChainInfo.WriteTo(buf)
+		if err != nil {
+			return err
+		}
+
+		addrStr := addr.String()
+		r := gd.Resource(height)
+
+		var level uint32
+		for _, t := range gd.Tiles {
+			if t != nil {
+				level += uint32(t.Level)
+			}
+		}
+
+		sc := ScoreCase{
+			UserID:        userId,
+			Level:         uint64(level),
+			Balance:       uint64(r.Balance),
+			ManProvided:   uint64(r.ManProvided),
+			PowerProvided: uint64(r.PowerProvided),
+		}
+
+		updateSortedKey(txn, Level, addrStr, sc)
+		updateSortedKey(txn, Balance, addrStr, sc)
+		updateSortedKey(txn, ManProvided, addrStr, sc)
+		updateSortedKey(txn, PowerProvided, addrStr, sc)
+
+		return nil
+	}); err != nil {
+		return
+	}
+
+}
+
+func updateSortedKey(txn *badger.Txn, sType ScoreType, addrStr string, sc ScoreCase) error {
+	gameScoreAddr := []byte(fmt.Sprintf("%v:Addr:%v", getType(sType), addrStr))
+	v := []byte(fmt.Sprintf("%v:Score:%015v%v", getType(sType), sc.getValue(sType), addrStr))
+
+	item, err := txn.Get(gameScoreAddr)
+	if err != nil {
+		if err != badger.ErrKeyNotFound {
+			return err
+		}
+	} else {
+		value, err := item.ValueCopy(nil)
+		if err != nil {
+			return err
+		}
+		err = txn.Delete(value)
+		if err != nil {
+			return err
+		}
+	}
+
+	buf := &bytes.Buffer{}
+	sc.WriteTo(buf)
+
+	txn.Set(v, buf.Bytes())
+	txn.Set(gameScoreAddr, v)
+
+	return nil
 }

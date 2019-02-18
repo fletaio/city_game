@@ -40,7 +40,7 @@
 .header .container .mobile-menu {
     display: none;
 }
-.header .container .stack .brand{width: 255px;height: 100%;display: table;table-layout: fixed;padding: 0px 25px;/* background-color: #1b2436; */}
+.header .container .stack .brand{width: 255px;height: 100%;display: table;table-layout: fixed;padding: 0px 25px;}
 .header .container .stack .brand .floting {
     display: table-cell;
     vertical-align: middle;
@@ -541,7 +541,7 @@ th, td {
     white-space: nowrap;
     overflow: hidden;
 }
-.fleta-table>thead {
+.fleta-table th {
     background-color: #f4f3f8;
 }
 .fleta-table>thead>tr>th {

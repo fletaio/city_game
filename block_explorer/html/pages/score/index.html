@@ -1,0 +1,173 @@
+<script fletaId="headScript">
+    var scoreTable = {
+        template : `
+<tr class="{oddeven}">
+    <td>{Rank}</td>
+    <td><a href="/score/user?addr={Addr}&userid={ID}">{ID}</a></td>
+    <td>{Score}</td>
+</tr>
+`,
+        templateLoad : function (data, target) {
+            var $body = $("#"+target)
+            $body.empty()
+            for (var i = 0 ; i < data.length ; i++) {
+                var t = scoreTable.template
+                t = t.replace(/{oddeven}/g, (i%2==0)?"odd":"even")
+                var row = data[i]
+                row.ID = row.AllScore.UserID
+                for (var k in row) {
+                    if (row.hasOwnProperty(k)) {
+                        var v = row[k]
+                        if (k == "Score") {
+                            v = parseInt(v)
+                        }
+                        t = t.replace(new RegExp("{"+k+"}", 'g'), v)
+                    }
+                }
+                $body.append(t)
+            }
+
+        },
+        load : function () {
+            $.ajax({
+                url : "/data/totalScore.data",
+                dataType: "JSON",
+                success : function (data) {
+                    scoreTable.templateLoad(data.Total, "TotalDataBody")
+                    scoreTable.templateLoad(data.Gold, "GoldDataBody")
+                    scoreTable.templateLoad(data.Population, "PopulationDataBody")
+                    scoreTable.templateLoad(data.Electricity, "ElectricityDataBody")
+                }
+            })
+        }
+    }
+    
+    $(function () {
+        scoreTable.load()
+    })
+</script>
+
+<pageTitle>Score</pageTitle>
+
+<fletaBody>
+    <div class="row">
+        <div class="col-xl-6">
+            <div class="portlet">
+                <div class="portlet_head">
+                    <h3 class="portlet_head-text">
+                        Total Score
+                    </h3>
+                    <h3 class="portlet_head-text">
+                        <a href="/score/all?sort=Score">All</a>
+                    </h3>
+                </div>
+                <div class="portlet_body">
+                    <div class="m-portlet m-portlet--bordered-semi m-portlet--full-height ">
+                        <div class="m-portlet__body">
+                            <table class="table fleta-table fleta-table2">
+                                <thead>
+                                    <tr>
+                                        <th>RANK</th>
+                                        <th>ID</th>
+                                        <th>SCORE</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="TotalDataBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="portlet">
+                <div class="portlet">
+                    <div class="portlet_head">
+                        <h3 class="portlet_head-text">
+                            FLETA City Gold Score
+                        </h3>
+                        <h3 class="portlet_head-text">
+                            <a href="/score/all?sort=Balance">All</a>
+                        </h3>
+                    </div>
+                    <div class="portlet_body">
+                        <div class="m-portlet m-portlet--bordered-semi m-portlet--full-height ">
+                            <div class="m-portlet__body">
+                                <table class="table fleta-table fleta-table2">
+                                    <thead>
+                                        <tr>
+                                            <th>RANK</th>
+                                            <th>ID</th>
+                                            <th>SCORE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="GoldDataBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="portlet">
+                    <div class="portlet_head">
+                        <h3 class="portlet_head-text">
+                            Population Score
+                        </h3>
+                        <h3 class="portlet_head-text">
+                            <a href="/score/all?sort=Man">All</a>
+                        </h3>
+                    </div>
+                    <div class="portlet_body">
+                        <div class="m-portlet m-portlet--bordered-semi m-portlet--full-height ">
+                            <div class="m-portlet__body">
+                                <table class="table fleta-table fleta-table2">
+                                    <thead>
+                                        <tr>
+                                            <th>RANK</th>
+                                            <th>ID</th>
+                                            <th>SCORE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="PopulationDataBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="portlet">
+                    <div class="portlet_head">
+                        <h3 class="portlet_head-text">
+                            Electricity Score
+                        </h3>
+                        <h3 class="portlet_head-text">
+                            <a href="/score/all?sort=Power">All</a>
+                        </h3>
+                    </div>
+                    <div class="portlet_body">
+                        <div class="m-portlet m-portlet--bordered-semi m-portlet--full-height ">
+                            <div class="m-portlet__body">
+                                <table class="table fleta-table fleta-table2">
+                                    <thead>
+                                        <tr>
+                                            <th>RANK</th>
+                                            <th>ID</th>
+                                            <th>SCORE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ElectricityDataBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</fletaBody>

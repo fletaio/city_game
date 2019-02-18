@@ -1,11 +1,17 @@
 package blockexplorer
 
 import (
+	"bytes"
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
+	"git.fleta.io/fleta/common"
+
 	"git.fleta.io/fleta/core/block"
+	"github.com/dgraph-io/badger"
 )
 
 func (e *BlockExplorer) formulators() []countInfo {
@@ -194,4 +200,138 @@ func (e *BlockExplorer) paginationTxs(r *http.Request) (result txInfosCase) {
 	result.AaData = e.txs(start, length)
 
 	return
+}
+
+type score struct {
+	Rank     uint32
+	Addr     string
+	Score    string
+	AllScore *ScoreCase
+}
+
+type allScore struct {
+	Total       []score
+	Gold        []score
+	Population  []score
+	Electricity []score
+}
+
+func (e *BlockExplorer) allScore(r *http.Request) (result []score) {
+	param := r.URL.Query()
+	sort := param.Get("sort")
+	keyword := param.Get("keyword")
+
+	e.db.View(func(txn *badger.Txn) error {
+		st := getTypeFromString("Game" + sort)
+
+		var prefix []byte
+		if keyword != "" {
+			item, err := txn.Get([]byte("GameId" + keyword))
+			if err != nil {
+				if err != badger.ErrKeyNotFound {
+					return err
+				}
+			} else {
+				value, err := item.ValueCopy(nil)
+				if err != nil {
+					return err
+				}
+
+				addr := common.Address{}
+				copy(addr[:], value)
+
+				gameScoreAddr := []byte(fmt.Sprintf("%v:Addr:%v", getType(st), addr.String()))
+				item, err := txn.Get(gameScoreAddr)
+				if err != nil {
+					if err != badger.ErrKeyNotFound {
+						return err
+					}
+				} else {
+					var err error
+					prefix, err = item.ValueCopy(nil)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+
+		result, _ = getScore(txn, prefix, st, 20)
+		return nil
+	})
+
+	return
+}
+
+func (e *BlockExplorer) totalScore(r *http.Request) (result *allScore) {
+	result = &allScore{
+		Total:       []score{},
+		Gold:        []score{},
+		Population:  []score{},
+		Electricity: []score{},
+	}
+	e.db.View(func(txn *badger.Txn) error {
+		result.Total, _ = getScore(txn, nil, Level, 20)
+		result.Gold, _ = getScore(txn, nil, Balance, 5)
+		result.Population, _ = getScore(txn, nil, ManProvided, 5)
+		result.Electricity, _ = getScore(txn, nil, PowerProvided, 5)
+		return nil
+	})
+
+	return
+}
+
+func getScore(txn *badger.Txn, prefixKey []byte, sType ScoreType, limit uint32) ([]score, error) {
+	opts := badger.DefaultIteratorOptions
+	opts.PrefetchSize = 10
+	opts.Reverse = true
+	it := txn.NewIterator(opts)
+	defer it.Close()
+
+	prefix := []byte(getType(sType) + ":Score:")
+	var rank uint32
+	if len(prefixKey) == 0 {
+		prefixKey = append([]byte(getType(sType)+":Score:"), 0xFF)
+	} else {
+		opts2 := badger.DefaultIteratorOptions
+		opts2.PrefetchValues = false
+		opts2.Reverse = true
+		it := txn.NewIterator(opts)
+		defer it.Close()
+		startkey := append([]byte(getType(sType)+":Score:"), 0xFF)
+		for it.Seek(startkey); !it.ValidForPrefix(prefixKey); it.Next() {
+			rank++
+		}
+	}
+	s := []score{}
+	for it.Seek(prefixKey); it.ValidForPrefix(prefix); it.Next() {
+		rank++
+		item := it.Item()
+		k := item.Key()
+		err := item.Value(func(v []byte) error {
+			buf := bytes.NewBuffer(v)
+			sc := &ScoreCase{}
+			sc.ReadFrom(buf)
+
+			value := strings.TrimPrefix(string(k), getType(sType)+":Score:")
+			num := value[:15]
+			Addr := value[15:]
+			s = append(s, score{
+				Rank:     rank,
+				Addr:     Addr,
+				Score:    num,
+				AllScore: sc,
+			})
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+		if rank >= limit {
+			break
+		}
+	}
+
+	return s, nil
+
 }

@@ -5,3 +5,25 @@
 .timeline-3_items .timeline-3_item.fletacityCreateAccount::before{background-color: #e377c2;}
 .timeline-3_items .timeline-3_item.fletacityDemolition::before{background-color: #bcbd22;}
 .timeline-3_items .timeline-3_item.fletacityUpgrade::before{background-color: #17becf;}
+
+@media (min-width: 1025px) {
+    .desktop .aside-left {
+        background-color: #7B4752;
+    }
+}
+
+.header .container .stack {
+    background-color: #7B4752;
+}
+
+.footer {
+    background: #6B323E;
+}
+
+.clickable {
+    cursor: pointer;
+}
+.active {
+    background-color: #6B323E;
+    color: #fff;
+}

@@ -64,6 +64,20 @@ var upgrader = websocket.Upgrader{
 }
 
 func main() {
+	// {
+	// 	addr := common.MustParseAddress("3URbvUjYHd")
+
+	// 	buf := bytes.NewBuffer(addr[:6])
+	// 	c := &common.Coordinate{}
+	// 	c.ReadFrom(buf)
+	// 	log.Println(c.Height, c.Index)
+
+	// 	buf = bytes.NewBuffer(addr[6:12])
+	// 	c.ReadFrom(buf)
+	// 	log.Println(c.Height, c.Index)
+
+	// 	return
+	// }
 	t = template.NewTemplate(&template.TemplateConfig{
 		TemplatePath: libPath + "html/pages/",
 		LayoutPath:   libPath + "html/layout/",
@@ -244,7 +258,13 @@ func main() {
 		}(fr)
 	}
 
-	ew := NewEventWatcher()
+	basePath := "./test/"
+	be, err := blockexplorer.NewBlockExplorer(basePath, GameKernel)
+	if err != nil {
+		panic(err)
+	}
+
+	ew := NewEventWatcher(be)
 	GameKernel.AddEventHandler(ew)
 
 	e := echo.New()
@@ -715,15 +735,7 @@ func main() {
 		return c.NoContent(http.StatusOK)
 	})
 
-	go func() {
-		basePath := "./test/"
-
-		e, err := blockexplorer.NewBlockExplorer(basePath, GameKernel)
-		if err != nil {
-			panic(err)
-		}
-		e.StartExplorer()
-	}()
+	go be.StartExplorer()
 
 	e.Start(":8080")
 }
@@ -732,12 +744,14 @@ func main() {
 type EventWatcher struct {
 	sync.Mutex
 	writerMap map[common.Address]*websocket.Conn
+	be        *blockexplorer.BlockExplorer
 }
 
 // NewEventWatcher returns a EventWatcher
-func NewEventWatcher() *EventWatcher {
+func NewEventWatcher(be *blockexplorer.BlockExplorer) *EventWatcher {
 	ew := &EventWatcher{
 		writerMap: map[common.Address]*websocket.Conn{},
+		be:        be,
 	}
 	return ew
 }
@@ -816,6 +830,7 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 				UTXO:         id,
 				Error:        errorMsg,
 			})
+			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "")
 		case *citygame.UpgradeTx:
 			gd := citygame.NewGameData(b.Header.Height())
 			bs := ctx.AccountData(tx.Address, []byte("game"))
@@ -849,6 +864,8 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 				UTXO:         id,
 				Error:        errorMsg,
 			})
+
+			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "")
 		}
 	}
 }

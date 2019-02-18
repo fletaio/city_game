@@ -255,36 +255,3 @@ function formatDate(date, format, utc) {
 
     return format;
 };
-
-function sendNewAccountTx () {
-    $.ajax({
-        url : "/tx/CreateAccount.tx",
-        success : function () {
-            // alert("send")
-        }
-    })
-}
-function sendBurnTx () {
-    $.ajax({
-        url : "/tx/Burn.tx",
-        success : function () {
-            // alert("send")
-        }
-    })
-}
-function sendTransfertx () {
-    $.ajax({
-        url : "/tx/Transfer.tx",
-        success : function () {
-            // alert("send")
-        }
-    })
-}
-function sendWithdrawtx () {
-    $.ajax({
-        url : "/tx/Withdraw.tx",
-        success : function () {
-            // alert("send")
-        }
-    })
-}
