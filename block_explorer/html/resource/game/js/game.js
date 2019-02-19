@@ -262,8 +262,6 @@ Tile.prototype.Remove = function() {
 }
 
 Tile.prototype.ValidateBuild = function() {
-	//TODO check resource
-
 	var able = buildableResource(this);
 	if (able !== true) {
 		return false;
