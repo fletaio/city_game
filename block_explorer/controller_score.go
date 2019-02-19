@@ -54,6 +54,7 @@ func (e *ScoreController) User(r *http.Request) (map[string][]byte, error) {
 
 	return map[string][]byte{
 		"ID":          []byte(userid),
+		"Addr":        []byte(addrStr),
 		"Gold":        []byte(fmt.Sprintf("%v", gr.Balance)),
 		"Population":  []byte(fmt.Sprintf("%v", gr.ManProvided)),
 		"Electricity": []byte(fmt.Sprintf("%v", gr.PowerProvided)),
