@@ -25,7 +25,7 @@ function toShotUnit (num) {
     if (num/10000 < 1) {
         return num
     }
-    unit = "t"
+    unit = "k"
     num = parseInt(num/1000)
     if (num/1000 < 1) {
         return num+unit
@@ -37,7 +37,7 @@ function toShotUnit (num) {
         return num+unit
     }
 
-    unit = "b"
+    unit = "g"
     num = parseInt(num/1000)
     return num+unit
 }
