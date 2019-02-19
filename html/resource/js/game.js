@@ -46,7 +46,6 @@ function loadTile() {
 			console.log("init game")
 			console.log(d)
 
-			//TODO
 			if (d.define_map) {
 				gBuildingDefine = d.define_map;
 			}
@@ -72,17 +71,6 @@ function loadTile() {
 				gGame.tiles.push(tile);
 				tile.init()
 			}
-
-			/*
-				"height": HEIGHT_INT,
-				"point_height": POINT_HEIGHT_INT,
-				"point_balance": POINT_BALANCE_INT,
-				"tiles": [{
-					"area_type": AREA_TYPE_INT,
-					"level": LEVEL_INT,
-					"build_height": BUILD_HEIGHT_INT
-				}]
-			*/
 		},
 		error: function(d) {
 			alert("error")
@@ -296,8 +284,6 @@ Tile.prototype.Remove = function() {
 }
 
 Tile.prototype.ValidateBuild = function() {
-	//TODO check resource
-
 	var able = buildableResource(this);
 	if (able !== true) {
 		return false;

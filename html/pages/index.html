@@ -20,9 +20,8 @@
             <button class="login-join" onclick="nextStep('policy')"></button>
         </div>
         <div class="login-login-view" step="login" >
-            <!-- TODO -->
-            <span class="id-field"><input type="text" id="loginId" class="focus" value="test" onkeydown="event.which==13?$('#loginBtn').click():{}"/></span>
-            <span class="pw-field"><input type="text" id="loginPw" value="test" onkeydown="event.which==13?$('#loginBtn').click():{}"/></span>
+            <span class="id-field"><input type="text" id="loginId" class="focus" onkeydown="event.which==13?$('#loginBtn').click():{}"/></span>
+            <span class="pw-field"><input type="password" id="loginPw" onkeydown="event.which==13?$('#loginBtn').click():{}"/></span>
             <button class="login-login" id="loginBtn" onclick="login()"></button>
             <button class="login-join" onclick="nextStep('policy')"></button>
         </div>
@@ -38,7 +37,7 @@
         <div class="login-join-view" step="join" >
             <span class="eth-addr-field"><input type="text" id="ethAddr" class="focus" /></span>
             <span class="id-field"><input type="text" id="joinId" /></span>
-            <span class="pw-field"><input type="text" id="joinPw" onkeydown="event.which==13?$('#joinBtn').click():{}"/></span>
+            <span class="pw-field"><input type="password" id="joinPw" onkeydown="event.which==13?$('#joinBtn').click():{}"/></span>
             <button class="login-join" id="joinBtn" onclick="join()"></button>
             <button class="login-login" onclick="nextStep('login')"></button>
         </div>
