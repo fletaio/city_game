@@ -98,7 +98,6 @@
 .header .header-head .header-menu .menu_nav .menu_item.activeDashboard.Dashboard .menu_link .text,
 .header .header-head .header-menu .menu_nav .menu_item.activeBlocks.Blocks .menu_link .text,
 .header .header-head .header-menu .menu_nav .menu_item.activeTransactions.Transactions .menu_link .text,
-.header .header-head .header-menu .menu_nav .menu_item.activeScore.Score .menu_link .text,
 .header .header-head .header-menu .menu_nav .menu_item .menu_link:hover .text {
     color:#337fff;
 }
@@ -126,10 +125,6 @@
 .header .header-head .header-menu .menu_nav .menu_item .menu_link .transactions{background-image: url(/images/icon-transaction-w.png);}
 .header .header-head .header-menu .menu_nav .menu_item .menu_link:hover .transactions{background-image: url(/images/icon-transaction.png);}
 .header .header-head .header-menu .menu_nav .menu_item.activeTransactions.Transactions .menu_link .transactions{background-image: url(/images/icon-transaction.png);}
-
-.header .header-head .header-menu .menu_nav .menu_item .menu_link .score{background-image: url(/images/icon-transaction-w.png);}
-.header .header-head .header-menu .menu_nav .menu_item .menu_link:hover .score{background-image: url(/images/icon-transaction.png);}
-.header .header-head .header-menu .menu_nav .menu_item.activeScore.Score .menu_link .score{background-image: url(/images/icon-transaction.png);}
 
 .desktop{
     transition: width 0.2s ease;
