@@ -313,7 +313,7 @@
     border-right: 0;
 }
 
-.col,.col-xl-4,.col-xl-8,.col-xl-6
+.col,.col-xl-12,.col-xl-4,.col-xl-8,.col-xl-6
 {
     position: relative;
     width: 100%;
@@ -381,10 +381,10 @@
 
 th, td {
     vertical-align: middle;
-    border: 1px solid #f4f5f8;
+    border: 1px solid #ececec;
     padding: .75rem;
     vertical-align: top;
-    border-top: 1px solid #f4f5f8;
+    border-top: 1px solid #ececec;
 }
 
 .footer{
@@ -557,6 +557,14 @@ th, td {
 .fleta-table2 th {
     text-align: left;
 }
+
+.fleta-table3 {
+}
+.fleta-table3 th,.fleta-table3 td {
+    vertical-align: middle;
+    text-align: center;
+}
+
 
 .fleta-nohead-table {
     margin-top: 32px;
@@ -873,7 +881,12 @@ th, td {
     }
 }
 @media (min-width: 1200px) {
-
+    .col-xl-12 {
+        -webkit-box-flex: 0;
+        -ms-flex: 0 0 100%;
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
     .desktop .wrapper .row .col-xl-6{
         -webkit-box-flex: 0;
         -ms-flex: 0 0 50%;

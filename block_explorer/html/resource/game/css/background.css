@@ -1,0 +1,73 @@
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    /* background: linear-gradient( to bottom, #040508 0%,  #1b2436 40%, #1b2436 70%,  #35b6f3 80%, #35b6f3 100%); */
+    /* background-image: linear-gradient( to bottom, #040508 0%,  #040508 50%,  #35b6f3 50%, #35b6f3 100%); */
+    background-image: -webkit-linear-gradient(top, #040508 0%,  #040508 50%,  #35b6f3 50%, #35b6f3 100%); /* For Chrome 25 and Safari 6, iOS 6.1, Android 4.3 */
+    background-image:    -moz-linear-gradient(to bottom, #040508 0%,  #040508 50%,  #35b6f3 50%, #35b6f3 100%); /* For Firefox (3.6 to 15) */
+    background-image:      -o-linear-gradient(to bottom, #040508 0%,  #040508 50%,  #35b6f3 50%, #35b6f3 100%); /* For old Opera (11.1 to 12.0) */ 
+    background-image:         linear-gradient(to bottom, #040508 0%,  #040508 50%,  #35b6f3 50%, #35b6f3 100%); /* Standard syntax; must be last */    position: relative;
+}
+
+.ui_layout {
+    position: absolute;
+}
+.ui_element {
+    position: relative;
+}
+
+.islandCase {
+    position: absolute;
+    left:0;top:0;right:0;bottom:0;
+    width: 100%;
+    height:100%;
+    display: table;
+}
+.islandMiddle {
+    display: table-cell;
+    vertical-align: middle;
+    width: 100%;
+    height: 100%;
+}
+.islandCenterDot{
+    position: relative;
+    margin-left: auto;
+    margin-right: auto;
+    width:1px;
+    height:1px;
+}
+.island {
+    margin-left: -9.01rem;
+    margin-top: -6.79rem;
+    position: absolute;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: column;
+    flex-direction: column;
+}
+.island .tileBackground {
+    width: 100%;
+    height: 100%;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    background-size: 100% 100%;
+    background-image: url("/game/images/background/background_island.png");
+}
+
+.skyBackground{
+    width: 100%;
+    height: 80%;
+    background-image: url("/game/images/background/sky.png");
+    background-size: contain;
+    background-repeat: repeat-x;
+}
+
+#starField > img {width:100px;position: absolute;}
+

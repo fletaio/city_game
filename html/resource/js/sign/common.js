@@ -106,8 +106,10 @@ secp256k1.recoverPubKey = function (msg, sig) {
     return p.encode(true, true)
 }
 
-const numberWithCommas = function (x) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+if (!window.numberWithCommas) {
+    window.numberWithCommas = function (x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
 }
 
 function buf2hex(buffer) { // buffer is an ArrayBuffer

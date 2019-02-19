@@ -147,19 +147,19 @@ TileUI.prototype.BuildUp = function() {
 	this.startBuild()
 	var targetTile = this.Tile;
 	this.Tile.touch.find(".hoverArea").addClass(this.Tile.TypeName());
-	this.Tile.obj.find("img.floor").attr("src", "/images/tile/building_floor.png");
+	this.Tile.obj.find("img.floor").attr("src", "/game/images/tile/building_floor.png");
 	if (this.Tile.obj.level < 5) {
 		for (var i = 0 ; i < this.Tile.obj.level ; i++) {
 			if (i == this.Tile.obj.level-1) {
-				var $img = $("<img class='building lv"+(this.Tile.obj.level)+"' src='/images/building/construction.png'/>")
+				var $img = $("<img class='building lv"+(this.Tile.obj.level)+"' src='/game/images/building/construction.png'/>")
 			} else {
-				var $img = $("<img class='building lv"+(i+1)+"' src='/images/building/"+this.Tile.TypeName()+"_lv1.png'/>")
+				var $img = $("<img class='building lv"+(i+1)+"' src='/game/images/building/"+this.Tile.TypeName()+"_lv1.png'/>")
 			}
 			this.Tile.obj.append($img);
 		}
 	} else if (this.Tile.obj.level == 5) {
 		this.Tile.obj.find(".building").detach();
-		var $img = $("<img class='building lv5' src='/images/building/construction.png'/>")
+		var $img = $("<img class='building lv5' src='/game/images/building/construction.png'/>")
 		this.Tile.obj.append($img);
 	} else if (this.Tile.obj.level == 6) {
 		var checker = this.Tile.CheckLvRound(6);
@@ -173,7 +173,7 @@ TileUI.prototype.BuildUp = function() {
 			}
 			message("fleta!! " + tile.x + " : " + tile.y);
 
-			var $img = $("<img class='building lv6' src='/images/building/construction.png'/>")
+			var $img = $("<img class='building lv6' src='/game/images/building/construction.png'/>")
 			headTile.obj.append($img);
 			targetTile = headTile
 		}
@@ -194,7 +194,7 @@ TileUI.prototype.completBuilding = function (lv) {
 				tile.obj.level = 0;
 			}
 		}
-		this.Tile.obj.headTile.obj.find("img.floor").attr("src", "/images/tile/"+this.Tile.TypeName()+"_LvFLETA-Tile.png").addClass("lv6");
+		this.Tile.obj.headTile.obj.find("img.floor").attr("src", "/game/images/tile/"+this.Tile.TypeName()+"_LvFLETA-Tile.png").addClass("lv6");
 		var fileTail = "_LvFLETA"
 	} else  {
 		this.Tile.obj.level = lv
@@ -205,7 +205,7 @@ TileUI.prototype.completBuilding = function (lv) {
 			var fileTail = "_Lv5"
 		}
 	}
-	this.Tile.obj.find(".lv"+lv+".building").attr("src", "/images/building/"+this.Tile.TypeName()+""+fileTail+".png")
+	this.Tile.obj.find(".lv"+lv+".building").attr("src", "/game/images/building/"+this.Tile.TypeName()+""+fileTail+".png")
 	this.constructEffect()
 
 	var $menu = $("#menu");
@@ -263,7 +263,7 @@ function newTouchDiv(index) {
 function newObjDiv(x,y,num) {
 	return $("<div/>")
 		.css("z-index", x*gConfig.Size+y)
-		.append($("<img class='floor' src='/images/tile/base_floor/groundtiles_tile"+num+".png'>"))
+		.append($("<img class='floor' src='/game/images/tile/base_floor/groundtiles_tile"+num+".png'>"))
 }
 
 var UIAlert = {}
