@@ -4,7 +4,8 @@ function initGame () {
     jScreen.css("width", (gConfig.Size)+"rem");
     jScreen.css("height", (gConfig.Size)/2+"rem");
 
-	gGame.define_map = DefineMap
+	gBuildingDefine = DefineMap
+	gGame.define_map = gBuildingDefine
 	gGame.height = BlockHeight
 	loadTile(UserTiles)
 	scoreReloader()
@@ -28,33 +29,32 @@ function updateResource(resource) {
 			if (key == "add_balance") {
 				$board.html("(+"+resource[key]+"/s)")
 			} else {
-				$board.html(resource[key])
+				$board.html(toShotUnit(resource[key]))
 			}
 		}
 	}
+
 }
 
-function loadTile(d) {
-	if (typeof d === "string") {
-		d = JSON.parse(d)
-	}
+function loadTile(tiles) {
 	var $touchpad = $("#touchpad");
 	var jScreen = $("#screen");
 
-	gConfig.Size = Math.pow(d.length, 0.5);
-	for(var i=0; i<d.length; i++) {
+	gConfig.Size = Math.pow(tiles.length, 0.5);
+	for(var i=0; i<tiles.length; i++) {
 		var x = i%gConfig.Size;
 		var y = parseInt(i/gConfig.Size);
 
 		var num = getNum(x, y)
-		if (d[i]) {
-			var tile = new Tile(jScreen, $touchpad, x, y, num, d[i].area_type, d[i].level , d[i].build_height)
+		if (tiles[i]) {
+			var tile = new Tile(jScreen, $touchpad, x, y, num, tiles[i].area_type, tiles[i].level , tiles[i].build_height)
 		} else {
 			var tile = new Tile(jScreen, $touchpad, x, y, num)
 		}
 		gGame.tiles.push(tile);
 		tile.init()
 	}
+
 }
 
 function Tile(jScreen, $touchpad, x, y, num, type, level, build_height) {
@@ -84,13 +84,14 @@ Tile.prototype.init = function () {
 					directByNum(o, i)
 					var t = gGame.tiles[o.x + o.y * gConfig.Size];
 					t.obj.headTile = this
-					t.obj.level = 6
+					t.obj.level = 5
 					t.type = this.type
 				}
 			}
-			this.UI.BuildUp()
-			if(this.build_height + gGame.define_map[this.type][this.obj.level-1].build_time*2 <= gGame.height) {
-				this.UI.completBuilding(this.obj.level)
+			this.obj.level--
+			this.UI.BuildUp(this.obj.level+1)
+			if(this.build_height + gGame.define_map[this.type][this.obj.level].build_time*2 <= gGame.height) {
+				this.UI.completBuilding(this.obj.level+1, "noEffect")
 			}
 		}
 	}
@@ -237,6 +238,7 @@ Tile.prototype._remove = function() {
 	this.obj.level = 0;
 	this.touch.find(".hoverArea").attr("class", "hoverArea");
 	this.obj.find(".floor").attr("src", "/game/images/tile/base_floor/groundtiles_tile"+this.num+".png").attr("class", "floor");
+	this.obj.css("z-index", this.x*gConfig.Size+this.y)
 
 	delete this.type;
 	delete this.obj.headTile;
@@ -301,7 +303,7 @@ Tile.prototype.Build = function(type) {
 			this.build_height = gGame.height;
 		}
 
-		var ret = this.UI.BuildUp();
+		var ret = this.UI.BuildUp(this.obj.level+1);
 		return ret;
 	}
 	return false

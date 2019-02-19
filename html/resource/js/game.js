@@ -28,7 +28,7 @@ function updateResource(resource) {
 			if (key == "add_balance") {
 				$board.html("(+"+resource[key]+"/s)")
 			} else {
-				$board.html(resource[key])
+				$board.html(toShotUnit(resource[key]))
 			}
 		}
 	}
@@ -45,6 +45,8 @@ function loadTile() {
 			}
 			console.log("init game")
 			console.log(d)
+
+			//TODO
 			if (d.define_map) {
 				gBuildingDefine = d.define_map;
 			}
@@ -53,7 +55,7 @@ function loadTile() {
 			var jScreen = $("#screen");
 		
 			gConfig.Size = Math.pow(d.tiles.length, 0.5);
-			gGame.define_map = d.define_map;
+			gGame.define_map = gBuildingDefine;
 			gGame.height = d.height;
 			gGame.point_height = d.point_height;
 			gGame.point_balance = d.point_balance;
@@ -116,13 +118,14 @@ Tile.prototype.init = function () {
 					directByNum(o, i)
 					var t = gGame.tiles[o.x + o.y * gConfig.Size];
 					t.obj.headTile = this
-					t.obj.level = 6
+					t.obj.level = 5
 					t.type = this.type
 				}
 			}
-			this.UI.BuildUp()
-			if(this.build_height + gGame.define_map[this.type][this.obj.level-1].build_time*2 <= gGame.height) {
-				this.UI.completBuilding(this.obj.level)
+			this.obj.level--
+			this.UI.BuildUp(this.obj.level+1)
+			if(this.build_height + gGame.define_map[this.type][this.obj.level].build_time*2 <= gGame.height) {
+				this.UI.completBuilding(this.obj.level+1, "noEffect")
 			}
 		}
 	}
@@ -269,6 +272,7 @@ Tile.prototype._remove = function() {
 	this.obj.level = 0;
 	this.touch.find(".hoverArea").attr("class", "hoverArea");
 	this.obj.find(".floor").attr("src", "/images/tile/base_floor/groundtiles_tile"+this.num+".png").attr("class", "floor");
+	this.obj.css("z-index", this.x*gConfig.Size+this.y)
 
 	delete this.type;
 	delete this.obj.headTile;
@@ -333,7 +337,7 @@ Tile.prototype.Build = function(type) {
 			this.build_height = gGame.height;
 		}
 
-		var ret = this.UI.BuildUp();
+		var ret = this.UI.BuildUp(this.obj.level+1);
 		return ret;
 	}
 	return false

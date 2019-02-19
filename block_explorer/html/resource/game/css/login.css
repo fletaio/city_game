@@ -15,7 +15,8 @@
     height:100%;
     background-color: #1b2436;
     background-image: url("/game/images/background/Login_UI-mainBG.png");
-    background-size: contain;
+    background-image: url("/game/images/background/Login_BG-1920_1280.png");
+    background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     text-align: center;

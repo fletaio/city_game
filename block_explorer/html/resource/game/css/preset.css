@@ -12,3 +12,4 @@ body{font-size: 12px;}
     padding:0; margin:0;
 }
 
+#game *::selection { background-color: #fff0}

@@ -10,7 +10,11 @@ Tile.prototype.RunCommand = function(func, e) {
 					alert(language["too fast"])
 					return
 				}
-				tile = tile[func]();
+				try{
+					tile = tile[func]();
+				} catch(e) {
+					console.log(e)
+				}
 				if (IsTile(tile)){
 					menuOpen(tile);
 					// setTimeout(function () {
@@ -119,7 +123,7 @@ function sendServer(func, tile, utxo) {
 					"x": tile.x,
 					"y": tile.y,
 					"area_type": area_type,
-					"target_level": tile.obj.level
+					"target_level": +tile.obj.level+1
 				}),
 				success : function (d) {
 					if (typeof d === "string") {

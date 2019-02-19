@@ -11,7 +11,35 @@ function message(msg) {
         var m = "message : " + msg
     }
     // console.log(m)
+}
 
+function toShotUnit (num) {
+    if (typeof num === "string") {
+        num = num.replace(/,/g, "")
+    }
+    num = parseInt(num)
+    if (isNaN(num)) {
+        throw "isNaN"
+    }
+    var unit = ""
+    if (num/10000 < 1) {
+        return num
+    }
+    unit = "t"
+    num = parseInt(num/1000)
+    if (num/1000 < 1) {
+        return num+unit
+    }
+
+    unit = "m"
+    num = parseInt(num/1000)
+    if (num/1000 < 1) {
+        return num+unit
+    }
+
+    unit = "b"
+    num = parseInt(num/1000)
+    return num+unit
 }
 
 function printInfo(x, y) {

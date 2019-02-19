@@ -28,7 +28,7 @@ Game.prototype.Update = function() {
 	var addBalance = 0
 	for (var k in gGame.tiles) {
 		var tile = gGame.tiles[k];
-		if (tile.obj.level > 0) {
+		if (tile.obj.level) {
 			var bd = gBuildingDefine[tile.type][tile.obj.level-1];
 			used.man_remained += bd.man_usage||0;
 			used.power_remained += bd.power_usage||0;
@@ -70,14 +70,18 @@ Game.prototype.Update = function() {
 				break;
 			}
 
+		}
+		if (tile.obj.BuildProcessing) {
 			var sTile = tile
-			if (tile.obj.level == 6) {
+			if (tile.obj.headTile) {
 				sTile = tile.obj.headTile;
 			}
-			if(sTile.build_height + gGame.define_map[sTile.type][sTile.obj.level-1].build_time*2 <= gGame.height) {
-				if (sTile.obj.BuildProcessing == true) {
-					sTile.UI.completBuilding(tile.obj.level)
-				}
+			var buildCompletHeight = sTile.build_height + gGame.define_map[sTile.type][sTile.obj.level].build_time*2
+			
+			if(buildCompletHeight <= gGame.height) {
+				sTile.UI.completBuilding(tile.obj.level+1)
+			} else {
+				sTile.UI.ShowBuildProcessingTime((buildCompletHeight-gGame.height)/2)
 			}
 		}
 	}

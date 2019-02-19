@@ -106,9 +106,6 @@ function mousewheel (e) {
 	}
 	islandMove = undefined;
 
-	if(!e){ e = window.event; } /* IE7, IE8, Chrome, Safari */
-    if(e.preventDefault) { e.preventDefault(); } /* Chrome, Safari, Firefox */
-    e.returnValue = false; /* IE7, IE8 */
 }
 
 var tpCache = []
@@ -204,4 +201,162 @@ function getTileFromPoint(point) {
 		var tile = gGame.tiles[x + y *gConfig.Size];
 		return tile;
 	}
+}
+
+function connectToServer (addr) {
+	var wsUri = "ws://"+window.location.host+"/websocket/"+addr;
+	function connect() {
+		var ws = new WebSocket(wsUri)
+		ws._init = false;
+		ws.onopen = function(e) { onOpen(ws, e) };
+		ws.onclose = function(e) { onClose(ws, e) };
+		ws.onerror = function(e) { onError(ws, e) };
+		ws.onmessage = function(e) { onMessage(ws, e) };
+		return ws;
+	}
+
+	var ws = connect();
+	function onOpen(ws,  e)
+	{
+		console.log("CONNECTED");
+	}
+
+	function onClose(ws,  e)
+	{
+		console.log("DISCONNECTED");
+		// ws = connect();
+	}
+
+	function onError(ws,  e)
+	{
+		console.log("ERROR", e);
+	}
+
+}
+
+function onMessage(ws,  e) {
+	console.log(e.data)
+	if(!ws._init) {
+		ws._init = true;
+
+		var msg = new Buffer(e.data, "hex");
+		var sig = loginInfo.Key.sign(msg);
+		ws.send(buf2hex(sig.r.toArrayLike(Buffer, "be", 32)) + buf2hex(sig.s.toArrayLike(Buffer, "be", 32)) + "0" + sig.recoveryParam);
+	} else {
+		if (typeof e.data === "string") {
+			var noti = JSON.parse(e.data);
+		} else {
+			var noti = e.data;
+		}
+
+		gGame.height = noti.point_height
+		gGame.point_balance = noti.point_height
+
+		loginInfo.pushUTXO(noti.utxo)
+		switch(noti.type) {
+		case 0://Demolition
+			var tile = gGame.tiles[noti.x + +noti.y * gConfig.Size]
+			if (typeof noti.error == "undefined" || noti.error == "") {
+				tile.UI.distructionEffect(function (tileUI) {
+					tileUI.Tile.Remove()
+				})
+				gGame.height = noti.height;
+				gGame.point_height = noti.point_height;
+				gGame.point_balance = noti.point_balance;
+				updateResource(gGame.Update());
+			}
+
+			break;
+		case 1://Upgrade
+			var tile = gGame.tiles[noti.x + +noti.y * gConfig.Size]
+			if (typeof noti.error == "undefined" || noti.error == "") {
+				//gGame.tiles[+noti.x + +noti.y * gConfig.Size].UI.completBuilding(noti.level)
+				gGame.height = noti.height;
+				gGame.point_height = noti.point_height;
+				gGame.point_balance = noti.point_balance;
+				if (noti.level == 6) {
+					var headTile = tile.obj.headTile
+					var o = {x:headTile.x,y:headTile.y}
+					for (var i = 0 ; i < 3 ; i++) {
+						directByNum(o, i)
+						var t = gGame.tiles[o.x + o.y * gConfig.Size];
+						t.build_height = noti.height;
+						t.level = noti.level;
+					}
+				}
+				tile.build_height = noti.height;
+				tile.level = noti.level;
+				updateResource(gGame.Update());
+			} else { //false
+				alert(language[noti.error]||noti.error)
+				if(noti.level == 1) {
+					tile.Remove()
+				} else {
+					tile.level = noti.level-1;
+				}
+				tile.build_height = tile.build_height_old;
+				if (noti.level == 5) {
+					var headTile = tile.obj.headTile
+					var o = {x:headTile.x,y:headTile.y}
+					for (var i = 0 ; i < 3 ; i++) {
+						directByNum(o, i)
+						var t = gGame.tiles[o.x + o.y * gConfig.Size];
+						t.build_height = t.build_height_old;
+					}
+				}
+			}
+			break;
+		}
+	}
+}
+
+function addKeyShotcut () {
+	document.addEventListener('keydown', function(event) {
+		if (event.keyCode >= 37 && event.keyCode <= 40) {// arrow
+			direction = event.keyCode-37
+	
+			var t = $("#menu")[0].target
+			if (typeof t === "undefined") {
+				t = gGame.tiles[0]
+			}
+			var o = {x:t.x,y:t.y}
+			directByNum(o, direction)
+			menuClose()
+			if (gGame.tiles[o.x+o.y*gConfig.Size]) {
+				menuOpen(gGame.tiles[o.x+o.y*gConfig.Size].Hover())
+			}
+		}
+		switch (event.keyCode) {
+			case 27: //esc
+				menuClose()
+				break;
+			case 73: //i 
+				$("button#Industrial").click()
+				break;
+			case 82: //r
+				$("button#Residential").click()
+				break;
+			case 67: //c
+				$("button#Commercial").click()
+				break;
+			case 68: //d
+				$("button#Demolition").click()
+				break;
+			case 85: //u
+				$("button#Upgrade").click()
+				break;
+			case 72: //h
+				$("button#hideBuilding").click()
+				break;
+			case 79: //o
+				$("#alertUI .alertUI_ok").click()
+				break;
+			case 88: //x
+				$("#alertUI .alertUI_cancel").click()
+				break;
+		
+			default:
+				break;
+		}
+	});
 }

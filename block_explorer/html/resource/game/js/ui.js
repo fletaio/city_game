@@ -1,5 +1,6 @@
 function menuClose () {
-	$("#alertUI").hide()
+	UIAlert.hide()
+	$("#selectedInfo").hide()
 	$(".tooltip").remove()
 	$(".selected").removeClass("selected");
 	$(".hover").removeClass("hover");
@@ -24,64 +25,95 @@ function addMenu(tile, funcs) {
 		} else {
 			btn.attr("onclick", "event.stopPropagation();$('#menu')[0].target.RunCommand('"+funcs[key]+"');")
 		}
-		if (funcs[key] !== "Demolition") {
-			var $tooltip = $("#tooltip").clone();
-			var $this = btn
+		var $tooltip = $("#tooltip").clone();
+		var $this = btn
+		$tooltip.removeAttr("id")
+		$tooltip.attr("class", "tooltip " + funcs[key])
 
-			$tooltip.removeAttr("id")
-			$tooltip.attr("class", "tooltip " + funcs[key])
-			
+		if (funcs[key] !== "Demolition") {
 			if (tile.obj.level == 0) {
 				var type = buildingNum($this.attr("id"))
 			} else {
 				var type = tile.type
 			}
 			var r = gBuildingDefine[type][tile.obj.level]
-			$tooltip.find("#needDollar").html(r.cost_usage)
-			$tooltip.find("#needPower").html(r.power_usage)
-			$tooltip.find("#needDemographic").html(r.man_usage)
-			$tooltip.find("#resource").html("+"+r.output+"/s").attr("class", buildingType(type))
-
+			$tooltip.find("#needDollar").html(toShotUnit(r.cost_usage))
+			$tooltip.find("#needPower").html(toShotUnit(r.power_usage))
+			$tooltip.find("#needDemographic").html(toShotUnit(r.man_usage))
+			$tooltip.find("#resource").attr("class", buildingType(type)).html("+"+toShotUnit(r.output)+"/s").attr("class", buildingType(type))
 
 			var time = secondToDate(r.build_time);
-			if (time.length > 8) {
-				$tooltip.find("#needTime").html(time).attr("class", "date")
-			} else if (time.length > 5) {
-				$tooltip.find("#needTime").html(time).attr("class", "hour")
+		} else {
+			var r = gBuildingDefine[tile.type][tile.obj.level-1]
+			$tooltip.find("#needDollar").html("+"+toShotUnit(r.cost_usage/2))
+			if (tile.type == IndustrialType) {
+				$tooltip.find("#needPower").html("-"+toShotUnit(r.output))
 			} else {
-				$tooltip.find("#needTime").html(time).attr("class", "")
+				$tooltip.find("#needPower").html("+"+toShotUnit(r.power_usage))
 			}
+			if (tile.type == ResidentialType) {
+				$tooltip.find("#needDemographic").html("-"+toShotUnit(r.output))
+			} else {
+				$tooltip.find("#needDemographic").html("+"+toShotUnit(r.man_usage))
+			}
+			$tooltip.find("#resource").remove()
 
-			$("#menu").append($tooltip)
+			var time = "1s";
 		}
+		$tooltip.find("#needTime").html(time).attr("class", "")
+
+		$("#menu").append($tooltip)
 		$("#menu").append(btn)
     }
 }
 
-function secondToDate(sec) {
-	var ss = sec%60
-	sec = parseInt(sec/60)
-	var mm = sec%60
-	var hh = parseInt(sec/60)
+function secondToDate(time) {
+	time = parseInt(time)
+	var ss = time%60
+	time = parseInt((time)/60)
+	var mm = time%60
+	var hh = parseInt(time/60)
+	var r = ""
 	if (hh > 0) {
-		return [
-			hh,
-			("0"+mm).substr(-2),
-			("0"+ss).substr(-2)
-		].join(":")
+		r += hh+"h"
+		if (mm != 0) {
+			r += mm+"m"
+		}
+	} else if (mm > 0) {
+		r += mm+"m"
+	} else {
+		r += ss+"s"
 	}
-	return [
-		("0"+mm).substr(-2),
-		("0"+ss).substr(-2)
-	].join(":")
+	// r += ("0"+mm).substr(-2)+"m"
+	return r
 }
 
-Date.prototype.yyyymmdd = function() {
-};
-
 function menuOpen(tile) {
-	$("#alertUI").hide()
+	UIAlert.hide()
 	$(".tooltip").remove()
+	if (tile.type) {
+		var $selectedInfo = $("#selectedInfo")
+		$selectedInfo.attr("class", buildingType(tile.type)).show()
+		$selectedInfo.find(".building_type").html(buildingType(tile.type))
+		var lv = tile.obj.level
+		if (tile.obj.headTile) {
+			lv = tile.obj.headTile.obj.level
+		}
+		if (lv == 6) {
+			$selectedInfo.find(".building_level").html("lvFLETA")
+		} else {
+			$selectedInfo.find(".building_level").html("lv"+tile.obj.level)
+		}
+		
+		if (lv > 0) {
+			$selectedInfo.find(".resource").html("+"+toShotUnit(gGame.define_map[tile.type][lv-1].output))
+		} else {
+			$selectedInfo.find(".resource").html("under construction")
+		}
+	} else {
+		$("#selectedInfo").hide()
+	}
+
 	if (!IsTile(tile)) {
 		return
 	}
@@ -143,26 +175,26 @@ TileUI.prototype.SelectUpperLvTile = function(lv) {
 TileUI.prototype.startBuild = function() {
 	this.Tile.obj.BuildProcessing = true
 }
-TileUI.prototype.BuildUp = function() {
+TileUI.prototype.BuildUp = function(lv) {
 	this.startBuild()
 	var targetTile = this.Tile;
 	this.Tile.touch.find(".hoverArea").addClass(this.Tile.TypeName());
 	this.Tile.obj.find("img.floor").attr("src", "/game/images/tile/building_floor.png");
-	if (this.Tile.obj.level < 5) {
-		for (var i = 0 ; i < this.Tile.obj.level ; i++) {
-			if (i == this.Tile.obj.level-1) {
-				var $img = $("<img class='building lv"+(this.Tile.obj.level)+"' src='/game/images/building/construction.png'/>")
+	if (lv < 5) {
+		for (var i = 0 ; i < lv ; i++) {
+			if (i == lv-1) {
+				var $img = $("<img class='building lv"+(lv)+"' src='/game/images/building/construction.png'/>")
 			} else {
 				var $img = $("<img class='building lv"+(i+1)+"' src='/game/images/building/"+this.Tile.TypeName()+"_lv1.png'/>")
 			}
 			this.Tile.obj.append($img);
 		}
-	} else if (this.Tile.obj.level == 5) {
+	} else if (lv == 5) {
 		this.Tile.obj.find(".building").detach();
 		var $img = $("<img class='building lv5' src='/game/images/building/construction.png'/>")
 		this.Tile.obj.append($img);
-	} else if (this.Tile.obj.level == 6) {
-		var checker = this.Tile.CheckLvRound(6);
+	} else if (lv == 6) {
+		var checker = this.Tile.CheckLvRound(5);
 		if (checker.CheckLvF()) {// buildable lvF
 			var headTile = gGame.tiles[checker.maxCoordinate];
 			for ( var i = 0 ; i < checker.candidate.length ; i++ ) {
@@ -182,17 +214,19 @@ TileUI.prototype.BuildUp = function() {
 	return targetTile;
 }
 
-TileUI.prototype.completBuilding = function (lv) {
+TileUI.prototype.completBuilding = function (lv, effect) {
 	if (lv == 6) {
-		var checker = this.Tile.obj.headTile.CheckLvRound(6)
+		var checker = this.Tile.obj.headTile.CheckLvRound(5)
 		for ( var i = 0 ; i < checker.candidate.length ; i++ ) {
 			var tile = checker.candidate[i];
 			tile.obj.BuildProcessing = false;
 			if (tile.index == tile.obj.headTile.index) {
-				tile.obj.level = lv;
+				tile.obj.level = 6;
 			} else {
 				tile.obj.level = 0;
 			}
+			var p = tile.obj
+			p.css("z-index", p.css("z-index")-1-gConfig.Size)
 		}
 		this.Tile.obj.headTile.obj.find("img.floor").attr("src", "/game/images/tile/"+this.Tile.TypeName()+"_LvFLETA-Tile.png").addClass("lv6");
 		var fileTail = "_LvFLETA"
@@ -206,12 +240,26 @@ TileUI.prototype.completBuilding = function (lv) {
 		}
 	}
 	this.Tile.obj.find(".lv"+lv+".building").attr("src", "/game/images/building/"+this.Tile.TypeName()+""+fileTail+".png")
-	this.constructEffect()
+	if (effect != "noEffect") {
+		this.constructEffect()
+	}
+	this.Tile.touch.find(".underconstruction").remove()
+
 
 	var $menu = $("#menu");
 	if ($menu[0].target == this.Tile) {
 		menuOpen(this.Tile)
 	}
+}
+
+TileUI.prototype.ShowBuildProcessingTime = function(sec) {
+	var lv = this.Tile.obj.level
+	var uc = this.Tile.touch.find(".underconstruction")
+	if (uc.length == 0) {
+		uc = $("<div class='lv"+lv+" underconstruction'>")
+		this.Tile.touch.append(uc)
+	}
+	uc.html(secondToDate(sec))
 }
 
 TileUI.prototype.distructionEffect = function(callback) {
@@ -240,19 +288,30 @@ TileUI.prototype.buildEffect = function(type, callback) {
 		}, 1500)
 	})(effect, tile, callback)
 
-	if (tile.obj.level == 6 && type == "constructEffect") {
-		tile.UI.fletaEffect()
-	}
+	tile.UI.completEffect()
 }
 
 TileUI.prototype.fletaEffect = function() {
-	var effect = $("<div class='buildEffect FLETAAnimation'/>")
+	var effect = $("<div class='FLETAAnimation lv"+this.Tile.obj.level+"'/>")
 	this.Tile.touch.append(effect);
 	(function (effect) {
 		setTimeout(function () {
 			effect.remove()
 		}, 3000)
 	})(effect)
+}
+
+TileUI.prototype.completEffect = function() {
+	var effect = $("<div class='completAnimation lv"+this.Tile.obj.level+"'/>")
+	this.Tile.touch.append(effect);
+	(function (effect, tile) {
+		setTimeout(function () {
+			effect.remove()
+			if (tile.obj.level == 6) {
+				tile.UI.fletaEffect()
+			}
+		}, 3000)
+	})(effect, this.Tile)
 }
 
 function newTouchDiv(index) {
@@ -284,10 +343,20 @@ UIAlert.show = function () {
 	$touch.append(UIAlert.alertUI)
 	UIAlert.alertUI.show()
 }
+UIAlert.hide = function () {
+	UIAlert.okFunc = null;
+	UIAlert.cancelFunc = null;
+	if (typeof UIAlert.alertUI === "undefined") {
+		UIAlert.alertUI = $("#alertUI")
+	}
+	UIAlert.alertUI.hide()
+}
 
 UIAlert.okOnclick = function () {
-	UIAlert.okFunc()
-	UIAlert.alertUI.hide()
+	if (UIAlert.okFunc) {
+		UIAlert.okFunc()
+	}
+	UIAlert.hide()
 	menuClose()
 };
 
@@ -295,5 +364,5 @@ UIAlert.cancelOnclick = function () {
 	if (typeof UIAlert.cancelFunc === "function") {
 		UIAlert.cancelFunc()
 	}
-	UIAlert.alertUI.hide()
+	UIAlert.hide()
 };
