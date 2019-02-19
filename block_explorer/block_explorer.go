@@ -347,6 +347,9 @@ func (e *BlockExplorer) StartExplorer() {
 
 	e.Template.AddController("", NewExplorerController(e.db, e))
 	e.Template.AddController("score", &ScoreController{kn: e.Kernel})
+	e.Template.AddController("game", &GameController{kn: e.Kernel})
+
+	e.Template.SetTile("game", "game")
 
 	http.HandleFunc("/data/", e.dataHandler)
 	http.HandleFunc("/", e.pageHandler)

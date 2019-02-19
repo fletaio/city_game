@@ -103,7 +103,7 @@ $(function () {
             i = i % 4 + 2;
         }
         var top =  Math.floor(Math.random() * ($body.height() - 1)) + 1;
-        return "<img src='/images/background/stars_"+i+".png' style='top:"+top+"px;right:"+right+"px;' />"
+        return "<img src='/game/images/background/stars_"+i+".png' style='top:"+top+"px;right:"+right+"px;' />"
     }
     var make = function () {
         if (Math.random() < Frequency) {

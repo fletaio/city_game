@@ -1,0 +1,403 @@
+#logTool {
+    width: 20%;
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 20px;
+    overflow: auto;
+}
+#log {
+    width: 20%;
+    position: fixed;
+    right: 0;
+    top: 20px;
+    bottom:0;
+    overflow: auto;
+    color: #fff;
+}
+
+#scoreboard {
+    color: #fff;
+}
+
+#scoreboard #dollar,
+#scoreboard #power,
+#scoreboard #demographic {
+    width: 11.3vh;
+    height: 4vh;
+    padding-left: 2.5vh;
+    font-size: 2vh;
+    line-height: 3.5vh;
+    text-align: center;
+    background-size: cover;
+    display: inline-block;
+    position: absolute;
+    top: 0.1vh;
+}
+
+#scoreboard #dollar {background-image: url("/game/images/ui/dollar.png");}
+#scoreboard #power {background-image: url("/game/images/ui/power.png");}
+#scoreboard #demographic {background-image: url("/game/images/ui/demographic.png");}
+
+#scoreboard #dollar{
+    line-height: 1.3vh;
+    font-size: 1.5vh;
+    padding-top: 0.5vh;
+}
+
+#scoreboard #power {
+    left: 11.3vh;
+}
+#scoreboard #demographic {
+    left: 22.6vh;
+}
+
+#info {
+    color: #fff;
+    position: absolute;
+    top: 4.5vh;
+    width: 10vw;
+}
+
+#menu {
+    position: absolute;
+    top:0;
+    left:0;
+    display: none;
+}
+
+#menu button {
+    pointer-events: fill;
+}
+
+#menu #Demolition,
+#menu #Industrial {
+    left: -1.5rem;
+    top: -0.32rem;
+}
+#menu #Residential{
+    left: -0.15rem;
+    top: 0.53rem;
+}
+#menu #Upgrade,
+#menu #Commercial{
+    left: 1.17rem;
+    top: -0.32rem;
+}
+
+#menu #Industrial,
+#menu #Residential,
+#menu #Commercial,
+#menu #Demolition,
+#menu #Upgrade {
+    position: absolute;
+    font-size: 0.2rem;
+    width: 1.3rem;
+    height: 1.2rem;
+    background-image: url(/game/images/ui/Ingame-buttons-build-button-textbox.png);
+    text-align: center;
+    background-color: transparent;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: bottom;
+    padding-top: 0.8rem;
+    border: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+#menu button.disable {
+    -webkit-filter: grayscale(100%);
+    filter: grayscale(100%);
+    opacity: 0.5;
+}
+#menu button::before.disable {
+    -webkit-filter: grayscale(100%);
+    filter: grayscale(100%);
+    opacity: 0.5;
+}
+
+#menu #Industrial::before,
+#menu #Residential::before,
+#menu #Commercial::before,
+#menu #Demolition::before,
+#menu #Upgrade::before {
+    content: " ";
+    width: 1rem;
+    height: 0.803rem;
+    background-size: cover;
+    display: block;
+    left: 0.162rem;
+    position: absolute;
+    top: 0;
+}
+
+#menu #Industrial::before {background-image: url("/game/images/ui/Ingame-buttons-build-button-basic-ID.png");}
+#menu #Residential::before {background-image: url("/game/images/ui/Ingame-buttons-build-button-basic-RS.png");}
+#menu #Commercial::before {background-image: url("/game/images/ui/Ingame-buttons-build-button-basic-BZ.png");}
+#menu #Demolition::before {background-image: url("/game/images/ui/Ingame-buttons-build-button-basic-DM.png");}
+#menu #Upgrade::before {background-image: url("/game/images/ui/Ingame-buttons-build-button-basic-UG.png");}
+
+#menu #Industrial:hover::before {background-image: url("/game/images/ui/Ingame-buttons-build-button-basic-ID-select.png");}
+#menu #Residential:hover::before {background-image: url("/game/images/ui/Ingame-buttons-build-button-basic-RS-select.png");}
+#menu #Commercial:hover::before {background-image: url("/game/images/ui/Ingame-buttons-build-button-basic-BZ-select.png");}
+#menu #Demolition:hover::before {background-image: url("/game/images/ui/Ingame-buttons-build-button-basic-DM-select.png");}
+#menu #Upgrade:hover::before {background-image: url("/game/images/ui/Ingame-buttons-build-button-basic-UG-select.png");}
+
+#menu #Industrial.disable:hover::before {background-image: url("/game/images/ui/Ingame-buttons-build-button-basic-ID.png");}
+#menu #Residential.disable:hover::before {background-image: url("/game/images/ui/Ingame-buttons-build-button-basic-RS.png");}
+#menu #Commercial.disable:hover::before {background-image: url("/game/images/ui/Ingame-buttons-build-button-basic-BZ.png");}
+#menu #Demolition.disable:hover::before {background-image: url("/game/images/ui/Ingame-buttons-build-button-basic-DM.png");}
+#menu #Upgrade.disable:hover::before {background-image: url("/game/images/ui/Ingame-buttons-build-button-basic-UG.png");}
+
+#hideBuilding {
+    width: 15vh;
+    height: 6vh;
+    position: absolute;
+    left: 3vh;
+    bottom: 3vh;
+    background-color: transparent;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: bottom;
+    border: none;
+    cursor: pointer;
+    transition: background-image .2s ease-in;
+    background-image: url(/game/images/ui/Ingame-button-view_toggle-glass.png);
+}
+#hideBuilding:focus {outline:0;}
+
+
+#hideBuilding.hideBuilding {
+    background-image: url(/game/images/ui/Ingame-button-hide_toggle-sunglass.png);
+}
+#hideBuilding::before {
+    content: " ";
+    width: 5.7vh;
+    height: 5.7vh;
+    margin: 0;
+    display: block;
+    position: absolute;
+    right: 0vh;
+    bottom: 0.11vh;
+    transition: background-image .2s ease-in, right .2s ease-in, transform .2s ease-in, -moz-transform .2s ease-in, -webkit-transform .2s ease-in;
+    background-image: url(/game/images/ui/Ingame-button-view_toggle.png);
+    background-size: 100%;
+    background-repeat: no-repeat;
+}
+#hideBuilding.hideBuilding::before {
+    background-image: url(/game/images/ui/Ingame-button-hide_toggle.png);
+    right: 9.3vh;
+    -moz-transform: rotate(-360deg);
+    -webkit-transform: rotate(-360deg);
+    transform:rotate(-360deg);
+}
+
+.buildEffect.lv1 {
+    top: 0.02rem;
+    left: 0.12rem;
+}
+.buildEffect.lv2 {
+    top: 0.14rem;
+    left: 0.38rem;
+}
+.buildEffect.lv3 {
+    top: 0.27rem;
+    left: 0.13rem;
+}
+.buildEffect.lv4 {
+    top: 0.15rem;
+    left: -0.12rem;
+}
+.buildEffect.lv5 {
+    width: 1.25rem;
+    height: 0.5rem;
+    top: 0.07rem;
+    left: -0.125rem;
+}
+.buildEffect.lv6 {
+    width: 2.5rem;
+    height: 1rem;
+    top: -0.37rem;
+    left: -0.75rem;
+}
+
+.buildEffect {
+    width: 0.75rem;
+    height: 0.25rem;
+    display: block;
+    margin:0 auto;
+    position: absolute;
+}
+
+.constructEffect {
+    background: url(/game/images/animate/Construction_Effect.png) 0 0 no-repeat;
+    background-size: 1400%;
+    animation: like-gif steps(13) 1.5s both;
+}
+
+.distructionEffect {
+    background: url(/game/images/animate/Distruction_Effect.png) 0 0 no-repeat;
+    background-size: 900%;
+    animation: like-gif steps(8) 1.5s infinite both;
+}
+
+@keyframes like-gif {
+    0% {
+        background-position: 0%;
+    }
+    100% {
+        background-position: 100%;
+    }
+}
+
+.FLETAAnimation {
+    width: 1rem;
+    height: 0.32rem;
+    top: -0.3rem;
+    left:0;
+    display: block;
+    margin:0 auto;
+    background: url(/game/images/animate/FLETA_Animation.gif) 0 0 no-repeat;
+    background-size: 100%;
+    position: absolute;
+}
+
+#alertUI {
+    width: 3rem;
+    height: 1.5rem;
+    position: absolute;
+    top:0;
+    left: 3vh;
+    bottom: 51vh;
+    background-image: url(/game/images/ui/Ingame-buttons-RUSure-cautionBox.png);
+    background-color: transparent;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: bottom;
+    border: none;
+    display: none;
+}
+
+#alertUI .alertUI_ok,
+#alertUI .alertUI_cancel {
+    position: absolute;
+    font-size: 0.2rem;
+    width: 0.72rem;
+    height: 0.72rem;
+    top: 0.65rem;
+    text-align: center;
+    background-color: transparent;
+    background-size: 50%;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+#alertUI .alertUI_ok {
+    left: 0.16rem;
+    background-image: url(/game/images/ui/Ingame-buttons-buttonO.png);
+}
+#alertUI .alertUI_cancel{
+    right: 0.16rem;
+    background-image: url(/game/images/ui/Ingame-buttons-buttonX.png);
+}
+
+#alertUI .alertUI_ok:hover {background-image: url(/game/images/ui/Ingame-buttons-buttonO_select.png);}
+#alertUI .alertUI_cancel:hover {background-image: url(/game/images/ui/Ingame-buttons-buttonX_select.png);}
+
+
+#alertUI.Demolition,
+#alertUI.Industrial {
+    left: -2.34rem;
+    top: -2rem;
+}
+#alertUI.Residential {
+    left: -1.0rem;
+    top: -1.2rem;
+}
+#alertUI.Upgrade,
+#alertUI.Commercial {
+    left: 0.35rem;
+    top: -2rem;
+}
+
+#touchpad .selected {
+    background-image: url(/game/images/ui/tile_select.png);
+    background-size: 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+#tooltip {
+    display: none;
+}
+.tooltip {
+    position: absolute;
+    top:0;
+    left:0;
+}
+.tooltip #resource,
+.tooltip #needDemographic,
+.tooltip #needDollar,
+.tooltip #needPower,
+.tooltip #needTime {
+    position: absolute;
+    left: 0;
+    height: 0.24rem;
+    width: 0.65rem;
+    background-repeat: no-repeat;
+    background-size: 100%;
+    line-height: 0.2rem;
+    color: #fff;
+    font-size: 0.15rem;
+    padding-left: 0.1rem;
+    text-align: center;
+}
+
+.tooltip #needDemographic {
+    background-image: url("/game/images/ui/demographic-2.png");
+    top:0rem;
+}
+.tooltip #needDollar {
+    background-image: url("/game/images/ui/dollar-2.png");
+    top: 0;
+    left: 0.65rem;
+}
+.tooltip #needPower {
+    background-image: url("/game/images/ui/power-2.png");
+    top: 0.23rem;
+}
+.tooltip #needTime {
+    background-image: url("/game/images/ui/time.png");
+    top: 0.23rem;
+    left: 0.65rem;
+}
+.tooltip #needTime.hour {
+    font-size: 0.1rem;
+}
+
+.tooltip.Demolition,
+.tooltip.Industrial {
+    left: -1.5rem;
+    top: 0.88rem;
+}
+.tooltip.Residential {
+    left: -0.15rem;
+    top: 1.73rem;
+}
+.tooltip.Upgrade,
+.tooltip.Commercial {
+    left: 1.17rem;
+    top: 0.88rem;
+}
+
+.tooltip #resource {
+    top: 0.46rem;
+    width: 1.3rem;
+}
+
+.tooltip #resource.Residential {background-image: url("/game/images/ui/demographic-long.png");}
+.tooltip #resource.Commercial {background-image: url("/game/images/ui/dollar-long.png");}
+.tooltip #resource.Industrial {background-image: url("/game/images/ui/power-long.png");}

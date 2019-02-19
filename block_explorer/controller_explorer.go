@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	"git.fleta.io/fleta/common/hash"
+
 	"git.fleta.io/fleta/core/consensus"
 
 	citygame "git.fleta.io/fleta/city_game/city_game_context"
@@ -90,11 +92,14 @@ func (e *ExplorerController) BlockDetail(r *http.Request) (map[string][]byte, er
 
 func (e *ExplorerController) TransactionDetail(r *http.Request) (map[string][]byte, error) {
 	param := r.URL.Query()
-	hash := param.Get("hash")
-	// heightStr := param.Get("height")
+	hashStr := param.Get("hash")
+	h, err := hash.ParseHex(hashStr)
+	if err != nil {
+		return nil, err
+	}
 	var v []byte
 	if err := e.db.View(func(txn *badger.Txn) error {
-		item, err := txn.Get([]byte(hash))
+		item, err := txn.Get(h[:])
 		if err != nil {
 			return err
 		}

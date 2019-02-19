@@ -1,0 +1,97 @@
+#game {
+    position: absolute;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+}
+
+#tileCase, #screen, #touchpad {
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+}
+#touchpad > div,#screen > div {
+    width:1rem; height:0.5rem;
+}
+.floor{width:1rem;}
+
+#touchpad span {display: none;font-size: 0.14rem; position: absolute; top:0.15rem;text-align: center;line-height: 0.14rem; width:100%;}
+
+#screen.hideBuilding {pointer-events: none;}
+/* #touchpad.hideBuilding .Industrial{background-color: #00f;}
+#touchpad.hideBuilding .Residential{background-color: #0ff;}
+#touchpad.hideBuilding .Commercial{background-color: #f0f;} */
+/* #touchpad.hideBuilding span {display: block;} */
+/* #touchpad.hideBuilding .scaleArea {opacity: 0.2;} */
+#screen.hideBuilding .building.lv6{
+    pointer-events: none;
+    opacity: 0.3;
+}
+
+#touchpad >div,
+#screen >div {
+    position: absolute;
+}
+#screen .building,
+#screen .floor {
+    width: 1rem;
+    position: absolute;
+    bottom:0;
+}
+#screen .building.lv1{
+    width: 0.5rem;
+    left: 0.25rem;
+    bottom: 0.25rem;
+}
+#screen .building.lv2{
+    width: 0.5rem;
+    left: 0.5rem;
+    bottom: 0.125rem;
+}
+#screen .building.lv3{
+    width: 0.5rem;
+    left: 0.25rem;
+}
+#screen .building.lv4{
+    width: 0.5rem;
+    bottom: 0.125rem;
+}
+#screen .building.lv5{
+    width: 1rem;
+}
+#screen .building.lv6{
+    width: 2rem;
+    left: -0.5rem;
+}
+
+#screen .floor.lv6 {
+    width: 2rem;
+    left: -0.5rem;
+}
+
+
+.scaleArea {
+    width: 70.7%;
+    height: 141.4%;
+    transform: scale(1, 0.5);
+    position: absolute;
+    bottom: -20%;
+    left: 15%;
+}
+
+.hoverArea {
+    transform: rotate(45deg);
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.hover .hoverArea {
+    border: 2px solid #0f08;
+}

@@ -4,10 +4,10 @@ function initGame () {
     jScreen.css("width", (gConfig.Size)+"rem");
     jScreen.css("height", (gConfig.Size)/2+"rem");
 
-	connectToServer(loginInfo.Addr)
-	loadTile()
+	gGame.define_map = DefineMap
+	gGame.height = BlockHeight
+	loadTile(UserTiles)
 	scoreReloader()
-	addKeyShotcut()
 }
 
 function scoreReloader() {
@@ -32,61 +32,29 @@ function updateResource(resource) {
 			}
 		}
 	}
-
 }
 
-function loadTile() {
-	$.ajax({
-		type: "GET",
-		url : "/api/games/"+loginInfo.Addr,
-		success : function (d) {
-            if (typeof d === "string") {
-                d = JSON.parse(d)
-			}
-			console.log("init game")
-			console.log(d)
-			if (d.define_map) {
-				gBuildingDefine = d.define_map;
-			}
+function loadTile(d) {
+	if (typeof d === "string") {
+		d = JSON.parse(d)
+	}
+	var $touchpad = $("#touchpad");
+	var jScreen = $("#screen");
 
-			var $touchpad = $("#touchpad");
-			var jScreen = $("#screen");
-		
-			gConfig.Size = Math.pow(d.tiles.length, 0.5);
-			gGame.define_map = d.define_map;
-			gGame.height = d.height;
-			gGame.point_height = d.point_height;
-			gGame.point_balance = d.point_balance;
-			for(var i=0; i<d.tiles.length; i++) {
-				var x = i%gConfig.Size;
-				var y = parseInt(i/gConfig.Size);
+	gConfig.Size = Math.pow(d.length, 0.5);
+	for(var i=0; i<d.length; i++) {
+		var x = i%gConfig.Size;
+		var y = parseInt(i/gConfig.Size);
 
-				var num = getNum(x, y)
-				if (d.tiles[i]) {
-					var tile = new Tile(jScreen, $touchpad, x, y, num, d.tiles[i].area_type, d.tiles[i].level , d.tiles[i].build_height)
-				} else {
-					var tile = new Tile(jScreen, $touchpad, x, y, num)
-				}
-				gGame.tiles.push(tile);
-				tile.init()
-			}
-
-			/*
-				"height": HEIGHT_INT,
-				"point_height": POINT_HEIGHT_INT,
-				"point_balance": POINT_BALANCE_INT,
-				"tiles": [{
-					"area_type": AREA_TYPE_INT,
-					"level": LEVEL_INT,
-					"build_height": BUILD_HEIGHT_INT
-				}]
-			*/
-		},
-		error: function(d) {
-			alert("error")
+		var num = getNum(x, y)
+		if (d[i]) {
+			var tile = new Tile(jScreen, $touchpad, x, y, num, d[i].area_type, d[i].level , d[i].build_height)
+		} else {
+			var tile = new Tile(jScreen, $touchpad, x, y, num)
 		}
-	})
-
+		gGame.tiles.push(tile);
+		tile.init()
+	}
 }
 
 function Tile(jScreen, $touchpad, x, y, num, type, level, build_height) {
@@ -268,7 +236,7 @@ Tile.prototype._remove = function() {
 	this.obj.find(".building").detach();
 	this.obj.level = 0;
 	this.touch.find(".hoverArea").attr("class", "hoverArea");
-	this.obj.find(".floor").attr("src", "/images/tile/base_floor/groundtiles_tile"+this.num+".png").attr("class", "floor");
+	this.obj.find(".floor").attr("src", "/game/images/tile/base_floor/groundtiles_tile"+this.num+".png").attr("class", "floor");
 
 	delete this.type;
 	delete this.obj.headTile;

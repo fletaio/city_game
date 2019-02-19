@@ -1,0 +1,67 @@
+<indexStyle>
+    <link href="/game/css/background.css?1=71" rel="stylesheet" type="text/css" />
+    <link href="/game/css/login.css?1=7" rel="stylesheet" type="text/css" />
+    <link href="/game/css/object.css?1=7" rel="stylesheet" type="text/css" />
+    <link href="/game/css/ui.css?1=7" rel="stylesheet" type="text/css" />
+    <link href="/game/css/zindex.css?1=7" rel="stylesheet" type="text/css" />
+    <script src="/game/js/language.js?1=7"></script>
+    <style id="cssControll"></style>
+    <script>
+        var UserTiles = {{Tiles}};
+        var DefineMap = {{DefindMap}};
+        var BlockHeight = {{Height}};
+    </script>
+</indexStyle>
+
+<panel>
+    <div class="islandCase">
+        <div class="islandMiddle">
+            <div class="skyBackground"></div>
+        </div>
+    </div>
+    <div id="starField"></div>
+    <div class="islandCase">
+        <div class="islandMiddle">
+            <div class="islandCenterDot">
+                <div class="island" style="top:0; left:0;">
+                    <div id="tileCase">
+                        <div id="touchpad"></div>
+                        <div id="screen"></div>
+                    </div>
+                    <div class="tileBackground"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="ui_layout">
+        <div id="scoreboard">
+                
+            <span id="dollar"><span key="balance"></span><br/><span key="add_balance"></span></span>
+            <!-- <span id="power"><span key="power_remained"></span>/<span key="power_provided"></span></span>
+            <span id="demographic"><span key="man_remained"></span>/<span key="man_provided"></span></span> -->
+            <span id="power"><span key="power_remained"></span></span></span>
+            <span id="demographic"><span key="man_remained"></span></span></span>
+        </div>
+        <div id="info" class="ui_element"></div>
+    </div>
+    <button id="hideBuilding" onclick="event.stopPropagation();ViewChanger()"></button>
+    <div id="menu"></div>
+    <div id="alertUI"><button class="alertUI_ok" onclick="event.stopPropagation();UIAlert.okOnclick()"></button><button class="alertUI_cancel" onclick="event.stopPropagation();UIAlert.cancelOnclick()"></button></div>
+    <div id="tooltip">
+        <div id="needDemographic"></div>
+        <div id="needDollar"></div>
+        <div id="needPower"></div>
+        <div id="needTime"></div>
+        <div id="resource"></div>
+    </div>
+</panel>
+
+<gamecode>
+<script src="/game/js/common.js?1=7"></script>
+<script src="/game/js/error.js?1=7"></script>
+<script src="/game/js/script.js?1=7"></script>
+<script src="/game/js/ui.js?1=71"></script>
+<script src="/game/js/event.js?1=7"></script>
+<script src="/game/js/game.js?1=7"></script>
+<script src="/game/js/gameCommand.js?1=7"></script>
+</gamecode>
