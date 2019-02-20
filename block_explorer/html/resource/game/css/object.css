@@ -28,7 +28,7 @@
 /* #touchpad.hideBuilding .scaleArea {opacity: 0.2;} */
 #screen.hideBuilding .building.lv6{
     pointer-events: none;
-    opacity: 0.3;
+    opacity: 0.15;
 }
 
 #touchpad >div,

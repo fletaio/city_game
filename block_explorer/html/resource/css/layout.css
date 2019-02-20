@@ -82,6 +82,7 @@
     display: table-cell;
     padding: 0 10px 0 25px;
     vertical-align: middle;
+    filter: grayscale(100);
 }
 .header .header-head .header-menu .menu_nav .menu_item .menu_link{}
 .header .header-head .header-menu .menu_nav .menu_item .menu_link .text{
@@ -92,14 +93,14 @@
     font-family: Poppins;
     font-size: 1.07rem;
     text-transform: initial;
-    color: #676c7b;
+    color:#337fff;
 }
 
-.header .header-head .header-menu .menu_nav .menu_item.activeDashboard.Dashboard .menu_link .text,
-.header .header-head .header-menu .menu_nav .menu_item.activeBlocks.Blocks .menu_link .text,
-.header .header-head .header-menu .menu_nav .menu_item.activeTransactions.Transactions .menu_link .text,
-.header .header-head .header-menu .menu_nav .menu_item .menu_link:hover .text {
-    color:#337fff;
+.header .header-head .header-menu .menu_nav .menu_item.activeDashboard.Dashboard,
+.header .header-head .header-menu .menu_nav .menu_item.activeBlocks.Blocks,
+.header .header-head .header-menu .menu_nav .menu_item.activeTransactions.Transactions,
+.header .header-head .header-menu .menu_nav .menu_item:hover {
+    filter: grayscale(0);
 }
 
 .header .header-head .header-menu .menu_nav .menu_item .menu_link > i {
@@ -114,17 +115,9 @@
     background-repeat: no-repeat;
 }
 
-.header .header-head .header-menu .menu_nav .menu_item .menu_link .dashboard{background-image: url(/images/icon-dashboard-w.png);}
-.header .header-head .header-menu .menu_nav .menu_item .menu_link:hover .dashboard{background-image: url(/images/icon-dashboard.png);}
-.header .header-head .header-menu .menu_nav .menu_item.activeDashboard.Dashboard .menu_link .dashboard{background-image: url(/images/icon-dashboard.png);}
-
-.header .header-head .header-menu .menu_nav .menu_item .menu_link .blocks{background-image: url(/images/icon-blocks-w.png);}
-.header .header-head .header-menu .menu_nav .menu_item .menu_link:hover .blocks{background-image: url(/images/icon-blocks.png);}
-.header .header-head .header-menu .menu_nav .menu_item.activeBlocks.Blocks .menu_link .blocks{background-image: url(/images/icon-blocks.png);}
-
-.header .header-head .header-menu .menu_nav .menu_item .menu_link .transactions{background-image: url(/images/icon-transaction-w.png);}
-.header .header-head .header-menu .menu_nav .menu_item .menu_link:hover .transactions{background-image: url(/images/icon-transaction.png);}
-.header .header-head .header-menu .menu_nav .menu_item.activeTransactions.Transactions .menu_link .transactions{background-image: url(/images/icon-transaction.png);}
+.header .header-head .header-menu .menu_nav .menu_item .menu_link .dashboard{background-image: url(/images/icon-dashboard.png);}
+.header .header-head .header-menu .menu_nav .menu_item .menu_link .blocks{background-image: url(/images/icon-blocks.png);}
+.header .header-head .header-menu .menu_nav .menu_item .menu_link .transactions{background-image: url(/images/icon-transaction.png);}
 
 .desktop{
     transition: width 0.2s ease;
