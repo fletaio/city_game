@@ -106,6 +106,9 @@ function mousewheel (e) {
 	}
 	islandMove = undefined;
 
+	if(!e){ e = window.event; } /* IE7, IE8, Chrome, Safari */
+    if(e.preventDefault) { e.preventDefault(); } /* Chrome, Safari, Firefox */
+    e.returnValue = false; /* IE7, IE8 */
 }
 
 var tpCache = []
@@ -203,6 +206,7 @@ function getTileFromPoint(point) {
 	}
 }
 
+var disconnectedCount = 1
 function connectToServer (addr) {
 	var wsUri = "ws://"+window.location.host+"/websocket/"+addr;
 	function connect() {
@@ -223,8 +227,13 @@ function connectToServer (addr) {
 
 	function onClose(ws,  e)
 	{
+		disconnectedCount = (disconnectedCount+1) * disconnectedCount
 		console.log("DISCONNECTED");
-		// ws = connect();
+		(function (ws) {
+			setTimeout(function () {
+				ws = connect();
+			}, 1000*disconnectedCount)
+		})(ws)
 	}
 
 	function onError(ws,  e)
@@ -235,7 +244,6 @@ function connectToServer (addr) {
 }
 
 function onMessage(ws,  e) {
-	console.log(e.data)
 	if(!ws._init) {
 		ws._init = true;
 

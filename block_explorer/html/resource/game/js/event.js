@@ -106,6 +106,9 @@ function mousewheel (e) {
 	}
 	islandMove = undefined;
 
+	if(!e){ e = window.event; } /* IE7, IE8, Chrome, Safari */
+    if(e.preventDefault) { e.preventDefault(); } /* Chrome, Safari, Firefox */
+    e.returnValue = false; /* IE7, IE8 */
 }
 
 var tpCache = []

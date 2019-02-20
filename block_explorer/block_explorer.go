@@ -139,34 +139,26 @@ func NewBlockExplorer(dbPath string, Kernel *kernel.Kernel) (*BlockExplorer, err
 
 	currHeight := e.Kernel.Provider().Height()
 
-	for i := int(currHeight); i > 0; i-- {
+	for i := currHeight; i > 0; i-- {
 		if len(e.lastestTransactionList) >= 500 {
 			break
 		}
-		height := uint32(i)
-		b, err := e.Kernel.Block(height)
+		b, err := e.Kernel.Block(i)
 		if err != nil {
 			continue
 		}
 		txs := b.Body.Transactions
 		for _, tx := range txs {
 			name, _ := e.Kernel.Transactor().NameByType(tx.Type())
-			e.lastestTransactionList = append([]txInfos{txInfos{
+			e.lastestTransactionList = append(e.lastestTransactionList, txInfos{
 				TxHash:    tx.Hash().String(),
 				BlockHash: b.Header.Hash().String(),
 				ChainID:   b.Header.ChainCoord.String(),
 				Time:      tx.Timestamp(),
 				TxType:    name,
-			}}, e.lastestTransactionList...)
+			})
 		}
 	}
-
-	// e.Kernel.Loader().
-	// loader := GameKernel.Loader()
-	// var rootAddress common.Address
-	// if bs := loader.AccountData(rootAddress, KeyHashID); len(bs) > 0 {
-
-	// UpdateScore(gd *citygame.GameData, height uint32, addr common.Address)
 
 	go func(e *BlockExplorer) {
 		for {
@@ -202,18 +194,16 @@ func (e *BlockExplorer) updateChainInfoCount() error {
 		}
 		e.CurrentChainInfo.currentTransactions += len(b.Body.Transactions)
 
-		if len(e.lastestTransactionList) < 500 {
-			txs := b.Body.Transactions
-			for _, tx := range txs {
-				name, _ := e.Kernel.Transactor().NameByType(tx.Type())
-				newTxs = append(newTxs, txInfos{
-					TxHash:    tx.Hash().String(),
-					BlockHash: b.Header.Hash().String(),
-					ChainID:   b.Header.ChainCoord.String(),
-					Time:      tx.Timestamp(),
-					TxType:    name,
-				})
-			}
+		txs := b.Body.Transactions
+		for _, tx := range txs {
+			name, _ := e.Kernel.Transactor().NameByType(tx.Type())
+			newTxs = append(newTxs, txInfos{
+				TxHash:    tx.Hash().String(),
+				BlockHash: b.Header.Hash().String(),
+				ChainID:   b.Header.ChainCoord.String(),
+				Time:      tx.Timestamp(),
+				TxType:    name,
+			})
 		}
 
 		if err := e.db.Update(func(txn *badger.Txn) error {
@@ -230,10 +220,11 @@ func (e *BlockExplorer) updateChainInfoCount() error {
 
 	}
 
-	e.lastestTransactionList = append(newTxs, e.lastestTransactionList...)
-
-	if len(e.lastestTransactionList) > 500 {
-		e.lastestTransactionList = e.lastestTransactionList[len(e.lastestTransactionList)-500 : len(e.lastestTransactionList)]
+	if len(newTxs) > 0 {
+		e.lastestTransactionList = append(newTxs, e.lastestTransactionList...)
+		if len(e.lastestTransactionList) > 500 {
+			e.lastestTransactionList = e.lastestTransactionList[len(e.lastestTransactionList)-500 : len(e.lastestTransactionList)]
+		}
 	}
 
 	e.CurrentChainInfo.Transactions += e.CurrentChainInfo.currentTransactions
