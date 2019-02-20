@@ -103,6 +103,7 @@ func main() {
 	}
 	obkeys := make([]key.Key, 0, len(obstrs))
 	ObserverKeys := make([]common.PublicHash, 0, len(obstrs))
+
 	NetAddressMap := map[common.PublicHash]string{}
 	NetAddressMapForFr := map[common.PublicHash]string{}
 	for i, v := range obstrs {
@@ -118,6 +119,10 @@ func main() {
 			NetAddressMapForFr[pubhash] = "127.0.0.1:500" + Num
 			ObserverKeys = append(ObserverKeys, pubhash)
 		}
+	}
+	ObserverKeyMap := map[common.PublicHash]bool{}
+	for _, pubhash := range ObserverKeys {
+		ObserverKeyMap[pubhash] = true
 	}
 
 	frstrs := []string{
@@ -163,7 +168,7 @@ func main() {
 		rd := &mockRewarder{}
 		kn, err := kernel.NewKernel(&kernel.Config{
 			ChainCoord:       GenCoord,
-			ObserverKeys:     ObserverKeys,
+			ObserverKeyMap:   ObserverKeyMap,
 			GenTimeThreshold: 300 * time.Millisecond,
 		}, ks, rd, GenesisContextData)
 		if err != nil {
@@ -214,7 +219,7 @@ func main() {
 		rd := &mockRewarder{}
 		kn, err := kernel.NewKernel(&kernel.Config{
 			ChainCoord:       GenCoord,
-			ObserverKeys:     ObserverKeys,
+			ObserverKeyMap:   ObserverKeyMap,
 			GenTimeThreshold: 300 * time.Millisecond,
 		}, ks, rd, GenesisContextData)
 		if err != nil {

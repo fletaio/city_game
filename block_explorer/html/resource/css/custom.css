@@ -1,30 +1,31 @@
-.badge.fletacityCreateAccount{background-color: #e377c2;color: #fff;}
-.badge.fletacityDemolition{background-color: #bcbd22;color: #fff;}
-.badge.fletacityUpgrade{background-color: #17becf;color: #fff;}
+.badge.fletacityCreateAccount{background-color: #c8ff33;color: #fff;}
+.badge.fletacityDemolition{background-color: #ff3c3c;color: #fff;}
+.badge.fletacityUpgrade{background-color: #3cbcff;color: #fff;}
 
-.timeline-3_items .timeline-3_item.fletacityCreateAccount::before{background-color: #e377c2;}
-.timeline-3_items .timeline-3_item.fletacityDemolition::before{background-color: #bcbd22;}
-.timeline-3_items .timeline-3_item.fletacityUpgrade::before{background-color: #17becf;}
+.timeline-3_items .timeline-3_item.fletacityCreateAccount::before{background-color: #c8ff33;}
+.timeline-3_items .timeline-3_item.fletacityDemolition::before{background-color: #ff3c3c;}
+.timeline-3_items .timeline-3_item.fletacityUpgrade::before{background-color: #3cbcff;}
 
 @media (min-width: 1025px) {
     .desktop .aside-left {
-        background-color: #7B4752;
+        background-color: #1b2436;
     }
 }
 
 .header .container .stack {
-    background-color: #7B4752;
+    background-color: #1b2436;
 }
 
 .footer {
-    background: #6B323E;
+    background: #6e45e5;
+    padding: 10px 0 0px 262px;
 }
 
 .clickable {
     cursor: pointer;
 }
 .active {
-    background-color: #6B323E;
+    background-color: #1b2436;
     color: #fff;
 }
 
@@ -38,9 +39,9 @@
 
 @media (max-width: 1024px) {
     .header .header-head {
-        background-color: #7B4752;
+        background-color: #1b2436;
     }
     .header .header-head.menu-on .mobile-close {
-        background-color: #6B323E;
+        background-color: #19202c;
     }
 }
