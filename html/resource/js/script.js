@@ -28,8 +28,13 @@ Game.prototype.Update = function() {
 	var addBalance = 0
 	for (var k in gGame.tiles) {
 		var tile = gGame.tiles[k];
-		if (tile.obj.level) {
-			var bd = gBuildingDefine[tile.type][tile.obj.level-1];
+		if (tile.level||tile.BuildProcessing) {
+			var level = tile.level
+			var bd = gBuildingDefine[tile.type][level-1];
+			if (tile.BuildProcessing) {
+				level++
+				var bd = gBuildingDefine[tile.type][level-1];
+			}
 			used.man_remained += bd.man_usage||0;
 			used.power_remained += bd.power_usage||0;
 
@@ -38,48 +43,47 @@ Game.prototype.Update = function() {
 			}
 
 			var ConstructionHeight = tile.build_height + bd.build_time*2
-			if (this.height < ConstructionHeight) {
-				if (tile.obj.level == 1) {
-					continue;
-				}
-				bd = gBuildingDefine[tile.type][tile.obj.level-2];
+			if (this.height < ConstructionHeight || tile.BuildProcessing) {
+				bd = gBuildingDefine[tile.type][level-2];
 			}
-			switch (tile.type) {
-			case CommercialType:
-				if (this.height > ConstructionHeight) {
-					if (ConstructionHeight <= this.point_height) {
-						provide.balance += bd.output/2 * parseInt(forward_height);
-					} else {
-						if (tile.build_height <= this.point_height) {
-							provide.balance += bd.output/2 * parseInt(forward_height-(ConstructionHeight-this.point_height));
+			if (!(this.height < ConstructionHeight || tile.BuildProcessing) || level != 1) {
+				switch (tile.type) {
+				case CommercialType:
+					if (this.height > ConstructionHeight) {
+						if (ConstructionHeight <= this.point_height) {
+							provide.balance += bd.output/2 * parseInt(forward_height);
 						} else {
-							provide.balance += bd.output/2 * parseInt(this.height-ConstructionHeight);
-							if (tile.obj.level > 1) {
-								var prevbd = gBuildingDefine[tile.type][tile.obj.level-2];
-								provide.balance += prevbd.output/2 * parseInt(tile.build_height-this.point_height);
+							if (tile.build_height <= this.point_height) {
+								provide.balance += bd.output/2 * parseInt(forward_height-(ConstructionHeight-this.point_height));
+							} else {
+								provide.balance += bd.output/2 * parseInt(this.height-ConstructionHeight);
+								if (level > 1) {
+									var prevbd = gBuildingDefine[tile.type][level-2];
+									provide.balance += prevbd.output/2 * parseInt(tile.build_height-this.point_height);
+								}
 							}
 						}
 					}
+					break;
+				case IndustrialType:
+					provide.power_remained += bd.output;
+					break;
+				case ResidentialType:
+					provide.man_remained += bd.output;
+					break;
 				}
-				break;
-			case IndustrialType:
-				provide.power_remained += bd.output;
-				break;
-			case ResidentialType:
-				provide.man_remained += bd.output;
-				break;
 			}
-
 		}
-		if (tile.obj.BuildProcessing) {
+
+		if (tile.BuildProcessing) {
 			var sTile = tile
-			if (tile.obj.headTile) {
-				sTile = tile.obj.headTile;
+			if (tile.headTile) {
+				sTile = tile.headTile;
 			}
-			var buildCompletHeight = sTile.build_height + gGame.define_map[sTile.type][sTile.obj.level].build_time*2
+			var buildCompletHeight = sTile.build_height + gGame.define_map[sTile.type][sTile.level].build_time*2
 			
 			if(buildCompletHeight <= gGame.height) {
-				sTile.UI.completBuilding(tile.obj.level+1)
+				sTile.completBuilding()
 			} else {
 				sTile.UI.ShowBuildProcessingTime((buildCompletHeight-gGame.height)/2)
 			}
@@ -143,16 +147,31 @@ function buildingNum(str) {
 	}
 }
 
-function buildableResource(tile, type) {
-	if (type == "Demolition") {
-		return true
+function demolitionableResource(tile, type) {
+	if (type !== "Demolition") {
+		return false
 	}
-	if (tile.obj.BuildProcessing == true) {
-		return false;
+	type = tile.type||buildingNum(type)
+	var cost = gBuildingDefine[type][tile.level-1];
+	if (type == 2) {
+		if (typeof cost.power_usage != "undefined" && currentResource.power < cost.output) {
+			return language["not enough power"]
+		}
+	} else if (type == 3) {
+		if (typeof cost.man_usage != "undefined" && currentResource.men < cost.output) {
+			return language["not enough people"]
+		}
+	}
+	return true;
+}
+
+function buildableResource(tile, type) {
+	if (tile.BuildProcessing == true) {
+		return language["under construction"];
 	}
 	type = tile.type||buildingNum(type)
 	if (type) {
-		var cost = gBuildingDefine[type][tile.obj.level];
+		var cost = gBuildingDefine[type][tile.level];
 		if (typeof cost.cost_usage != "undefined" && currentResource.balance < cost.cost_usage) {
 			return language["not enough balance"]
 		}
@@ -164,10 +183,10 @@ function buildableResource(tile, type) {
 		}
 	}
 
-	if (tile.obj.level == 5) {
+	if (tile.level == 5) {
 		var checker = tile.CheckLvRound()
 		for ( var i = 0 ; i < checker.candidate.length ; i++ ) {
-			if (checker.candidate[i].obj.BuildProcessing == true) {
+			if (checker.candidate[i].BuildProcessing == true) {
 				return language["BuildProcessing not finished"]
 			}
 		}

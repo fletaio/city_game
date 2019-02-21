@@ -5,11 +5,11 @@ Tile.prototype.RunCommand = function(func, e) {
 			UIAlert.Alert(func, function () {
 				message("command : "+ func + " x : " + tile.x + " y : " + tile.y );
 
-				var utxo = loginInfo.popUTXO()
-				if (!utxo) {
-					alert(language["too fast"])
-					return
-				}
+				// var utxo = loginInfo.popUTXO()
+				// if (!utxo) {
+				// 	Alert(language["too fast"])
+				// 	return
+				// }
 				try{
 					tile = tile[func]();
 				} catch(e) {
@@ -19,17 +19,17 @@ Tile.prototype.RunCommand = function(func, e) {
 					menuOpen(tile);
 					// setTimeout(function () {
 					// 	var balance = parseInt($("#dollar[key='balance']").html())
-					// 	balance -=  gBuildingDefine[tile.type][tile.obj.level].cost_usage
+					// 	balance -=  gBuildingDefine[tile.type][tile.level].cost_usage
 					// 	var height = gGame.height
 					// 	if (func == "Demolition") {
 					// 		onMessage({_init:true}, {data : "{\"point_height\":"+height+",\"point_balance\":"+balance+",\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":0,\"level\":0,\"type\":0,\"height\":"+gGame.height+"}"})
 					// 	} else {
-					// 		onMessage({_init:true}, {data : "{\"point_height\":"+height+",\"point_balance\":"+balance+",\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":"+tile.type+",\"level\":"+(tile.obj.level+1)+",\"type\":1,\"height\":"+gGame.height+"}"})
+					// 		onMessage({_init:true}, {data : "{\"point_height\":"+height+",\"point_balance\":"+balance+",\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":"+tile.type+",\"level\":"+(tile.level+1)+",\"type\":1,\"height\":"+gGame.height+"}"})
 					// 	}
 					// }, 100)
-					sendServer(func, tile, utxo)
+					sendServer(func, tile)
 				} else {
-					loginInfo.pushUTXO(utxo)
+					// loginInfo.pushUTXO(utxo)
 				}
 			})
 		})(this)
@@ -38,7 +38,7 @@ Tile.prototype.RunCommand = function(func, e) {
 
 Tile.prototype.Demolition = function() {
 	menuClose();
-	return this.obj.headTile||this;
+	return this.headTile||this;
 }
 Tile.prototype.Industrial = function() {
 	return this.Build(IndustrialType);
@@ -76,6 +76,48 @@ function buildingNum(str) {
 }
 
 function sendServer(func, tile, utxo) {
+	var q = new SendQueue(func, tile)
+	q.Enqueue()
+	q.Do()
+}
+
+function SendQueue(func, tile) {
+	this.func = func;
+	this.tile = tile;
+}
+SendQueue.quere = [];
+SendQueue.utxo = [];
+SendQueue.NewUTXO = function (UTXO) {
+	console.log("new1")
+	var send;
+	if (!!(send = SendQueue.quere.splice(0, 1)) && send.length > 0) {
+		console.log("new2")
+		send[0].sendServer(UTXO)
+	} else {
+		SendQueue.utxo.push(UTXO)
+	}
+	console.log("new3")
+}
+SendQueue.prototype.Enqueue = function () {
+	SendQueue.quere.push(this)
+}
+SendQueue.prototype.Do = function () {
+	var utxo, send;
+	console.log("Do1")
+	while (!!(utxo = SendQueue.utxo.splice(0, 1)) && utxo.length > 0) {
+		console.log("Do2")
+		if (!!(send = SendQueue.quere.splice(0, 1)) && send.length > 0) {
+			send[0].sendServer(utxo[0])
+		} else {
+			SendQueue.utxo.push(utxo[0])
+			break;
+		}
+	}
+	console.log("Do3")
+}
+SendQueue.prototype.sendServer = function(utxo) {
+	var func = this.func;
+	var tile = this.tile;
 	if (func == "Demolition") {
 		$.ajax({
 			type: "POST",
@@ -97,22 +139,11 @@ function sendServer(func, tile, utxo) {
 				commit(d)
 			},
 			error: function(d) {
-				loginInfo.pushUTXO(utxo)
-				alert("error")
+				SendQueue.NewUTXO(utxo)
+				Alert(language["Failed to execute demolation command"])
 			}
 		})
 	} else if (func == "Upgrade" || func == "Commercial" || func == "Industrial" || func == "Residential" ) {
-/*
-	/api/games/ADDRESS_STRING/commands/upgrade
-	* REQUEST
-	{
-		"seq": NEXT_SEQ_INT,
-		"x": X_INT,
-		"y": Y_INT,
-		"area_type": TYPE_INT(1 : Commercial, 2 : Industrial, 3 : Residential),
-		"target_level": LEVEL_INT
-	}
-*/
 		var area_type = tile.type||buildingNum(func);
 		{
 			$.ajax({
@@ -123,7 +154,7 @@ function sendServer(func, tile, utxo) {
 					"x": tile.x,
 					"y": tile.y,
 					"area_type": area_type,
-					"target_level": +tile.obj.level+1
+					"target_level": +tile.level+1
 				}),
 				success : function (d) {
 					if (typeof d === "string") {
@@ -137,8 +168,8 @@ function sendServer(func, tile, utxo) {
 					commit(d)
 				},
 				error: function(d) {
-					loginInfo.pushUTXO(utxo)
-					alert("error")
+					SendQueue.NewUTXO(utxo)
+					Alert(language["Failed to execute upgrade command"])
 				}
 			})
 		}
@@ -148,15 +179,6 @@ function sendServer(func, tile, utxo) {
 
 
 function commit(data) {
-/*
-	/api/games/ADDRESS_STRING/commands/commit
-	* REQUEST
-	{
-		"type": TYPE_INT,
-		"tx_hex": TRANSACTION_HEX,
-		"sig_hex": SIGNATURE_HEX
-	}
-*/
 	var msg = new Buffer(data.hash_hex, "hex");
 	var sig = loginInfo.Key.sign(msg);
 	var SIG_HEX = buf2hex(sig.r.toArrayLike(Buffer, "be", 32)) + buf2hex(sig.s.toArrayLike(Buffer, "be", 32)) + "0" + sig.recoveryParam;
@@ -172,7 +194,13 @@ function commit(data) {
 		success : function (d) {
 		},
 		error: function(d) {
-			alert("commit error")
+			if (data.type == 2) {
+				Alert(language["Failed to execute demolation command"])
+			} else if (data.type == 3) {
+				Alert(language["Failed to execute upgrade command"])
+			} else {
+				Alert(language["commit error"])
+			}
 		}
 	})
 

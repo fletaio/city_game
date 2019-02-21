@@ -291,7 +291,7 @@ function onMessage(ws,  e) {
 				tile.level = noti.level;
 				updateResource(gGame.Update());
 			} else { //false
-				alert(language[noti.error]||noti.error)
+				Alert(language[noti.error]||noti.error)
 				if(noti.level == 1) {
 					tile.Remove()
 				} else {

@@ -767,6 +767,9 @@ func (ew *EventWatcher) AddWriter(addr common.Address, w *websocket.Conn) {
 	defer ew.Unlock()
 
 	if old, has := ew.writerMap[addr]; has {
+		old.WriteJSON(&WebTileNotify{
+			Type: 99,
+		})
 		old.Close()
 	}
 	ew.writerMap[addr] = w

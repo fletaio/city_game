@@ -67,7 +67,7 @@ function Tile(jScreen, $touchpad, x, y, num, type, level, build_height) {
 	this.num = num
 	this.obj = newObjDiv(x, y, this.num);
 	jScreen.append(this.obj)
-	this.obj.level = level||0;
+	this.level = level||0;
 	this.build_height = build_height||0;
 	this.type = type||null;
 }
@@ -75,23 +75,23 @@ function Tile(jScreen, $touchpad, x, y, num, type, level, build_height) {
 Tile.prototype.init = function () {
 	this.Resize();
 	this.UI = new TileUI(this)
-	if (this.obj.level > 0) {
-		if (this.obj.level <= 6) {
-			if (this.obj.level == 6) {
+	if (this.level > 0) {
+		if (this.level <= 6) {
+			if (this.level == 6) {
 				var o = {x:this.x,y:this.y}
 				this.obj.headTile = this
 				for (var i = 0 ; i < 3 ; i++) {
 					directByNum(o, i)
 					var t = gGame.tiles[o.x + o.y * gConfig.Size];
 					t.obj.headTile = this
-					t.obj.level = 5
+					t.level = 5
 					t.type = this.type
 				}
 			}
-			this.obj.level--
-			this.UI.BuildUp(this.obj.level+1)
-			if(this.build_height + gGame.define_map[this.type][this.obj.level].build_time*2 <= gGame.height) {
-				this.UI.completBuilding(this.obj.level+1, "noEffect")
+			this.level--
+			this.UI.BuildUp(this.level+1)
+			if(this.build_height + gGame.define_map[this.type][this.level].build_time*2 <= gGame.height) {
+				this.UI.completBuilding(this.level+1, "noEffect")
 			}
 		}
 	}
@@ -150,8 +150,8 @@ LvFTiles.prototype.PutCandidate = function(tile) {
 		throw "is not Tile";
 	}
 	if (typeof this.level === "undefined") {
-		this.level = tile.obj.level;
-	} else if (this.level != tile.obj.level) {
+		this.level = tile.level;
+	} else if (this.level != tile.level) {
 		return false;
 	}
 	if (typeof this.type === "undefined") {
@@ -206,19 +206,19 @@ Tile.prototype.CheckLvRound = function(checkLv) {
 	var tile = gGame.tiles[o.x + o.y *gConfig.Size];
 	var type = tile.type;
 	var checker = new LvFTiles();
-	if (tile.obj.level != checkLv) {
+	if (tile.level != checkLv) {
 		return checker;
 	}
 	for ( var i = 0 ; i < 4 ; i++ ) {
 		var tile = gGame.tiles[o.x + o.y * gConfig.Size];
 
-		if (tile.obj.level == checkLv && type == tile.type) {
+		if (tile.level == checkLv && type == tile.type) {
 			for ( var j = i ; j < i+4 ; j++ ) {
 				directByNum(o, j%4);
 				if (o.x >= 0 && o.x < gConfig.Size && o.y >= 0 && o.y < gConfig.Size) {
 					var tile = gGame.tiles[o.x + o.y * gConfig.Size];
 					if (typeof tile !== "undefined") {
-						if (tile.obj.level == checkLv && type == tile.type) {
+						if (tile.level == checkLv && type == tile.type) {
 							checker.PutCandidate(tile)
 						}
 					}
@@ -235,7 +235,7 @@ Tile.prototype.CheckLvRound = function(checkLv) {
 
 Tile.prototype._remove = function() {
 	this.obj.find(".building").detach();
-	this.obj.level = 0;
+	this.level = 0;
 	this.touch.find(".hoverArea").attr("class", "hoverArea");
 	this.obj.find(".floor").attr("src", "/game/images/tile/base_floor/groundtiles_tile"+this.num+".png").attr("class", "floor");
 	this.obj.css("z-index", this.x*gConfig.Size+this.y)
@@ -247,7 +247,7 @@ Tile.prototype._remove = function() {
 }
 
 Tile.prototype.Remove = function() {
-	if (this.obj.level == 6) {
+	if (this.level == 6) {
 		var headTile = this.obj.headTile
 		var o = {x:headTile.x,y:headTile.y}
 		for (var i = 0 ; i < 3 ; i++) {
@@ -272,7 +272,7 @@ Tile.prototype.ValidateBuild = function() {
 		return false;
 	}
 
-	if (this.obj.level == 5) {
+	if (this.level == 5) {
 		var checker = this.CheckLvRound();
 		if (!checker.CheckLvF()) {
 			return false;
@@ -285,23 +285,23 @@ Tile.prototype.ValidateBuild = function() {
 Tile.prototype.Build = function(type) {
 	this.type = type||this.type
 	if (this.ValidateBuild()) {
-		if (this.obj.level == 5) {
+		if (this.level == 5) {
 			var checker = this.CheckLvRound();
 			var headTile = gGame.tiles[checker.maxCoordinate];
 			for (var i = 0 ; i < checker.candidate.length; i++) {
 				var t = checker.candidate[i];
-				// t.obj.level = 6;
+				// t.level = 6;
 				t.obj.headTile = headTile;
 				t.build_height_old = t.build_height;
 				t.build_height = gGame.height;
 			}
 		} else {
-			// this.obj.level++;
+			// this.level++;
 			this.build_height_old = this.build_height;
 			this.build_height = gGame.height;
 		}
 
-		var ret = this.UI.BuildUp(this.obj.level+1);
+		var ret = this.UI.BuildUp(this.level+1);
 		return ret;
 	}
 	return false

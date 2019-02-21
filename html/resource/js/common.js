@@ -45,7 +45,7 @@ function toShotUnit (num) {
 function printInfo(x, y) {
     var $l = $("#info");
     var tile = gGame.tiles[x + y * gConfig.Size]
-    $l.html("x : " + x + " y : "+y + " lv : " + tile.obj.level + " type : " + tile.TypeName() + ((tile.obj.BuildProcessing == true)?" construction":""))
+    $l.html("x : " + x + " y : "+y + " lv : " + tile.level + " type : " + tile.TypeName() + ((tile.BuildProcessing == true)?" construction":""))
 }
 
 function printLog(msg) {
@@ -170,4 +170,28 @@ function sendLeft ($eles, maxWidth) {
 
 function calcDistance (start, end) {
     return Math.pow(Math.pow(end.x, 2) + Math.pow(end.y, 2), 0.5) - Math.pow(Math.pow(start.x, 2) + Math.pow(start.y, 2), 0.5)
+}
+
+
+function secondToDate(time) {
+	time = parseInt(time)
+	var ss = time%60
+	time = parseInt((time)/60)
+	var mm = time%60
+	var hh = parseInt(time/60)
+	var r = ""
+	if (hh > 0) {
+		r += hh+"h"
+		if (mm != 0) {
+			r += mm+"m"
+		}
+	} else if (mm > 0) {
+		r += mm+"m"
+	} else if (ss >= 0) {
+		r += ss+"s"
+	} else {
+        return "pandding"
+    }
+	// r += ("0"+mm).substr(-2)+"m"
+	return r
 }

@@ -126,6 +126,12 @@ var LastestBlocksAjax={
                     otbody.append(LastestBlocksAjax.Observers(data[i], i))
                     ftbody.append(LastestBlocksAjax.Formulrator(data[i], i))
                 }
+
+                var i = 1;
+                for (var ph in LastestBlocksAjax.observersPubKeys) {
+                    $("#ObserverPh"+(i++)).html(ph)
+                }
+                
             }
         })
     },

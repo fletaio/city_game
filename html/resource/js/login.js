@@ -2,21 +2,21 @@ var loginInfo;
 function LoginInfo(key, addr, utxos) {
     this.Key = key;
     this.Addr = addr;
-	this.utxos = utxos;
+	SendQueue.utxo = utxos;
 }
 
 LoginInfo.Simbol = Symbol("LoginInfo");
 LoginInfo.prototype.Simbol = LoginInfo.Simbol;
 
-LoginInfo.prototype.popUTXO = function() {
-	var utxo = this.utxos[0];
-	this.utxos.splice(0, 1);
-	return utxo;
-}
+// LoginInfo.prototype.popUTXO = function() {
+// 	var utxo = this.utxos[0];
+// 	this.utxos.splice(0, 1);
+// 	return utxo;
+// }
 
-LoginInfo.prototype.pushUTXO = function(utxo) {
-	this.utxos.push(utxo);
-}
+// LoginInfo.prototype.pushUTXO = function(utxo) {
+// 	this.utxos.push(utxo);
+// }
 
 function initStep () {
     nextStep ("init")
@@ -36,21 +36,30 @@ function validate (str) {
     }
 }
 
+var joinFlag = false
 function join () {
+    if (joinFlag == false) {
+        joinFlag = true
+    } else {
+        return
+    }
     var ethAddr = $("#ethAddr").val()
     var userid = $("#joinId").val()
     var userpw = $("#joinPw").val()
 
     if (validate(userid)) {
-        alert("check id")
+        Alert(language["check id"])
+        joinFlag = false
         return
     }
     if (validate(userpw)) {
-        alert("check pw")
+        Alert(language["check pw"])
+        joinFlag = false
         return
     }
     if (validate(ethAddr)) {
-        alert("check ethAddr")
+        Alert(language["check ethAddr"])
+        joinFlag = false
         return
     }
 
@@ -70,25 +79,34 @@ function join () {
             if (typeof d === "string") {
                 d = JSON.parse(d)
             }
-            alert("Address Issue Success : "+ d.address + ", go to login")
+            Alert(language["Address Issue Success : "]+ d.address + language[", go to login"])
             nextStep("login")
         },
         error: function(d) {
-            alert(language["Duplicate id or ether addr"])
+            joinFlag = false
+            Alert(language["Duplicate id or ether addr"])
         }
     })
 }
 
+var loginFlag = false
 function login () {
+    if (loginFlag == false) {
+        loginFlag = true
+    } else {
+        return
+    }
     var userid = $("#loginId").val()
     var userpw = $("#loginPw").val()
 
     if (validate(userid)) {
-        alert("check id")
+        Alert(language["check id"])
+        loginFlag = false
         return
     }
     if (validate(userpw)) {
-        alert("check pw")
+        Alert(language["check pw"])
+        loginFlag = false
         return
     }
 
@@ -103,16 +121,17 @@ function login () {
                 d = JSON.parse(d)
             }
             loginInfo = new LoginInfo(key, d.address, d.utxos)
-            alert("login Success")
+            Alert(language["login Success"])
             loginSuccess()
         },
         error: function(d) {
+            loginFlag = false
 			switch(d.responseText) {
 			case "not exist account":
-				alert("Account or password in correct");
+                Alert(language["Account or password in correct"])
 				break;
 			default:
-				alert(d.responseText);
+				Alert(d.responseText);
 			}
         }
     })

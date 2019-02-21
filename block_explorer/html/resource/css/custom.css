@@ -36,6 +36,9 @@
     background-color: #1b2436;
     color: #fff;
 }
+.pagination .active {
+    background-color: #fff;
+}
 
 .header .header-head .header-menu .menu_nav .menu_item.activeScore.Score{
     filter: grayscale(0);

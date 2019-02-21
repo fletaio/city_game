@@ -45,7 +45,7 @@ function toShotUnit (num) {
 function printInfo(x, y) {
     var $l = $("#info");
     var tile = gGame.tiles[x + y * gConfig.Size]
-    $l.html("x : " + x + " y : "+y + " lv : " + tile.obj.level + " type : " + tile.TypeName() + ((tile.obj.BuildProcessing == true)?" construction":""))
+    $l.html("x : " + x + " y : "+y + " lv : " + tile.level + " type : " + tile.TypeName() + ((tile.obj.BuildProcessing == true)?" construction":""))
 }
 
 function printLog(msg) {

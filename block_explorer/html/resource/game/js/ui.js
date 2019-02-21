@@ -21,7 +21,7 @@ function addMenu(tile, funcs) {
 
 		if (able != true) {
 			btn.addClass("disable")
-			btn.attr("onclick", "event.stopPropagation();alert('"+able+"');")
+			btn.attr("onclick", "event.stopPropagation();Alert('"+able+"');")
 		} else {
 			btn.attr("onclick", "event.stopPropagation();$('#menu')[0].target.RunCommand('"+funcs[key]+"');")
 		}
@@ -31,12 +31,12 @@ function addMenu(tile, funcs) {
 		$tooltip.attr("class", "tooltip " + funcs[key])
 
 		if (funcs[key] !== "Demolition") {
-			if (tile.obj.level == 0) {
+			if (tile.level == 0) {
 				var type = buildingNum($this.attr("id"))
 			} else {
 				var type = tile.type
 			}
-			var r = gBuildingDefine[type][tile.obj.level]
+			var r = gBuildingDefine[type][tile.level]
 			$tooltip.find("#needDollar").html(toShotUnit(r.cost_usage))
 			$tooltip.find("#needPower").html(toShotUnit(r.power_usage))
 			$tooltip.find("#needDemographic").html(toShotUnit(r.man_usage))
@@ -44,7 +44,7 @@ function addMenu(tile, funcs) {
 
 			var time = secondToDate(r.build_time);
 		} else {
-			var r = gBuildingDefine[tile.type][tile.obj.level-1]
+			var r = gBuildingDefine[tile.type][tile.level-1]
 			$tooltip.find("#needDollar").html("+"+toShotUnit(r.cost_usage/2))
 			if (tile.type == IndustrialType) {
 				$tooltip.find("#needPower").html("-"+toShotUnit(r.output))
@@ -95,14 +95,14 @@ function menuOpen(tile) {
 		var $selectedInfo = $("#selectedInfo")
 		$selectedInfo.attr("class", buildingType(tile.type)).show()
 		$selectedInfo.find(".building_type").html(buildingType(tile.type))
-		var lv = tile.obj.level
+		var lv = tile.level
 		if (tile.obj.headTile) {
-			lv = tile.obj.headTile.obj.level
+			lv = tile.obj.headTile.level
 		}
 		if (lv == 6) {
 			$selectedInfo.find(".building_level").html("lvFLETA")
 		} else {
-			$selectedInfo.find(".building_level").html("lv"+tile.obj.level)
+			$selectedInfo.find(".building_level").html("lv"+tile.level)
 		}
 		
 		if (lv > 0) {
@@ -119,9 +119,9 @@ function menuOpen(tile) {
 	}
 	deleteMenu();
 	if (tile.obj.headTile) {
-		addMenu(tile.obj.headTile, MENU["lv"+tile.obj.headTile.obj.level]);
+		addMenu(tile.obj.headTile, MENU["lv"+tile.obj.headTile.level]);
 	} else {
-		addMenu(tile, MENU["lv"+tile.obj.level]);
+		addMenu(tile, MENU["lv"+tile.level]);
 	}
 	message("menu open x : " + tile.x + " y : " + tile.y );
 	var $menu = $("#menu");
@@ -221,9 +221,9 @@ TileUI.prototype.completBuilding = function (lv, effect) {
 			var tile = checker.candidate[i];
 			tile.obj.BuildProcessing = false;
 			if (tile.index == tile.obj.headTile.index) {
-				tile.obj.level = 6;
+				tile.level = 6;
 			} else {
-				tile.obj.level = 0;
+				tile.level = 0;
 			}
 			var p = tile.obj
 			p.css("z-index", p.css("z-index")-1-gConfig.Size)
@@ -231,9 +231,9 @@ TileUI.prototype.completBuilding = function (lv, effect) {
 		this.Tile.obj.headTile.obj.find("img.floor").attr("src", "/game/images/tile/"+this.Tile.TypeName()+"_LvFLETA-Tile.png").addClass("lv6");
 		var fileTail = "_LvFLETA"
 	} else  {
-		this.Tile.obj.level = lv
+		this.Tile.level = lv
 		this.Tile.obj.BuildProcessing = false
-		if (this.Tile.obj.level < 5) {
+		if (this.Tile.level < 5) {
 			var fileTail = "_Lv1"
 		} else {
 			var fileTail = "_Lv5"
@@ -253,7 +253,7 @@ TileUI.prototype.completBuilding = function (lv, effect) {
 }
 
 TileUI.prototype.ShowBuildProcessingTime = function(sec) {
-	var lv = this.Tile.obj.level
+	var lv = this.Tile.level
 	var uc = this.Tile.touch.find(".underconstruction")
 	if (uc.length == 0) {
 		uc = $("<div class='lv"+lv+" underconstruction'>")
@@ -277,7 +277,7 @@ TileUI.prototype.buildEffect = function(type, callback) {
 		var tile = this.Tile
 	}
 
-	var effect = $("<div class='lv"+tile.obj.level+" buildEffect "+type+"'/>")
+	var effect = $("<div class='lv"+tile.level+" buildEffect "+type+"'/>")
 	tile.touch.append(effect);
 	(function (effect, tile, callback) {
 		setTimeout(function () {
@@ -292,7 +292,7 @@ TileUI.prototype.buildEffect = function(type, callback) {
 }
 
 TileUI.prototype.fletaEffect = function() {
-	var effect = $("<div class='FLETAAnimation lv"+this.Tile.obj.level+"'/>")
+	var effect = $("<div class='FLETAAnimation lv"+this.Tile.level+"'/>")
 	this.Tile.touch.append(effect);
 	(function (effect) {
 		setTimeout(function () {
@@ -302,12 +302,12 @@ TileUI.prototype.fletaEffect = function() {
 }
 
 TileUI.prototype.completEffect = function() {
-	var effect = $("<div class='completAnimation lv"+this.Tile.obj.level+"'/>")
+	var effect = $("<div class='completAnimation lv"+this.Tile.level+"'/>")
 	this.Tile.touch.append(effect);
 	(function (effect, tile) {
 		setTimeout(function () {
 			effect.remove()
-			if (tile.obj.level == 6) {
+			if (tile.level == 6) {
 				tile.UI.fletaEffect()
 			}
 		}, 3000)

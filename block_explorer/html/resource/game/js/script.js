@@ -28,8 +28,8 @@ Game.prototype.Update = function() {
 	var addBalance = 0
 	for (var k in gGame.tiles) {
 		var tile = gGame.tiles[k];
-		if (tile.obj.level) {
-			var bd = gBuildingDefine[tile.type][tile.obj.level-1];
+		if (tile.level) {
+			var bd = gBuildingDefine[tile.type][tile.level-1];
 			used.man_remained += bd.man_usage||0;
 			used.power_remained += bd.power_usage||0;
 
@@ -39,10 +39,10 @@ Game.prototype.Update = function() {
 
 			var ConstructionHeight = tile.build_height + bd.build_time*2
 			if (this.height < ConstructionHeight) {
-				if (tile.obj.level == 1) {
+				if (tile.level == 1) {
 					continue;
 				}
-				bd = gBuildingDefine[tile.type][tile.obj.level-2];
+				bd = gBuildingDefine[tile.type][tile.level-2];
 			}
 			switch (tile.type) {
 			case CommercialType:
@@ -54,8 +54,8 @@ Game.prototype.Update = function() {
 							provide.balance += bd.output/2 * parseInt(forward_height-(ConstructionHeight-this.point_height));
 						} else {
 							provide.balance += bd.output/2 * parseInt(this.height-ConstructionHeight);
-							if (tile.obj.level > 1) {
-								var prevbd = gBuildingDefine[tile.type][tile.obj.level-2];
+							if (tile.level > 1) {
+								var prevbd = gBuildingDefine[tile.type][tile.level-2];
 								provide.balance += prevbd.output/2 * parseInt(tile.build_height-this.point_height);
 							}
 						}
@@ -76,10 +76,10 @@ Game.prototype.Update = function() {
 			if (tile.obj.headTile) {
 				sTile = tile.obj.headTile;
 			}
-			var buildCompletHeight = sTile.build_height + gGame.define_map[sTile.type][sTile.obj.level].build_time*2
+			var buildCompletHeight = sTile.build_height + gGame.define_map[sTile.type][sTile.level].build_time*2
 			
 			if(buildCompletHeight <= gGame.height) {
-				sTile.UI.completBuilding(tile.obj.level+1)
+				sTile.UI.completBuilding(tile.level+1)
 			} else {
 				sTile.UI.ShowBuildProcessingTime((buildCompletHeight-gGame.height)/2)
 			}
@@ -144,7 +144,7 @@ function buildableResource(tile, type) {
 	}
 	type = tile.type||buildingNum(type)
 	if (type) {
-		var cost = gBuildingDefine[type][tile.obj.level];
+		var cost = gBuildingDefine[type][tile.level];
 		if (typeof cost.cost_usage != "undefined" && currentResource.balance < cost.cost_usage) {
 			return language["not enough balance"]
 		}
@@ -156,7 +156,7 @@ function buildableResource(tile, type) {
 		}
 	}
 
-	if (tile.obj.level == 5) {
+	if (tile.level == 5) {
 		var checker = tile.CheckLvRound()
 		for ( var i = 0 ; i < checker.candidate.length ; i++ ) {
 			if (checker.candidate[i].obj.BuildProcessing == true) {

@@ -17,7 +17,7 @@ $(document).on('mousemove', '#touchpad', function(e) {
 	var point = getPoint(e);
 	var tile = getTileFromPoint(point)
 	if (typeof tile !== "undefined") {
-		tile.Hover();
+		tile.UI.Hover();
 	}
 });
 
@@ -64,8 +64,8 @@ function islandMoveFunc(o, wheelSign) {
 			var x = $island.offset().left+(iw/2) - gConfig.Unit/2
 			var y = $island.offset().top+(ih/2) - gConfig.Unit/4
 
-			var dx = wheelSign*(x-gGame.tiles[tileindex].obj.offset().left)/(gConfig.Unit/10)
-			var dy = wheelSign*(y-gGame.tiles[tileindex].obj.offset().top)/(gConfig.Unit/10)
+			var dx = wheelSign*(x-gGame.tiles[tileindex].UI.obj.offset().left)/(gConfig.Unit/10)
+			var dy = wheelSign*(y-gGame.tiles[tileindex].UI.obj.offset().top)/(gConfig.Unit/10)
 		} else {
 			var dx = 0
 			var dy = 0
@@ -90,25 +90,29 @@ function islandMoveFunc(o, wheelSign) {
 }
 
 function mousewheel (e) {
-	islandMove = {x:0,y:0};
+	try {
+		islandMove = {x:0,y:0};
+		
+		if (e.deltaY < 0 || e.originalEvent.deltaY < 0) {
+			var unit = lockUpValueRange(gConfig.Unit+10, 10, 300)
+			var sign = 1
+		}
+		if (e.deltaY > 0 || e.originalEvent.deltaY > 0) {
+			var unit = lockUpValueRange(gConfig.Unit-10, 10, 300)
+			var sign = -1
+		}
+		if (gConfig.Unit != unit) {
+			ChangeUnit(unit)
+			islandMoveFunc(islandMove, sign)
+		}
+		islandMove = undefined;
 	
-	if (e.deltaY < 0 || e.originalEvent.deltaY < 0) {
-		var unit = lockUpValueRange(gConfig.Unit+10, 10, 300)
-		var sign = 1
+		if(!e){ e = window.event; } /* IE7, IE8, Chrome, Safari */
+		if(e.preventDefault) { e.preventDefault(); } /* Chrome, Safari, Firefox */
+		e.returnValue = false; /* IE7, IE8 */
+	} catch (e) {
+		islandMove = undefined;
 	}
-	if (e.deltaY > 0 || e.originalEvent.deltaY > 0) {
-		var unit = lockUpValueRange(gConfig.Unit-10, 10, 300)
-		var sign = -1
-	}
-	if (gConfig.Unit != unit) {
-		ChangeUnit(unit)
-		islandMoveFunc(islandMove, sign)
-	}
-	islandMove = undefined;
-
-	if(!e){ e = window.event; } /* IE7, IE8, Chrome, Safari */
-    if(e.preventDefault) { e.preventDefault(); } /* Chrome, Safari, Firefox */
-    e.returnValue = false; /* IE7, IE8 */
 }
 
 var tpCache = []
@@ -208,7 +212,11 @@ function getTileFromPoint(point) {
 
 var disconnectedCount = 1
 function connectToServer (addr) {
-	var wsUri = "ws://"+window.location.host+"/websocket/"+addr;
+	if (location.protocol != 'https:')	{
+		var wsUri = "ws://"+window.location.host+"/websocket/"+addr;
+	} else {
+		var wsUri = "wss://"+window.location.host+"/websocket/"+addr;
+	}
 	function connect() {
 		var ws = new WebSocket(wsUri)
 		ws._init = false;
@@ -227,13 +235,13 @@ function connectToServer (addr) {
 
 	function onClose(ws,  e)
 	{
-		disconnectedCount = (disconnectedCount+1) * disconnectedCount
+		disconnectedCount = (disconnectedCount+1) * 2
 		console.log("DISCONNECTED");
-		(function (ws) {
+		(function () {
 			setTimeout(function () {
 				ws = connect();
 			}, 1000*disconnectedCount)
-		})(ws)
+		})()
 	}
 
 	function onError(ws,  e)
@@ -257,10 +265,13 @@ function onMessage(ws,  e) {
 			var noti = e.data;
 		}
 
+		console.log(e.data)
+
 		gGame.height = noti.point_height
 		gGame.point_balance = noti.point_height
 
-		loginInfo.pushUTXO(noti.utxo)
+		SendQueue.NewUTXO(noti.utxo)
+
 		switch(noti.type) {
 		case 0://Demolition
 			var tile = gGame.tiles[noti.x + +noti.y * gConfig.Size]
@@ -278,41 +289,37 @@ function onMessage(ws,  e) {
 		case 1://Upgrade
 			var tile = gGame.tiles[noti.x + +noti.y * gConfig.Size]
 			if (typeof noti.error == "undefined" || noti.error == "") {
-				//gGame.tiles[+noti.x + +noti.y * gConfig.Size].UI.completBuilding(noti.level)
 				gGame.height = noti.height;
 				gGame.point_height = noti.point_height;
 				gGame.point_balance = noti.point_balance;
+				tile.Build(noti.area_type)
 				if (noti.level == 6) {
-					var headTile = tile.obj.headTile
-					var o = {x:headTile.x,y:headTile.y}
-					for (var i = 0 ; i < 3 ; i++) {
-						directByNum(o, i)
-						var t = gGame.tiles[o.x + o.y * gConfig.Size];
+					var checker = tile.CheckLvRound(5)
+					
+					checker.CheckLvF(function (t, headT) {
 						t.build_height = noti.height;
-						t.level = noti.level;
-					}
+						t.nextLevel = noti.level;
+					})
 				}
 				tile.build_height = noti.height;
-				tile.level = noti.level;
+				tile.nextLevel = noti.level;
 				updateResource(gGame.Update());
 			} else { //false
-				alert(language[noti.error]||noti.error)
+				Alert(language[noti.error]||noti.error)
 				if(noti.level == 1) {
 					tile.Remove()
-				} else {
-					tile.level = noti.level-1;
 				}
 				tile.build_height = tile.build_height_old;
-				if (noti.level == 5) {
-					var headTile = tile.obj.headTile
-					var o = {x:headTile.x,y:headTile.y}
-					for (var i = 0 ; i < 3 ; i++) {
-						directByNum(o, i)
-						var t = gGame.tiles[o.x + o.y * gConfig.Size];
-						t.build_height = t.build_height_old;
-					}
-				}
+				var checker = tile.CheckLvRound(5)
+				checker.CheckLvF(function (t, headT) {
+					t.build_height = t.build_height_old;
+					delete t.headTile
+				})
 			}
+			break;
+		case 99://duplicated connection
+			alert(language["duplicated connection"]);
+			location.reload();
 			break;
 		}
 	}
@@ -331,7 +338,7 @@ function addKeyShotcut () {
 			directByNum(o, direction)
 			menuClose()
 			if (gGame.tiles[o.x+o.y*gConfig.Size]) {
-				menuOpen(gGame.tiles[o.x+o.y*gConfig.Size].Hover())
+				menuOpen(gGame.tiles[o.x+o.y*gConfig.Size].UI.Hover())
 			}
 		}
 		switch (event.keyCode) {
