@@ -32,7 +32,7 @@ func TestBlockExplorer_startExplorer(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	e.startExplorer()
+	e.startExplorer(8088)
 }
 
 func newKernel(basePath string) *kernel.Kernel {

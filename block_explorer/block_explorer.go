@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -334,7 +335,7 @@ func appendListLimit(ci []countInfo, count int, limit int) []countInfo {
 }
 
 // StartExplorer is start web server
-func (e *BlockExplorer) StartExplorer() {
+func (e *BlockExplorer) StartExplorer(port int) {
 
 	e.Template.AddController("", NewExplorerController(e.db, e))
 	e.Template.AddController("score", &ScoreController{kn: e.Kernel})
@@ -345,7 +346,7 @@ func (e *BlockExplorer) StartExplorer() {
 	http.HandleFunc("/data/", e.dataHandler)
 	http.HandleFunc("/", e.pageHandler)
 
-	panic(http.ListenAndServe(":8088", nil))
+	panic(http.ListenAndServe(":"+strconv.Itoa(port), nil))
 }
 
 //AddHandleFunc TODO

@@ -53,6 +53,7 @@
 .header .container .stack .brand .floting a img{
     width: 143px;
     position: absolute;
+    top: 12px;
 }
 .header .header-head{
     display: table-cell;
@@ -230,7 +231,7 @@
     font-weight: 500;
     vertical-align: middle;
     margin: 0 15px 0 0;
-    color: #242422;
+    color: #3f4047;
 }
 
 .desktop .wrapper .content{
@@ -558,7 +559,6 @@ th, td {
     text-align: center;
 }
 
-
 .fleta-nohead-table {
     margin-top: 32px;
 }
@@ -607,10 +607,6 @@ th, td {
 }
 
 @media (max-width: 1024px) {
-    .header .container .stack .brand .floting a img {
-        width: 56px;
-        top: 6px;
-    }
     .header {
         height: 60px;
     }

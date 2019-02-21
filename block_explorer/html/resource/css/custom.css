@@ -12,6 +12,14 @@
     }
 }
 
+.header .container .stack .brand .floting a img{
+    top: 40px;
+}
+
+.desktop .wrapper .subheader .flex .subheader_title{
+    color: #242422;
+}
+
 .header .container .stack {
     background-color: #1b2436;
 }
@@ -34,8 +42,6 @@
 }
 
 .header .header-head .header-menu .menu_nav .menu_item .menu_link .score{background-image: url(/images/icon-Score.png);}
-/* .header .header-head .header-menu .menu_nav .menu_item .menu_link:hover .score{background-image: url(/images/icon-transaction.png);}
-.header .header-head .header-menu .menu_nav .menu_item.activeScore.Score .menu_link .score{background-image: url(/images/icon-transaction.png);} */
 
 @media (max-width: 1024px) {
     .header .header-head {
@@ -43,5 +49,9 @@
     }
     .header .header-head.menu-on .mobile-close {
         background-color: #19202c;
+    }
+    .header .container .stack .brand .floting a img {
+        width: 56px;
+        top: 6px;
     }
 }
