@@ -486,3 +486,33 @@
     margin: 0.3rem 0.3rem;
     font-size: 0.34rem;
 }
+
+#txLog {
+    position: absolute;
+    right: 0;
+    height: 20vh;
+    width: 25vw;
+    overflow-y: auto;
+    color: #fff;
+}
+#txLog span,
+#txLog a {
+    display: inline-block;
+}
+#txLog a {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 22vw;
+    display: inline-block;
+    color: #5867dd;
+    overflow: hidden;
+    text-decoration: none; 
+    text-decoration-line:none;
+    text-decoration-style:solid;
+    text-decoration: none;
+    background-color: transparent;
+    -webkit-text-decoration-skip: objects;
+}
+#txLog .descript {
+    color: #fff;
+}

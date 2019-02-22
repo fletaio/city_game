@@ -1,6 +1,7 @@
 var gConfig = {
 	Unit: 64,
     Size: 16,
+	Explorer: "http://localhost:9088",
 }
 
 function Game() {
@@ -9,6 +10,7 @@ function Game() {
 	this.point_balance = 0;
 	this.tiles = [];
 	this.define_map = null;
+	this.txs = [];
 }
 
 var currentResource = {}

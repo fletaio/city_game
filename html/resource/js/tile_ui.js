@@ -45,17 +45,22 @@ TileUI.prototype.Hover = function () {
 TileUI.prototype.SelectTile = function () {
 	$(".selected").removeClass("selected");
 
-	var checker = this.Tile.CheckLvRound(6);
+	var selectedIds = []
+
 	if (this.Tile.headTile) {
 		var c = this.Tile.headTile.candidate;
 		for (var i = 0 ; i < c.length ; i++) {
 			c[i].UI.touch.addClass("selected");
+			selectedIds.push(c[i].index)
 		}
 	} else {
 		this.touch.addClass("selected");
+		selectedIds.push(this.index)
 	}
-	if (checker.CheckLvF(function (t, headT) {
-	}) == false) {
+	var txLog = $("#txLog")
+	txLog.find("[index]").hide()
+	for (var i in selectedIds) {
+		txLog.find("[index='"+selectedIds[i]+"']").show()
 	}
 }
 TileUI.prototype.SelectUpperLvTile = function(lv) {

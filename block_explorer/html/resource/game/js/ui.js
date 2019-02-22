@@ -185,7 +185,7 @@ TileUI.prototype.BuildUp = function(lv) {
 			if (i == lv-1) {
 				var $img = $("<img class='building lv"+(lv)+"' src='/game/images/building/construction.png'/>")
 			} else {
-				var $img = $("<img class='building lv"+(i+1)+"' src='/game/images/building/"+this.Tile.TypeName()+"_lv1.png'/>")
+				var $img = $("<img class='building lv"+(i+1)+"' src='/game/images/building/"+this.Tile.TypeName()+"_Lv1.png'/>")
 			}
 			this.Tile.obj.append($img);
 		}

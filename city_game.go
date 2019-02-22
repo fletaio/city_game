@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -551,6 +552,52 @@ func main() {
 		}
 
 		gd := citygame.NewGameData(Height)
+
+		txs := []*UTXO{}
+		for i := 0; i < citygame.GameAccountChannelSize; i++ {
+			utxoID := util.BytesToUint64(GameKernel.Loader().AccountData(addr, []byte("utxo"+strconv.Itoa(i))))
+			txIn := transaction.NewTxIn(utxoID)
+			vin := []*transaction.TxIn{txIn}
+			for len(vin) > 0 {
+				txIn := vin[0]
+				utxoID := transaction.MarshalID(txIn.Height, txIn.Index, txIn.N)
+				b, err := GameKernel.Block(txIn.Height)
+				if err == nil {
+					t := b.Body.Transactions[txIn.Index]
+					var x int
+					var y int
+					switch tx := t.(type) {
+					case *citygame.DemolitionTx:
+						vin = tx.Vin
+						x = int(tx.X)
+						y = int(tx.Y)
+					case *citygame.UpgradeTx:
+						vin = tx.Vin
+						x = int(tx.X)
+						y = int(tx.Y)
+					case *citygame.ConstructionTx:
+						vin = tx.Vin
+						x = int(tx.X)
+						y = int(tx.Y)
+					default:
+						vin = nil
+					}
+
+					index := sort.Search(len(txs), func(i int) bool { return txs[i].ID > utxoID })
+					txs = append(txs, nil)
+					copy(txs[index+1:], txs[index:])
+					txs[index] = &UTXO{
+						ID:   utxoID,
+						X:    x,
+						Y:    y,
+						Type: int(t.Type()),
+						Hash: t.Hash().String(),
+					}
+
+				}
+			}
+		}
+
 		if _, err := gd.ReadFrom(bytes.NewReader(bs)); err != nil {
 			return err
 		}
@@ -560,6 +607,7 @@ func main() {
 			PointHeight:  int(gd.PointHeight),
 			PointBalance: int(gd.PointBalance),
 			Tiles:        make([]*WebTile, len(gd.Tiles)),
+			Txs:          txs,
 			DefineMap:    citygame.GBuildingDefine,
 		}
 		for i, tile := range gd.Tiles {
@@ -666,7 +714,12 @@ func main() {
 
 		loader := GameKernel.Loader()
 
-		t, err := loader.Transactor().NewByType(UpgradeTransactionType)
+		var t transaction.Transaction
+		if req.TargetLevel == 1 {
+			t, err = loader.Transactor().NewByType(ConstructionTransactionType)
+		} else {
+			t, err = loader.Transactor().NewByType(UpgradeTransactionType)
+		}
 		if err != nil {
 			return err
 		}
@@ -677,7 +730,14 @@ func main() {
 			return citygame.ErrNotExistAccount
 		}
 
-		tx := t.(*citygame.UpgradeTx)
+		var tx *citygame.UpgradeTx
+		if req.TargetLevel == 1 {
+			ctx := t.(*citygame.ConstructionTx)
+			tx = ctx.UpgradeTx
+		} else {
+			tx = t.(*citygame.UpgradeTx)
+		}
+
 		tx.Timestamp_ = uint64(time.Now().UnixNano())
 		tx.Vin = []*transaction.TxIn{transaction.NewTxIn(req.UTXO)}
 		tx.Address = addr
@@ -691,8 +751,15 @@ func main() {
 			return err
 		}
 
+		var txType int
+		if req.TargetLevel == 1 {
+			txType = int(ConstructionTransactionType)
+		} else {
+			txType = int(UpgradeTransactionType)
+		}
+
 		return c.JSON(http.StatusOK, &WebTxRes{
-			Type:    int(UpgradeTransactionType),
+			Type:    txType,
 			TxHex:   hex.EncodeToString(buffer.Bytes()),
 			HashHex: tx.Hash().String(),
 		})
@@ -740,9 +807,9 @@ func main() {
 		return c.NoContent(http.StatusOK)
 	})
 
-	go be.StartExplorer(8088)
+	go be.StartExplorer(9088)
 
-	e.Start(":8080")
+	e.Start(":9080")
 }
 
 // EventWatcher TODO
@@ -835,13 +902,27 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 				Height:       int(b.Header.Height()),
 				PointHeight:  int(gd.PointHeight),
 				PointBalance: int(gd.PointBalance),
-				UTXO:         id,
-				Error:        errorMsg,
+				UTXO:         int(id),
+				Tx: &UTXO{
+					ID:   id,
+					X:    int(tx.X),
+					Y:    int(tx.Y),
+					Hash: t.Hash().String(),
+					Type: int(t.Type()),
+				},
+				Error: errorMsg,
 			})
 			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "")
-		case *citygame.UpgradeTx:
+		case *citygame.UpgradeTx, *citygame.ConstructionTx:
+			var utx *citygame.UpgradeTx
+			switch _tx := tx.(type) {
+			case *citygame.UpgradeTx:
+				utx = _tx
+			case *citygame.ConstructionTx:
+				utx = _tx.UpgradeTx
+			}
 			gd := citygame.NewGameData(b.Header.Height())
-			bs := ctx.AccountData(tx.Address, []byte("game"))
+			bs := ctx.AccountData(utx.Address, []byte("game"))
 			if len(bs) == 0 {
 				continue
 			}
@@ -851,29 +932,36 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 			id := transaction.MarshalID(b.Header.Height(), uint16(i), 0)
 			var errorMsg string
 			for i := 0; i < citygame.GameAccountChannelSize; i++ {
-				newid := util.BytesToUint64(ctx.AccountData(tx.Address, []byte("utxo"+strconv.Itoa(i))))
+				newid := util.BytesToUint64(ctx.AccountData(utx.Address, []byte("utxo"+strconv.Itoa(i))))
 				if id == newid {
-					bs := ctx.AccountData(tx.Address, []byte("result"+strconv.Itoa(i)))
+					bs := ctx.AccountData(utx.Address, []byte("result"+strconv.Itoa(i)))
 					if len(bs) > 0 {
 						errorMsg = string(bs)
 					}
 					break
 				}
 			}
-			ew.Notify(tx.Address, &WebTileNotify{
+			ew.Notify(utx.Address, &WebTileNotify{
 				Type:         1,
-				X:            int(tx.X),
-				Y:            int(tx.Y),
-				AreaType:     int(tx.AreaType),
-				Level:        int(tx.TargetLevel),
+				X:            int(utx.X),
+				Y:            int(utx.Y),
+				AreaType:     int(utx.AreaType),
+				Level:        int(utx.TargetLevel),
 				Height:       int(b.Header.Height()),
 				PointHeight:  int(gd.PointHeight),
 				PointBalance: int(gd.PointBalance),
-				UTXO:         id,
-				Error:        errorMsg,
+				UTXO:         int(id),
+				Tx: &UTXO{
+					ID:   id,
+					X:    int(utx.X),
+					Y:    int(utx.Y),
+					Hash: t.Hash().String(),
+					Type: int(t.Type()),
+				},
+				Error: errorMsg,
 			})
 
-			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "")
+			ew.be.UpdateScore(gd, b.Header.Height(), utx.Address, "")
 		}
 	}
 }
@@ -914,6 +1002,7 @@ type WebGameRes struct {
 	PointHeight  int                                              `json:"point_height"`
 	PointBalance int                                              `json:"point_balance"`
 	Tiles        []*WebTile                                       `json:"tiles"`
+	Txs          []*UTXO                                          `json:"txs"`
 	DefineMap    map[citygame.AreaType][]*citygame.BuildingDefine `json:"define_map"`
 }
 
@@ -956,7 +1045,8 @@ type WebTileNotify struct {
 	Height       int    `json:"height"`
 	PointHeight  int    `json:"point_height"`
 	PointBalance int    `json:"point_balance"`
-	UTXO         uint64 `json:"utxo"`
+	UTXO         int    `json:"utxo"`
+	Tx           *UTXO  `json:"tx"`
 	Error        string `json:"error"`
 }
 
@@ -964,4 +1054,12 @@ type WebTile struct {
 	AreaType    int `json:"area_type"`
 	Level       int `json:"level"`
 	BuildHeight int `json:"build_height"`
+}
+
+type UTXO struct {
+	ID   uint64 `json:"id"`
+	Type int    `json:"tx_type"`
+	X    int    `json:"x"`
+	Y    int    `json:"y"`
+	Hash string `json:"hash"`
 }

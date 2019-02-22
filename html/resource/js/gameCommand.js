@@ -88,24 +88,19 @@ function SendQueue(func, tile) {
 SendQueue.quere = [];
 SendQueue.utxo = [];
 SendQueue.NewUTXO = function (UTXO) {
-	console.log("new1")
 	var send;
 	if (!!(send = SendQueue.quere.splice(0, 1)) && send.length > 0) {
-		console.log("new2")
 		send[0].sendServer(UTXO)
 	} else {
 		SendQueue.utxo.push(UTXO)
 	}
-	console.log("new3")
 }
 SendQueue.prototype.Enqueue = function () {
 	SendQueue.quere.push(this)
 }
 SendQueue.prototype.Do = function () {
 	var utxo, send;
-	console.log("Do1")
 	while (!!(utxo = SendQueue.utxo.splice(0, 1)) && utxo.length > 0) {
-		console.log("Do2")
 		if (!!(send = SendQueue.quere.splice(0, 1)) && send.length > 0) {
 			send[0].sendServer(utxo[0])
 		} else {
@@ -113,7 +108,6 @@ SendQueue.prototype.Do = function () {
 			break;
 		}
 	}
-	console.log("Do3")
 }
 SendQueue.prototype.sendServer = function(utxo) {
 	var func = this.func;

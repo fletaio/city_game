@@ -278,6 +278,7 @@ func (e *BlockExplorer) updateHashs(txn *badger.Txn, height uint32, currHeight u
 	for i, tx := range txs {
 		h := tx.Hash()
 		v := append(value, util.Uint32ToBytes(uint32(i))...)
+		fmt.Println(h.String())
 		if err := txn.Set(h[:], v); err != nil {
 			return err
 		}

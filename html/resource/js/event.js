@@ -165,20 +165,21 @@ function touchmove (e) {
 				timeIntervalFleg = true
 			}, 100)
 		}
-	
-	
 	}
 }
-$(document)
-	.on('mousedown touchstart', 'body', mousedown)
-	.on('mouseup touchend touchcancel', 'body', mouseup)
-	.on('mousemove touchmove', 'body', mousemove)
-	.on('mousewheel', 'body', mousewheel)
-	.on('touchstart', 'body', touchstart)
-	.on('touchend', 'body', touchend)
-	.on('touchcancel', 'body', touchend)
-	.on('touchmove', 'body', touchmove)
-;
+
+$(function () {
+	$(".islandCase:last")
+		.on('mousedown touchstart', mousedown)
+		.on('mouseup touchend touchcancel', mouseup)
+		.on('mousemove touchmove', mousemove)
+		.on('mousewheel', mousewheel)
+		.on('touchstart', touchstart)
+		.on('touchend', touchend)
+		.on('touchcancel', touchend)
+		.on('touchmove', touchmove)
+	;
+})
 
 function getPoint(e) {
 	var point = {x:0, y:0};
@@ -271,6 +272,8 @@ function onMessage(ws,  e) {
 		gGame.point_balance = noti.point_height
 
 		SendQueue.NewUTXO(noti.utxo)
+		addTx(noti.tx)
+		
 
 		switch(noti.type) {
 		case 0://Demolition

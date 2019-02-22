@@ -1,5 +1,6 @@
 function menuClose () {
 	UIAlert.hide()
+	$("#txLog [index]").show()
 	$("#selectedInfo").hide()
 	$(".tooltip").remove()
 	$(".selected").removeClass("selected");
@@ -116,3 +117,39 @@ function menuOpen(tile) {
 		tile.UI.touch.append($menu.show())
 	}
 }
+
+function addTx (tx) {
+	var txLog = $("#txLog")
+	var t = addTx.templete
+
+	tx.explorer = gConfig.Explorer||""
+	tx.index = tx.x+tx.y*gConfig.Size
+	switch(tx.tx_type) {
+		case 2:
+			tx.type = "Demolition"
+		break;
+		case 3:
+			tx.type = "Construction"
+		break;
+		case 4:
+			tx.type = "Upgrade"
+		break;
+		default:
+		return;
+	}
+
+	for (var k in tx) {
+		if (tx.hasOwnProperty(k)) {
+			var v = tx[k]
+			t = t.replace(new RegExp("{"+k+"}", 'g'), v)
+		}
+	}
+	txLog.append(t)
+	txLog[0].scrollTop = txLog[0].scrollHeight;
+}
+addTx.templete = `
+<div index="{index}">
+	<p>{type} Tile = x : {x} , y : {y} </p>
+	<p><a href="{explorer}/transactionDetail?hash={hash}" target="_blank"><span class="descript">txHash : </span><span>{hash}</span></a></p>
+</div>
+`

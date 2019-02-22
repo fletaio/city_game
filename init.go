@@ -24,7 +24,8 @@ const (
 	// Game Transactions
 	CreateAccountTransctionType = transaction.Type(1)
 	DemolitionTransactionType   = transaction.Type(2)
-	UpgradeTransactionType      = transaction.Type(3)
+	ConstructionTransactionType = transaction.Type(3)
+	UpgradeTransactionType      = transaction.Type(4)
 	// Formulation Transactions
 	CreateFormulationTransctionType = transaction.Type(60)
 	RevokeFormulationTransctionType = transaction.Type(61)
@@ -47,6 +48,7 @@ func initChainComponent(act *data.Accounter, tran *data.Transactor) error {
 	TxFeeTable := map[string]*txFee{
 		"fletacity.CreateAccount":     &txFee{CreateAccountTransctionType, amount.COIN.MulC(10)},
 		"fletacity.Demolition":        &txFee{DemolitionTransactionType, amount.COIN.MulC(10)},
+		"fletacity.Construction":      &txFee{ConstructionTransactionType, amount.COIN.MulC(10)},
 		"fletacity.Upgrade":           &txFee{UpgradeTransactionType, amount.COIN.MulC(10)},
 		"consensus.CreateFormulation": &txFee{CreateFormulationTransctionType, amount.COIN.MulC(50000)},
 		"consensus.RevokeFormulation": &txFee{RevokeFormulationTransctionType, amount.COIN.DivC(10)},

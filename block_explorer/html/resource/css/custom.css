@@ -1,9 +1,11 @@
 .badge.fletacityCreateAccount{background-color: #c8ff33;color: #fff;}
 .badge.fletacityDemolition{background-color: #ff3c3c;color: #fff;}
+.badge.fletacityConstruction{background-color: #1e2174;color: #fff;}
 .badge.fletacityUpgrade{background-color: #3cbcff;color: #fff;}
 
 .timeline-3_items .timeline-3_item.fletacityCreateAccount::before{background-color: #c8ff33;}
 .timeline-3_items .timeline-3_item.fletacityDemolition::before{background-color: #ff3c3c;}
+.timeline-3_items .timeline-3_item.fletacityConstruction::before{background-color: #1e2174;}
 .timeline-3_items .timeline-3_item.fletacityUpgrade::before{background-color: #3cbcff;}
 
 @media (min-width: 1025px) {
@@ -57,4 +59,8 @@
         width: 56px;
         top: 6px;
     }
+}
+
+.desktop .wrapper .row.no-margin-row {
+    height: 93px;
 }

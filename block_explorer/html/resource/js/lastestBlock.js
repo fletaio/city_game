@@ -127,10 +127,10 @@ var LastestBlocksAjax={
                     ftbody.append(LastestBlocksAjax.Formulrator(data[i], i))
                 }
 
-                var i = 1;
-                for (var ph in LastestBlocksAjax.observersPubKeys) {
-                    $("#ObserverPh"+(i++)).html(ph)
-                }
+                // var i = 1;
+                // for (var ph in LastestBlocksAjax.observersPubKeys) {
+                //     $("#ObserverPh"+(i++)).attr("title", ph).html(ph)
+                // }
                 
             }
         })

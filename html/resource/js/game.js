@@ -49,12 +49,12 @@ function loadTile() {
 			if (d.define_map) {
 				gBuildingDefine = d.define_map;
 			}
-
 			var $touchpad = $("#touchpad");
 			var jScreen = $("#screen");
 		
 			gConfig.Size = Math.pow(d.tiles.length, 0.5);
 			gGame.define_map = gBuildingDefine;
+			gGame.txs = d.txs;
 			gGame.height = d.height;
 			gGame.point_height = d.point_height;
 			gGame.point_balance = d.point_balance;
@@ -82,6 +82,10 @@ function loadTile() {
 				}
 				var num = getNum(x, y)
 				tile.init(new TileUI(jScreen, $touchpad, num))
+			}
+
+			for (var i = 0 ; i < gGame.txs.length ; i++) {
+				addTx(gGame.txs[i])
 			}
 		},
 		error: function(d) {

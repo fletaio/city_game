@@ -183,6 +183,17 @@ func (e *BlockExplorer) txDetailMap(tran *data.Transactor, height uint32, txInde
 
 		m["AreaType"] = tx.AreaType
 		m["TargetLevel"] = tx.TargetLevel
+	case "fletacity.Construction":
+		tx := t.(*citygame.ConstructionTx)
+		m["Vin Count"] = fmt.Sprint(len(tx.Vin))
+		m["Vins"] = extractVin(tx.Vin)
+
+		m["Address"] = tx.Address.String()
+		m["X"] = tx.X
+		m["Y"] = tx.Y
+
+		m["AreaType"] = tx.AreaType
+		m["TargetLevel"] = tx.TargetLevel
 
 	case "consensus.RevokeFormulation":
 		tx := t.(*consensus.RevokeFormulation)
