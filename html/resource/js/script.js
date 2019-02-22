@@ -1,7 +1,7 @@
 var gConfig = {
 	Unit: 64,
     Size: 16,
-	Explorer: "http://localhost:9088",
+	Explorer: "//"+window.location.hostname+":9088",
 }
 
 function Game() {
