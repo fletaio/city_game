@@ -155,7 +155,7 @@ func main() {
 
 		//os.RemoveAll(StoreRoot)
 
-		ks, err := kernel.NewStore(StoreRoot+"/kernel", 1, act, tran)
+		ks, err := kernel.NewStore(StoreRoot+"/kernel", 1, act, tran, true)
 		if err != nil {
 			panic(err)
 		}
@@ -206,7 +206,7 @@ func main() {
 
 		//os.RemoveAll(StoreRoot)
 
-		ks, err := kernel.NewStore(StoreRoot+"/kernel", 1, act, tran)
+		ks, err := kernel.NewStore(StoreRoot+"/kernel", 1, act, tran, true)
 		if err != nil {
 			panic(err)
 		}
