@@ -15,11 +15,12 @@
                 t = t.replace(/{oddeven}/g, (i%2==0)?"odd":"even")
                 var row = data[i]
                 row.ID = row.AllScore.UserID
+
                 for (var k in row) {
                     if (row.hasOwnProperty(k)) {
                         var v = row[k]
                         if (k == "Score") {
-                            v = parseInt(v)
+                            v = numberWithCommas(parseInt(v))
                         }
                         t = t.replace(new RegExp("{"+k+"}", 'g'), v)
                     }

@@ -1,22 +1,28 @@
 <script fletaId="headScript">
     var data = {{data}}
 
+    var Gold = "{{Gold}}"
+    var Population = "{{Population}}"
+    var Electricity = "{{Electricity}}"
+
     var CommercialAreaType  = 1
 	var IndustrialAreaType  = 2
 	var ResidentialAreaType = 3
     var map = {1 : {total : 0,lv1 : 0,lv2 : 0,lv3 : 0,lv4 : 0,lv5 : 0,lv6 : 0},2 : {total : 0,lv1 : 0,lv2 : 0,lv3 : 0,lv4 : 0,lv5 : 0,lv6 : 0},3 : {total : 0,lv1 : 0,lv2 : 0,lv3 : 0,lv4 : 0,lv5 : 0,lv6 : 0},}
 
-    var Score = 0
+    var Score = parseInt(Gold)+parseInt(Population*4)+parseInt(Electricity*6)
     for ( var i = 0 ; i< data.Tiles.length ; i++ ) {
         if (data.Tiles[i]) {
-            Score += data.Tiles[i].Level
             map[data.Tiles[i].AreaType]["total"]++
             map[data.Tiles[i].AreaType]["lv"+data.Tiles[i].Level]++
         }
     }
 
     $(function () {
-        $("#Score").html(Score)
+        $("#Score").html(numberWithCommas(Score))
+        $("#Gold").html(numberWithCommas(Gold))
+        $("#Population").html(numberWithCommas(Population))
+        $("#Electricity").html(numberWithCommas(Electricity))
         for (var i in map) {
             if (i == 1) {
                 var key = "Business"
@@ -67,9 +73,9 @@
                                         <!-- <th>{{RANK}}</th> -->
                                         <td>{{ID}}</td>
                                         <td id="Score"></td>
-                                        <td>{{Gold}}</td>
-                                        <td>{{Population}}</td>
-                                        <td>{{Electricity}}</td>
+                                        <td id="Gold"></td>
+                                        <td id="Population"></td>
+                                        <td id="Electricity"></td>
                                     </tr>
                                 </tbody>
                             </table>

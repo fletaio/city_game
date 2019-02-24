@@ -1,0 +1,291 @@
+package citygame
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"strconv"
+
+	"git.fleta.io/fleta/extension/utxo_tx"
+
+	"git.fleta.io/fleta/core/amount"
+
+	"git.fleta.io/fleta/common"
+	"git.fleta.io/fleta/common/hash"
+	"git.fleta.io/fleta/common/util"
+	"git.fleta.io/fleta/core/data"
+	"git.fleta.io/fleta/core/transaction"
+)
+
+func init() {
+	data.RegisterTransaction("fletacity.GetCoin", func(coord *common.Coordinate, t transaction.Type) transaction.Transaction {
+		return &GetCoinTx{
+			Base: utxo_tx.Base{
+				Base: transaction.Base{
+					ChainCoord_: coord,
+					Type_:       t,
+				},
+				Vin: []*transaction.TxIn{},
+			},
+		}
+	}, func(loader data.Loader, t transaction.Transaction, signers []common.PublicHash) error {
+		tx := t.(*GetCoinTx)
+		if len(tx.Vin) != 1 {
+			return ErrInvalidTxInCount
+		}
+		if len(signers) != 1 {
+			return ErrInvalidSignerCount
+		}
+
+		if utxo, err := loader.UTXO(tx.Vin[0].ID()); err != nil {
+			return err
+		} else {
+			if !utxo.PublicHash.Equal(signers[0]) {
+				return ErrInvalidTransactionSignature
+			}
+		}
+
+		fromAcc, err := loader.Account(tx.Address)
+		if err != nil {
+			return err
+		}
+
+		if err := loader.Accounter().Validate(loader, fromAcc, signers); err != nil {
+			return err
+		}
+		return nil
+	}, func(ctx *data.Context, Fee *amount.Amount, t transaction.Transaction, coord *common.Coordinate) (interface{}, error) {
+		tx := t.(*GetCoinTx)
+		sn := ctx.Snapshot()
+		defer ctx.Revert(sn)
+
+		utxo, err := ctx.UTXO(tx.Vin[0].ID())
+		if err != nil {
+			return nil, err
+		}
+
+		if err := ctx.DeleteUTXO(utxo.ID()); err != nil {
+			return nil, err
+		}
+
+		gameErr := func() error {
+			sn := ctx.Snapshot()
+			defer ctx.Revert(sn)
+
+			gd := NewGameData(ctx.TargetHeight())
+			bs := ctx.AccountData(tx.Address, []byte("game"))
+			if _, err := gd.ReadFrom(bytes.NewReader(bs)); err != nil {
+				return err
+			}
+
+			bds, has := GBuildingDefine[tx.AreaType]
+			if !has {
+				return ErrInvalidAreaType
+			}
+			if tx.TargetLevel == 0 || int(tx.TargetLevel) >= len(bds)+1 {
+				return ErrInvalidLevel
+			}
+
+			res := gd.Resource(ctx.TargetHeight())
+			bd := bds[tx.TargetLevel-1]
+			if bd.CostUsage > res.Balance {
+				fmt.Println("Cost need ", bd.CostUsage, " but has ", res.Balance)
+				return ErrInsufficientResource
+			}
+			if bd.ManUsage > res.ManRemained {
+				fmt.Println("Man need ", bd.ManUsage, " but has ", res.ManRemained)
+				return ErrInsufficientResource
+			}
+			if bd.PowerUsage > res.PowerRemained {
+				fmt.Println("Power need ", bd.PowerUsage, " but has ", res.PowerRemained)
+				return ErrInsufficientResource
+			}
+
+			idx := tx.X + GTileSize*tx.Y
+			tile := gd.Tiles[idx]
+			if tile == nil {
+				if tx.TargetLevel != 1 {
+					return ErrInvalidLevel
+				}
+				tile = NewTile(tx.AreaType, ctx.TargetHeight())
+				gd.Tiles[idx] = tile
+
+				bInsideX := (tx.X < GTileSize-1)
+				bInsideY := (tx.Y < GTileSize-1)
+				if bInsideX {
+					if nearTile := gd.Tiles[tx.X+1+GTileSize*(tx.Y)]; nearTile != nil && nearTile.Level == 6 {
+						return ErrInvalidPosition
+					}
+				}
+				if bInsideY {
+					if nearTile := gd.Tiles[tx.X+GTileSize*(tx.Y+1)]; nearTile != nil && nearTile.Level == 6 {
+						return ErrInvalidPosition
+					}
+				}
+				if bInsideX && bInsideY {
+					if nearTile := gd.Tiles[tx.X+1+GTileSize*(tx.Y+1)]; nearTile != nil && nearTile.Level == 6 {
+						return ErrInvalidPosition
+					}
+				}
+			} else {
+				if tx.AreaType != tile.AreaType {
+					return ErrInvalidAreaType
+				}
+				if tx.TargetLevel < 2 || tx.TargetLevel > 6 {
+					return ErrInvalidLevel
+				}
+				if tx.TargetLevel != tile.Level+1 {
+					return ErrInvalidLevel
+				}
+				if tx.TargetLevel < 6 {
+					tile.Level++
+					tile.BuildHeight = ctx.TargetHeight()
+				} else {
+					if tx.X < 1 || tx.Y < 1 {
+						return ErrInvalidPosition
+					}
+					if nearTile := gd.Tiles[tx.X-1+GTileSize*(tx.Y)]; nearTile == nil || nearTile.Level != 5 {
+						return ErrInvalidPosition
+					}
+					if nearTile := gd.Tiles[tx.X+GTileSize*(tx.Y-1)]; nearTile == nil || nearTile.Level != 5 {
+						return ErrInvalidPosition
+					}
+					if nearTile := gd.Tiles[tx.X-1+GTileSize*(tx.Y-1)]; nearTile == nil || nearTile.Level != 5 {
+						return ErrInvalidPosition
+					}
+					gd.Tiles[tx.X-1+GTileSize*(tx.Y)] = nil
+					gd.Tiles[tx.X+GTileSize*(tx.Y-1)] = nil
+					gd.Tiles[tx.X-1+GTileSize*(tx.Y-1)] = nil
+					tile.Level++
+					tile.BuildHeight = ctx.TargetHeight()
+				}
+			}
+
+			gd.UpdatePoint(ctx.TargetHeight(), res.Balance-bd.CostUsage)
+
+			var buffer bytes.Buffer
+			if _, err := gd.WriteTo(&buffer); err != nil {
+				return err
+			}
+			ctx.SetAccountData(tx.Address, []byte("game"), buffer.Bytes())
+
+			ctx.Commit(sn)
+
+			return nil
+		}()
+
+		for i := 0; i < GameAccountChannelSize; i++ {
+			did := []byte("utxo" + strconv.Itoa(i))
+			oldid := util.BytesToUint64(ctx.AccountData(tx.Address, did))
+			if oldid == tx.Vin[0].ID() {
+				id := transaction.MarshalID(coord.Height, coord.Index, 0)
+				ctx.CreateUTXO(id, &transaction.TxOut{
+					Amount:     amount.NewCoinAmount(0, 0),
+					PublicHash: utxo.PublicHash,
+				})
+				ctx.SetAccountData(tx.Address, did, util.Uint64ToBytes(id))
+				if gameErr != nil {
+					ctx.SetAccountData(tx.Address, []byte("result"+strconv.Itoa(i)), []byte(gameErr.Error()))
+				} else {
+					ctx.SetAccountData(tx.Address, []byte("result"+strconv.Itoa(i)), nil)
+				}
+				break
+			}
+		}
+
+		ctx.Commit(sn)
+		return nil, nil
+	})
+}
+
+// ConstructionTx is a fleta.ConstructionTx
+// It is used to make a single account
+type GetCoinTx struct {
+	utxo_tx.Base
+	Address     common.Address
+	X           uint8
+	Y           uint8
+	AreaType    AreaType
+	TargetLevel uint8
+}
+
+// Hash returns the hash value of it
+func (tx *GetCoinTx) Hash() hash.Hash256 {
+	return hash.DoubleHashByWriterTo(tx)
+}
+
+// WriteTo is a serialization function
+func (tx *GetCoinTx) WriteTo(w io.Writer) (int64, error) {
+	var wrote int64
+	if n, err := tx.Base.WriteTo(w); err != nil {
+		return wrote, err
+	} else {
+		wrote += n
+	}
+	if n, err := tx.Address.WriteTo(w); err != nil {
+		return wrote, err
+	} else {
+		wrote += n
+	}
+	if n, err := util.WriteUint8(w, tx.X); err != nil {
+		return wrote, err
+	} else {
+		wrote += n
+	}
+	if n, err := util.WriteUint8(w, tx.Y); err != nil {
+		return wrote, err
+	} else {
+		wrote += n
+	}
+	if n, err := util.WriteUint8(w, uint8(tx.AreaType)); err != nil {
+		return wrote, err
+	} else {
+		wrote += n
+	}
+	if n, err := util.WriteUint8(w, tx.TargetLevel); err != nil {
+		return wrote, err
+	} else {
+		wrote += n
+	}
+	return wrote, nil
+}
+
+// ReadFrom is a deserialization function
+func (tx *GetCoinTx) ReadFrom(r io.Reader) (int64, error) {
+	var read int64
+	if n, err := tx.Base.ReadFrom(r); err != nil {
+		return read, err
+	} else {
+		read += n
+	}
+	if n, err := tx.Address.ReadFrom(r); err != nil {
+		return read, err
+	} else {
+		read += n
+	}
+	if v, n, err := util.ReadUint8(r); err != nil {
+		return read, err
+	} else {
+		read += n
+		tx.X = v
+	}
+	if v, n, err := util.ReadUint8(r); err != nil {
+		return read, err
+	} else {
+		read += n
+		tx.Y = v
+	}
+	if v, n, err := util.ReadUint8(r); err != nil {
+		return read, err
+	} else {
+		read += n
+		tx.AreaType = AreaType(v)
+	}
+	if v, n, err := util.ReadUint8(r); err != nil {
+		return read, err
+	} else {
+		read += n
+		tx.TargetLevel = v
+	}
+	return read, nil
+}

@@ -453,16 +453,11 @@ func (e *BlockExplorer) UpdateScore(gd *citygame.GameData, height uint32, addr c
 		addrStr := addr.String()
 		r := gd.Resource(height)
 
-		var level uint32
-		for _, t := range gd.Tiles {
-			if t != nil {
-				level += uint32(t.Level)
-			}
-		}
+		level := r.Balance + uint64(r.ManProvided*4) + uint64(r.PowerProvided*6)
 
 		sc := ScoreCase{
 			UserID:        userId,
-			Level:         uint64(level),
+			Level:         level,
 			Balance:       uint64(r.Balance),
 			ManProvided:   uint64(r.ManProvided),
 			PowerProvided: uint64(r.PowerProvided),
