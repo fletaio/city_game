@@ -11,6 +11,7 @@ function Game() {
 	this.tiles = [];
 	this.define_map = null;
 	this.txs = [];
+	this.coin_list = [];
 }
 
 var currentResource = {}
@@ -89,6 +90,14 @@ Game.prototype.Update = function() {
 			} else {
 				sTile.UI.ShowBuildProcessingTime((buildCompletHeight-gGame.height)/2)
 			}
+		}
+	}
+
+	for (var i in gGame.coin_list) {
+		var c = gGame.coin_list[i]
+		if (this.height < c.height) {
+			var tile = gGame.tiles[+c.x + +c.y*gConfig.Size]
+			tile.addCoin(c)
 		}
 	}
 

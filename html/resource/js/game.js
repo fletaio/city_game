@@ -55,6 +55,7 @@ function loadTile() {
 			gConfig.Size = Math.pow(d.tiles.length, 0.5);
 			gGame.define_map = gBuildingDefine;
 			gGame.txs = d.txs;
+			gGame.coin_list = d.fleta_city_coins;
 			gGame.height = d.height;
 			gGame.point_height = d.point_height;
 			gGame.point_balance = d.point_balance;

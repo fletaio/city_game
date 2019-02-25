@@ -5,6 +5,7 @@ function Tile(x, y, type, level, build_height) {
 	this.level = level||0;
 	this.build_height = build_height||0;
 	this.type = type||null;
+	this.coins = {}
 }
 
 Tile.prototype.init = function (tileUI) {
@@ -127,10 +128,17 @@ Tile.prototype.completBuilding = function (effect) {
 	this.UI.completBuilding(effect)
 }
 
-
 Tile.prototype.CheckLvRound = function(checkLv) {
 	var lt = new LvFTiles()
 	return lt.CheckLvRound(this, checkLv)
+};
+
+Tile.prototype.addCoin = function(coin) {
+	if (typeof this.coins[coin.hash] === "undefined") {
+		this.coins[coin.hash] = coin
+		this.UI.addCoin(coin)
+	}
+
 };
 
 function LvFTiles () {

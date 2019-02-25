@@ -1,14 +1,9 @@
 package citygame
 
 import (
-	"bytes"
-	"fmt"
 	"io"
-	"strconv"
 
 	"git.fleta.io/fleta/extension/utxo_tx"
-
-	"git.fleta.io/fleta/core/amount"
 
 	"git.fleta.io/fleta/common"
 	"git.fleta.io/fleta/common/hash"
@@ -56,148 +51,7 @@ func init() {
 			return err
 		}
 		return nil
-	}, func(ctx *data.Context, Fee *amount.Amount, t transaction.Transaction, coord *common.Coordinate) (interface{}, error) {
-		tx := t.(*ConstructionTx)
-		sn := ctx.Snapshot()
-		defer ctx.Revert(sn)
-
-		utxo, err := ctx.UTXO(tx.Vin[0].ID())
-		if err != nil {
-			return nil, err
-		}
-
-		if err := ctx.DeleteUTXO(utxo.ID()); err != nil {
-			return nil, err
-		}
-
-		gameErr := func() error {
-			sn := ctx.Snapshot()
-			defer ctx.Revert(sn)
-
-			gd := NewGameData(ctx.TargetHeight())
-			bs := ctx.AccountData(tx.Address, []byte("game"))
-			if _, err := gd.ReadFrom(bytes.NewReader(bs)); err != nil {
-				return err
-			}
-
-			bds, has := GBuildingDefine[tx.AreaType]
-			if !has {
-				return ErrInvalidAreaType
-			}
-			if tx.TargetLevel == 0 || int(tx.TargetLevel) >= len(bds)+1 {
-				return ErrInvalidLevel
-			}
-
-			res := gd.Resource(ctx.TargetHeight())
-			bd := bds[tx.TargetLevel-1]
-			if bd.CostUsage > res.Balance {
-				fmt.Println("Cost need ", bd.CostUsage, " but has ", res.Balance)
-				return ErrInsufficientResource
-			}
-			if bd.ManUsage > res.ManRemained {
-				fmt.Println("Man need ", bd.ManUsage, " but has ", res.ManRemained)
-				return ErrInsufficientResource
-			}
-			if bd.PowerUsage > res.PowerRemained {
-				fmt.Println("Power need ", bd.PowerUsage, " but has ", res.PowerRemained)
-				return ErrInsufficientResource
-			}
-
-			idx := tx.X + GTileSize*tx.Y
-			tile := gd.Tiles[idx]
-			if tile == nil {
-				if tx.TargetLevel != 1 {
-					return ErrInvalidLevel
-				}
-				tile = NewTile(tx.AreaType, ctx.TargetHeight())
-				gd.Tiles[idx] = tile
-
-				bInsideX := (tx.X < GTileSize-1)
-				bInsideY := (tx.Y < GTileSize-1)
-				if bInsideX {
-					if nearTile := gd.Tiles[tx.X+1+GTileSize*(tx.Y)]; nearTile != nil && nearTile.Level == 6 {
-						return ErrInvalidPosition
-					}
-				}
-				if bInsideY {
-					if nearTile := gd.Tiles[tx.X+GTileSize*(tx.Y+1)]; nearTile != nil && nearTile.Level == 6 {
-						return ErrInvalidPosition
-					}
-				}
-				if bInsideX && bInsideY {
-					if nearTile := gd.Tiles[tx.X+1+GTileSize*(tx.Y+1)]; nearTile != nil && nearTile.Level == 6 {
-						return ErrInvalidPosition
-					}
-				}
-			} else {
-				if tx.AreaType != tile.AreaType {
-					return ErrInvalidAreaType
-				}
-				if tx.TargetLevel < 2 || tx.TargetLevel > 6 {
-					return ErrInvalidLevel
-				}
-				if tx.TargetLevel != tile.Level+1 {
-					return ErrInvalidLevel
-				}
-				if tx.TargetLevel < 6 {
-					tile.Level++
-					tile.BuildHeight = ctx.TargetHeight()
-				} else {
-					if tx.X < 1 || tx.Y < 1 {
-						return ErrInvalidPosition
-					}
-					if nearTile := gd.Tiles[tx.X-1+GTileSize*(tx.Y)]; nearTile == nil || nearTile.Level != 5 {
-						return ErrInvalidPosition
-					}
-					if nearTile := gd.Tiles[tx.X+GTileSize*(tx.Y-1)]; nearTile == nil || nearTile.Level != 5 {
-						return ErrInvalidPosition
-					}
-					if nearTile := gd.Tiles[tx.X-1+GTileSize*(tx.Y-1)]; nearTile == nil || nearTile.Level != 5 {
-						return ErrInvalidPosition
-					}
-					gd.Tiles[tx.X-1+GTileSize*(tx.Y)] = nil
-					gd.Tiles[tx.X+GTileSize*(tx.Y-1)] = nil
-					gd.Tiles[tx.X-1+GTileSize*(tx.Y-1)] = nil
-					tile.Level++
-					tile.BuildHeight = ctx.TargetHeight()
-				}
-			}
-
-			gd.UpdatePoint(ctx.TargetHeight(), res.Balance-bd.CostUsage)
-
-			var buffer bytes.Buffer
-			if _, err := gd.WriteTo(&buffer); err != nil {
-				return err
-			}
-			ctx.SetAccountData(tx.Address, []byte("game"), buffer.Bytes())
-
-			ctx.Commit(sn)
-
-			return nil
-		}()
-
-		for i := 0; i < GameAccountChannelSize; i++ {
-			did := []byte("utxo" + strconv.Itoa(i))
-			oldid := util.BytesToUint64(ctx.AccountData(tx.Address, did))
-			if oldid == tx.Vin[0].ID() {
-				id := transaction.MarshalID(coord.Height, coord.Index, 0)
-				ctx.CreateUTXO(id, &transaction.TxOut{
-					Amount:     amount.NewCoinAmount(0, 0),
-					PublicHash: utxo.PublicHash,
-				})
-				ctx.SetAccountData(tx.Address, did, util.Uint64ToBytes(id))
-				if gameErr != nil {
-					ctx.SetAccountData(tx.Address, []byte("result"+strconv.Itoa(i)), []byte(gameErr.Error()))
-				} else {
-					ctx.SetAccountData(tx.Address, []byte("result"+strconv.Itoa(i)), nil)
-				}
-				break
-			}
-		}
-
-		ctx.Commit(sn)
-		return nil, nil
-	})
+	}, UpgradeTxExecFunc)
 }
 
 // ConstructionTx is a fleta.ConstructionTx

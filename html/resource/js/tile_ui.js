@@ -217,3 +217,14 @@ TileUI.prototype.Remove = function() {
 	this.obj.find(".floor").attr("src", "/images/tile/base_floor/groundtiles_tile"+this.num+".png").attr("class", "floor");
 	this.obj.css("z-index", (+this.x + +this.y)*10)
 }
+
+TileUI.prototype.addCoin = function(coin) {
+	var fc = $("#fletaCoinTemplet .fletaCoin").clone()
+	this.touch.append(fc)
+	fc.attr("x", coin.x)
+	fc.attr("y", coin.y)
+	fc.attr("hash", coin.hash)
+	fc.attr("height", coin.height)
+	fc.attr("coin_type", coin.coin_type)
+	fc.attr("onclick", "gGame.Tiles["+(+coin.x + +coin.y*gConfig.Size)+"].RunCommand('GetCoin', '"+coin.coin_type+":"+coin.height+":"+coin.hash+"')")
+}

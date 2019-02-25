@@ -37,7 +37,7 @@ language.add("check ethAddr")
 language.add("Address Issue Success : ")
 language.add(", go to login")
 language.add("login Success")
-language.add("Account or password in correct")
+language.add("Invalid Id or Password")
 
 language.add("duplicated connection")
 
