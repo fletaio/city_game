@@ -1,5 +1,13 @@
 function Alert (msg) {
-    alert(msg)
+	var a = $("#AlertBackground")
+	a.show()
+	a.find(".alertText").html(msg)
+}
+
+function AlertClose(){
+	var a = $("#AlertBackground")
+	a.hide()
+	a.find(".alertText").html("")
 }
 
 var UIAlert = {}
