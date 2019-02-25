@@ -26,6 +26,7 @@ const (
 	DemolitionTransactionType   = transaction.Type(2)
 	ConstructionTransactionType = transaction.Type(3)
 	UpgradeTransactionType      = transaction.Type(4)
+	GetCoinTransactionType      = transaction.Type(5)
 	// Formulation Transactions
 	CreateFormulationTransctionType = transaction.Type(60)
 	RevokeFormulationTransctionType = transaction.Type(61)
@@ -50,6 +51,7 @@ func initChainComponent(act *data.Accounter, tran *data.Transactor) error {
 		"fletacity.Demolition":        &txFee{DemolitionTransactionType, amount.COIN.MulC(10)},
 		"fletacity.Construction":      &txFee{ConstructionTransactionType, amount.COIN.MulC(10)},
 		"fletacity.Upgrade":           &txFee{UpgradeTransactionType, amount.COIN.MulC(10)},
+		"fletacity.GetCoin":           &txFee{GetCoinTransactionType, amount.COIN.MulC(10)},
 		"consensus.CreateFormulation": &txFee{CreateFormulationTransctionType, amount.COIN.MulC(50000)},
 		"consensus.RevokeFormulation": &txFee{RevokeFormulationTransctionType, amount.COIN.DivC(10)},
 	}

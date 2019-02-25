@@ -516,3 +516,9 @@
 #txLog .descript {
     color: #fff;
 }
+
+.fletaCoin {
+    background-image: url("/images/ui/fletacoin.png");
+    background-size: 100%;
+    position: absolute;
+}

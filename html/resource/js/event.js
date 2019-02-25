@@ -270,6 +270,9 @@ function onMessage(ws,  e) {
 
 		gGame.height = noti.point_height
 		gGame.point_balance = noti.point_height
+		if (typeof d.fleta_city_coins !== "undefined") {
+			gGame.coin_list = d.fleta_city_coins;
+		}
 
 		SendQueue.NewUTXO(noti.utxo)
 		addTx(noti.tx)

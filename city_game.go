@@ -579,6 +579,10 @@ func main() {
 						vin = tx.Vin
 						x = int(tx.X)
 						y = int(tx.Y)
+					case *citygame.GetCoinTx:
+						vin = tx.Vin
+						x = int(tx.X)
+						y = int(tx.Y)
 					default:
 						vin = nil
 					}
@@ -587,11 +591,12 @@ func main() {
 					txs = append(txs, nil)
 					copy(txs[index+1:], txs[index:])
 					txs[index] = &UTXO{
-						ID:   utxoID,
-						X:    x,
-						Y:    y,
-						Type: int(t.Type()),
-						Hash: t.Hash().String(),
+						ID:     utxoID,
+						X:      x,
+						Y:      y,
+						Type:   int(t.Type()),
+						Height: txIn.Height,
+						Hash:   t.Hash().String(),
 					}
 
 				}
@@ -610,6 +615,12 @@ func main() {
 			Txs:          txs,
 			DefineMap:    citygame.GBuildingDefine,
 		}
+		clbs := GameKernel.Loader().AccountData(addr, []byte("CoinList"))
+		bf := bytes.NewBuffer(clbs)
+		if cl, err := citygame.CLReadFrom(bf); err == nil {
+			res.CoinList = cl
+		}
+
 		for i, tile := range gd.Tiles {
 			if tile != nil {
 				res.Tiles[i] = &WebTile{
@@ -764,6 +775,71 @@ func main() {
 			HashHex: tx.Hash().String(),
 		})
 	})
+	gAPI.POST("/games/:address/commands/getcoin", func(c echo.Context) error {
+		addrStr := c.Param("address")
+		addr, err := common.ParseAddress(addrStr)
+		if err != nil {
+			return err
+		}
+
+		body, err := ioutil.ReadAll(c.Request().Body)
+		if err != nil {
+			return err
+		}
+		defer c.Request().Body.Close()
+
+		var req WebGetCoinReq
+		if err := json.Unmarshal(body, &req); err != nil {
+			return err
+		}
+		if req.UTXO == 0 {
+			return citygame.ErrInvalidUTXO
+		}
+		if req.X > citygame.GTileSize {
+			return citygame.ErrInvalidPosition
+		}
+		if req.Y > citygame.GTileSize {
+			return citygame.ErrInvalidPosition
+		}
+		if req.CoinType != uint8(citygame.ConstructCoinType) && req.CoinType != uint8(citygame.TimeCoinType) {
+			return citygame.ErrInvalidCoinType
+		}
+
+		loader := GameKernel.Loader()
+
+		t, err := loader.Transactor().NewByType(GetCoinTransactionType)
+		if err != nil {
+			return err
+		}
+
+		if is, err := loader.IsExistAccount(addr); err != nil {
+			return err
+		} else if !is {
+			return citygame.ErrNotExistAccount
+		}
+
+		tx := t.(*citygame.GetCoinTx)
+
+		tx.Timestamp_ = uint64(time.Now().UnixNano())
+		tx.Vin = []*transaction.TxIn{transaction.NewTxIn(req.UTXO)}
+		tx.Address = addr
+		tx.X = uint8(req.X)
+		tx.Y = uint8(req.Y)
+		tx.CoinType = citygame.CoinType(req.CoinType)
+		tx.TargetHash = hash.MustParseHash(req.Hash)
+		tx.TargetHeight = req.Height
+
+		var buffer bytes.Buffer
+		if _, err := tx.WriteTo(&buffer); err != nil {
+			return err
+		}
+
+		return c.JSON(http.StatusOK, &WebTxRes{
+			Type:    int(GetCoinTransactionType),
+			TxHex:   hex.EncodeToString(buffer.Bytes()),
+			HashHex: tx.Hash().String(),
+		})
+	})
 	gAPI.POST("/games/:address/commands/commit", func(c echo.Context) error {
 		body, err := ioutil.ReadAll(c.Request().Body)
 		if err != nil {
@@ -904,11 +980,12 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 				PointBalance: int(gd.PointBalance),
 				UTXO:         int(id),
 				Tx: &UTXO{
-					ID:   id,
-					X:    int(tx.X),
-					Y:    int(tx.Y),
-					Hash: t.Hash().String(),
-					Type: int(t.Type()),
+					ID:     id,
+					X:      int(tx.X),
+					Y:      int(tx.Y),
+					Hash:   t.Hash().String(),
+					Height: b.Header.Height(),
+					Type:   int(t.Type()),
 				},
 				Error: errorMsg,
 			})
@@ -941,7 +1018,8 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 					break
 				}
 			}
-			ew.Notify(utx.Address, &WebTileNotify{
+
+			wtn := &WebTileNotify{
 				Type:         1,
 				X:            int(utx.X),
 				Y:            int(utx.Y),
@@ -952,16 +1030,33 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 				PointBalance: int(gd.PointBalance),
 				UTXO:         int(id),
 				Tx: &UTXO{
-					ID:   id,
-					X:    int(utx.X),
-					Y:    int(utx.Y),
-					Hash: t.Hash().String(),
-					Type: int(t.Type()),
+					ID:     id,
+					X:      int(utx.X),
+					Y:      int(utx.Y),
+					Hash:   t.Hash().String(),
+					Height: b.Header.Height(),
+					Type:   int(t.Type()),
 				},
 				Error: errorMsg,
-			})
+			}
+
+			clbs := ctx.AccountData(utx.Address, []byte("CoinList"))
+			bf := bytes.NewBuffer(clbs)
+			if cl, err := citygame.CLReadFrom(bf); err == nil {
+				wtn.CoinList = cl
+			}
+			ew.Notify(utx.Address, wtn)
 
 			ew.be.UpdateScore(gd, b.Header.Height(), utx.Address, "")
+		case *citygame.GetCoinTx:
+
+			clbs := ctx.AccountData(tx.Address, []byte("CoinList"))
+			bf := bytes.NewBuffer(clbs)
+			if cl, err := citygame.CLReadFrom(bf); err == nil {
+				ew.Notify(tx.Address, &WebTileNotify{
+					CoinList: cl,
+				})
+			}
 		}
 	}
 }
@@ -1003,6 +1098,7 @@ type WebGameRes struct {
 	PointBalance int                                              `json:"point_balance"`
 	Tiles        []*WebTile                                       `json:"tiles"`
 	Txs          []*UTXO                                          `json:"txs"`
+	CoinList     []*citygame.FletaCityCoin                        `json:"fleta_city_coins"`
 	DefineMap    map[citygame.AreaType][]*citygame.BuildingDefine `json:"define_map"`
 }
 
@@ -1024,6 +1120,15 @@ type WebUpgradeReq struct {
 	TargetLevel int    `json:"target_level"`
 }
 
+type WebGetCoinReq struct {
+	UTXO     uint64 `json:"utxo"`
+	X        int    `json:"x"`
+	Y        int    `json:"y"`
+	Hash     string `json:"hash"`
+	Height   uint32 `json:"height"`
+	CoinType uint8  `json:"coin_type"`
+}
+
 type WebTxRes struct {
 	Type    int    `json:"type"`
 	TxHex   string `json:"tx_hex"`
@@ -1037,17 +1142,18 @@ type WebCommitReq struct {
 }
 
 type WebTileNotify struct {
-	Type         int    `json:"type"`
-	X            int    `json:"x"`
-	Y            int    `json:"y"`
-	AreaType     int    `json:"area_type"`
-	Level        int    `json:"level"`
-	Height       int    `json:"height"`
-	PointHeight  int    `json:"point_height"`
-	PointBalance int    `json:"point_balance"`
-	UTXO         int    `json:"utxo"`
-	Tx           *UTXO  `json:"tx"`
-	Error        string `json:"error"`
+	Type         int                       `json:"type"`
+	X            int                       `json:"x"`
+	Y            int                       `json:"y"`
+	AreaType     int                       `json:"area_type"`
+	Level        int                       `json:"level"`
+	Height       int                       `json:"height"`
+	PointHeight  int                       `json:"point_height"`
+	PointBalance int                       `json:"point_balance"`
+	UTXO         int                       `json:"utxo"`
+	Tx           *UTXO                     `json:"tx"`
+	CoinList     []*citygame.FletaCityCoin `json:"fleta_city_coins"`
+	Error        string                    `json:"error"`
 }
 
 type WebTile struct {
@@ -1057,9 +1163,10 @@ type WebTile struct {
 }
 
 type UTXO struct {
-	ID   uint64 `json:"id"`
-	Type int    `json:"tx_type"`
-	X    int    `json:"x"`
-	Y    int    `json:"y"`
-	Hash string `json:"hash"`
+	ID     uint64 `json:"id"`
+	Type   int    `json:"tx_type"`
+	X      int    `json:"x"`
+	Y      int    `json:"y"`
+	Height uint32 `json:"height"`
+	Hash   string `json:"hash"`
 }

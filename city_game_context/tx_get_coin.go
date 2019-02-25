@@ -2,7 +2,7 @@ package citygame
 
 import (
 	"bytes"
-	"fmt"
+	"encoding/json"
 	"io"
 	"strconv"
 
@@ -78,100 +78,65 @@ func init() {
 				return err
 			}
 
-			bds, has := GBuildingDefine[tx.AreaType]
-			if !has {
-				return ErrInvalidAreaType
-			}
-			if tx.TargetLevel == 0 || int(tx.TargetLevel) >= len(bds)+1 {
-				return ErrInvalidLevel
-			}
-
-			res := gd.Resource(ctx.TargetHeight())
-			bd := bds[tx.TargetLevel-1]
-			if bd.CostUsage > res.Balance {
-				fmt.Println("Cost need ", bd.CostUsage, " but has ", res.Balance)
-				return ErrInsufficientResource
-			}
-			if bd.ManUsage > res.ManRemained {
-				fmt.Println("Man need ", bd.ManUsage, " but has ", res.ManRemained)
-				return ErrInsufficientResource
-			}
-			if bd.PowerUsage > res.PowerRemained {
-				fmt.Println("Power need ", bd.PowerUsage, " but has ", res.PowerRemained)
-				return ErrInsufficientResource
-			}
-
-			idx := tx.X + GTileSize*tx.Y
-			tile := gd.Tiles[idx]
-			if tile == nil {
-				if tx.TargetLevel != 1 {
-					return ErrInvalidLevel
-				}
-				tile = NewTile(tx.AreaType, ctx.TargetHeight())
-				gd.Tiles[idx] = tile
-
-				bInsideX := (tx.X < GTileSize-1)
-				bInsideY := (tx.Y < GTileSize-1)
-				if bInsideX {
-					if nearTile := gd.Tiles[tx.X+1+GTileSize*(tx.Y)]; nearTile != nil && nearTile.Level == 6 {
-						return ErrInvalidPosition
-					}
-				}
-				if bInsideY {
-					if nearTile := gd.Tiles[tx.X+GTileSize*(tx.Y+1)]; nearTile != nil && nearTile.Level == 6 {
-						return ErrInvalidPosition
-					}
-				}
-				if bInsideX && bInsideY {
-					if nearTile := gd.Tiles[tx.X+1+GTileSize*(tx.Y+1)]; nearTile != nil && nearTile.Level == 6 {
-						return ErrInvalidPosition
-					}
-				}
-			} else {
-				if tx.AreaType != tile.AreaType {
-					return ErrInvalidAreaType
-				}
-				if tx.TargetLevel < 2 || tx.TargetLevel > 6 {
-					return ErrInvalidLevel
-				}
-				if tx.TargetLevel != tile.Level+1 {
-					return ErrInvalidLevel
-				}
-				if tx.TargetLevel < 6 {
-					tile.Level++
-					tile.BuildHeight = ctx.TargetHeight()
+			if tx.CoinType == ConstructCoinType {
+				clbs := ctx.AccountData(tx.Address, []byte("CoinList"))
+				bf := bytes.NewBuffer(clbs)
+				if cl, err := CLReadFrom(bf); err != nil {
+					return err
 				} else {
-					if tx.X < 1 || tx.Y < 1 {
-						return ErrInvalidPosition
+					for i, c := range cl {
+						if c.X == int(tx.X) && c.Y == int(tx.Y) && c.Hash == tx.TargetHash.String() && c.Height == tx.TargetHeight {
+							cl = append(cl[:i], cl[i+1:]...)
+
+							bf := &bytes.Buffer{}
+							_, err := CLWriteTo(bf, cl)
+							if err != nil {
+								return err
+							}
+							ctx.SetAccountData(tx.Address, []byte("CoinList"), bf.Bytes())
+							return nil
+						}
 					}
-					if nearTile := gd.Tiles[tx.X-1+GTileSize*(tx.Y)]; nearTile == nil || nearTile.Level != 5 {
-						return ErrInvalidPosition
+					return ErrTimeCoinNotExist
+				}
+			} else if tx.CoinType == TimeCoinType {
+				clbs := ctx.AccountData(tx.Address, []byte("CoinList"))
+				bf := bytes.NewBuffer(clbs)
+				if cl, err := CLReadFrom(bf); err != nil {
+					return err
+				} else {
+					// tl := CalcTargetCoinList(startHeight, cl)
+					for i, c := range cl {
+						if c.X == int(tx.X) && c.Y == int(tx.Y) && c.Hash == tx.TargetHash.String() && c.Height == tx.TargetHeight && c.Height < ctx.TargetHeight() {
+							cl = append(cl[:i], cl[i+1:]...)
+							h := hash.Hash(util.Uint48ToBytes(tx.Vin[0].Height, tx.Vin[0].Index))
+							x := util.BytesToUint16([]byte(h[0:2]))
+							y := util.BytesToUint16([]byte(h[2:4]))
+
+							cl = append(cl, &FletaCityCoin{
+								X:        int(x),
+								Y:        int(y),
+								Hash:     h.String(),
+								Height:   ctx.TargetHeight() + TimeCoinGenTime,
+								CoinType: TimeCoinType,
+							})
+							bf := &bytes.Buffer{}
+							_, err := CLWriteTo(bf, cl)
+							if err != nil {
+								return err
+							}
+							ctx.SetAccountData(tx.Address, []byte("CoinList"), bf.Bytes())
+							return nil
+						}
 					}
-					if nearTile := gd.Tiles[tx.X+GTileSize*(tx.Y-1)]; nearTile == nil || nearTile.Level != 5 {
-						return ErrInvalidPosition
-					}
-					if nearTile := gd.Tiles[tx.X-1+GTileSize*(tx.Y-1)]; nearTile == nil || nearTile.Level != 5 {
-						return ErrInvalidPosition
-					}
-					gd.Tiles[tx.X-1+GTileSize*(tx.Y)] = nil
-					gd.Tiles[tx.X+GTileSize*(tx.Y-1)] = nil
-					gd.Tiles[tx.X-1+GTileSize*(tx.Y-1)] = nil
-					tile.Level++
-					tile.BuildHeight = ctx.TargetHeight()
+
+					return ErrTimeCoinNotExist
 				}
 			}
 
-			gd.UpdatePoint(ctx.TargetHeight(), res.Balance-bd.CostUsage)
+			//TODO account 에서 fleta city coin이 있는지 검사
 
-			var buffer bytes.Buffer
-			if _, err := gd.WriteTo(&buffer); err != nil {
-				return err
-			}
-			ctx.SetAccountData(tx.Address, []byte("game"), buffer.Bytes())
-
-			ctx.Commit(sn)
-
-			return nil
+			return ErrTypeMissMatch
 		}()
 
 		for i := 0; i < GameAccountChannelSize; i++ {
@@ -198,15 +163,15 @@ func init() {
 	})
 }
 
-// ConstructionTx is a fleta.ConstructionTx
-// It is used to make a single account
+// GetCoinTx is a fleta.GetCoinTx
 type GetCoinTx struct {
 	utxo_tx.Base
-	Address     common.Address
-	X           uint8
-	Y           uint8
-	AreaType    AreaType
-	TargetLevel uint8
+	Address      common.Address
+	X            uint8
+	Y            uint8
+	TargetHeight uint32
+	TargetHash   hash.Hash256
+	CoinType     CoinType
 }
 
 // Hash returns the hash value of it
@@ -237,12 +202,17 @@ func (tx *GetCoinTx) WriteTo(w io.Writer) (int64, error) {
 	} else {
 		wrote += n
 	}
-	if n, err := util.WriteUint8(w, uint8(tx.AreaType)); err != nil {
+	if n, err := util.WriteUint32(w, tx.TargetHeight); err != nil {
 		return wrote, err
 	} else {
 		wrote += n
 	}
-	if n, err := util.WriteUint8(w, tx.TargetLevel); err != nil {
+	if n, err := tx.TargetHash.WriteTo(w); err != nil {
+		return wrote, err
+	} else {
+		wrote += n
+	}
+	if n, err := util.WriteUint8(w, uint8(tx.CoinType)); err != nil {
 		return wrote, err
 	} else {
 		wrote += n
@@ -275,17 +245,111 @@ func (tx *GetCoinTx) ReadFrom(r io.Reader) (int64, error) {
 		read += n
 		tx.Y = v
 	}
-	if v, n, err := util.ReadUint8(r); err != nil {
+	if v, n, err := util.ReadUint32(r); err != nil {
 		return read, err
 	} else {
 		read += n
-		tx.AreaType = AreaType(v)
+		tx.TargetHeight = v
+	}
+	if n, err := tx.TargetHash.ReadFrom(r); err != nil {
+		return read, err
+	} else {
+		read += n
 	}
 	if v, n, err := util.ReadUint8(r); err != nil {
 		return read, err
 	} else {
 		read += n
-		tx.TargetLevel = v
+		tx.CoinType = CoinType(v)
 	}
 	return read, nil
+}
+
+// MarshalJSON is a marshaler function
+func (tx *GetCoinTx) MarshalJSON() ([]byte, error) {
+	var buffer bytes.Buffer
+	buffer.WriteString(`{`)
+	buffer.WriteString(`"chain_coord":`)
+	if bs, err := tx.ChainCoord_.MarshalJSON(); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`,`)
+	buffer.WriteString(`"timestamp":`)
+	if bs, err := json.Marshal(tx.Timestamp_); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`,`)
+	buffer.WriteString(`"type":`)
+	if bs, err := json.Marshal(tx.Type_); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`,`)
+	buffer.WriteString(`"vin":`)
+	buffer.WriteString(`[`)
+	for i, vin := range tx.Vin {
+		if i > 0 {
+			buffer.WriteString(`,`)
+		}
+		if bs, err := json.Marshal(vin.ID()); err != nil {
+			return nil, err
+		} else {
+			buffer.Write(bs)
+		}
+	}
+	buffer.WriteString(`]`)
+	buffer.WriteString(`,`)
+	buffer.WriteString(`"address":`)
+	if bs, err := json.Marshal(tx.Address); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`,`)
+
+	buffer.WriteString(`"x":`)
+	if bs, err := json.Marshal(tx.X); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`,`)
+
+	buffer.WriteString(`"y":`)
+	if bs, err := json.Marshal(tx.Y); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`,`)
+
+	buffer.WriteString(`"target_height":`)
+	if bs, err := json.Marshal(tx.TargetHeight); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`,`)
+
+	buffer.WriteString(`"target_hash":`)
+	if bs, err := json.Marshal(tx.TargetHash); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`,`)
+
+	buffer.WriteString(`"coin_type":`)
+	if bs, err := json.Marshal(tx.CoinType); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`}`)
+	return buffer.Bytes(), nil
 }
