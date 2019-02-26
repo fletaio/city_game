@@ -96,10 +96,11 @@ Game.prototype.Update = function() {
 	for (var i in gGame.coin_list) {
 		var c = gGame.coin_list[i]
 		if (this.height > c.height) {
-			c.x = c.x%gConfig.Size
-			c.y = c.y%gConfig.Size
-			var tile = gGame.tiles[+c.x + +c.y*gConfig.Size]
-			tile.addCoin(c)
+			try {
+				c.PutOnMap()
+			} catch (e) {
+				console.log(e)
+			}
 		}
 	}
 

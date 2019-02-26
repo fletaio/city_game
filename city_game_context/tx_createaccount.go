@@ -148,22 +148,23 @@ func init() {
 			hbs := util.Uint32ToBytes(ctx.TargetHeight())
 			h := hash.Hash(hbs)
 
-			targetCoinList := []*FletaCityCoin{}
+			targetCoinMap := map[string]*FletaCityCoin{}
 			for i := 0; i < 10; i++ {
-				x := util.BytesToUint16([]byte(h[i*2:i*2+2])) % GTileSize
-				y := util.BytesToUint16([]byte(h[i*2+2:i*2+4])) % GTileSize
-				h := hash.Hash([]byte(h[i*2 : i*2+4]))
-				targetCoinList = append(targetCoinList, &FletaCityCoin{
-					X:        int(x),
-					Y:        int(y),
-					Hash:     h.String(),
+				x := int(util.BytesToUint16([]byte(h[i*2:i*2+2]))) % GTileSize
+				y := int(util.BytesToUint16([]byte(h[i*2+2:i*2+4]))) % GTileSize
+				h := hash.Hash([]byte(h[i:])).String()
+				targetCoinMap[h] = &FletaCityCoin{
+					X:        x,
+					Y:        y,
+					Hash:     h,
 					Height:   ctx.TargetHeight() + TimeCoinGenTime*2,
 					CoinType: TimeCoinType,
-				})
+				}
 			}
 			bf := &bytes.Buffer{}
-			CLWriteTo(bf, targetCoinList)
+			CLWriteTo(bf, targetCoinMap)
 			ctx.SetAccountData(addr, []byte("CoinList"), bf.Bytes())
+			ctx.SetAccountData(addr, []byte("GetCoinCount"), util.Uint32ToBytes(0))
 
 			ctx.Commit(sn)
 		}()

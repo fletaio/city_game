@@ -629,6 +629,15 @@ func main() {
 				}
 			}
 		}
+
+		ccbs := GameKernel.Loader().AccountData(addr, []byte("GetCoinCount"))
+		if len(ccbs) == 4 {
+			coinCount := util.BytesToUint32(ccbs)
+			res.CoinCount = int(coinCount)
+		} else {
+			res.CoinCount = 0
+		}
+
 		return c.JSON(http.StatusOK, res)
 	})
 	gAPI.POST("/games/:address/commands/demolition", func(c echo.Context) error {
@@ -1056,10 +1065,15 @@ func getWebTileNotify(ctx *data.Context, addr common.Address, height uint32, ind
 			break
 		}
 	}
+
+	ccbs := ctx.AccountData(addr, []byte("GetCoinCount"))
+	coinCount := util.BytesToUint32(ccbs)
+
 	return &WebTileNotify{
 		Height:       int(height),
 		PointHeight:  int(gd.PointHeight),
 		PointBalance: int(gd.PointBalance),
+		CoinCount:    int(coinCount),
 		UTXO:         int(id),
 		Tx: &UTXO{
 			ID: id,
@@ -1103,9 +1117,10 @@ type WebGameRes struct {
 	Height       int                                              `json:"height"`
 	PointHeight  int                                              `json:"point_height"`
 	PointBalance int                                              `json:"point_balance"`
+	CoinCount    int                                              `json:"coin_count"`
 	Tiles        []*WebTile                                       `json:"tiles"`
 	Txs          []*UTXO                                          `json:"txs"`
-	CoinList     []*citygame.FletaCityCoin                        `json:"fleta_city_coins"`
+	CoinList     map[string]*citygame.FletaCityCoin               `json:"fleta_city_coins"`
 	DefineMap    map[citygame.AreaType][]*citygame.BuildingDefine `json:"define_map"`
 }
 
@@ -1149,18 +1164,19 @@ type WebCommitReq struct {
 }
 
 type WebTileNotify struct {
-	Type         int                       `json:"type"`
-	X            int                       `json:"x"`
-	Y            int                       `json:"y"`
-	AreaType     int                       `json:"area_type"`
-	Level        int                       `json:"level"`
-	Height       int                       `json:"height"`
-	PointHeight  int                       `json:"point_height"`
-	PointBalance int                       `json:"point_balance"`
-	UTXO         int                       `json:"utxo"`
-	Tx           *UTXO                     `json:"tx"`
-	CoinList     []*citygame.FletaCityCoin `json:"fleta_city_coins"`
-	Error        string                    `json:"error"`
+	Type         int                                `json:"type"`
+	X            int                                `json:"x"`
+	Y            int                                `json:"y"`
+	AreaType     int                                `json:"area_type"`
+	Level        int                                `json:"level"`
+	Height       int                                `json:"height"`
+	PointHeight  int                                `json:"point_height"`
+	PointBalance int                                `json:"point_balance"`
+	CoinCount    int                                `json:"coin_count"`
+	UTXO         int                                `json:"utxo"`
+	Tx           *UTXO                              `json:"tx"`
+	CoinList     map[string]*citygame.FletaCityCoin `json:"fleta_city_coins"`
+	Error        string                             `json:"error"`
 }
 
 type WebTile struct {

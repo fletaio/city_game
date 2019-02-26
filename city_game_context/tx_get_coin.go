@@ -86,7 +86,7 @@ func init() {
 				} else {
 					for i, c := range cl {
 						if c.X == int(tx.X) && c.Y == int(tx.Y) && c.Hash == tx.TargetHash.String() && c.Height == tx.TargetHeight {
-							cl = append(cl[:i], cl[i+1:]...)
+							delete(cl, i)
 
 							bf := &bytes.Buffer{}
 							_, err := CLWriteTo(bf, cl)
@@ -94,6 +94,15 @@ func init() {
 								return err
 							}
 							ctx.SetAccountData(tx.Address, []byte("CoinList"), bf.Bytes())
+							bs := ctx.AccountData(tx.Address, []byte("GetCoinCount"))
+							var coinCount uint32
+							if len(bs) == 4 {
+								coinCount = util.BytesToUint32(bs)
+							} else {
+								coinCount = 1
+							}
+							ctx.SetAccountData(tx.Address, []byte("GetCoinCount"), util.Uint32ToBytes(coinCount+1))
+
 							ctx.Commit(sn)
 							return nil
 						}
@@ -109,24 +118,37 @@ func init() {
 					// tl := CalcTargetCoinList(startHeight, cl)
 					for i, c := range cl {
 						if c.X == int(tx.X) && c.Y == int(tx.Y) && c.Hash == tx.TargetHash.String() && c.Height == tx.TargetHeight && c.Height < ctx.TargetHeight() {
-							cl = append(cl[:i], cl[i+1:]...)
-							h := hash.Hash(util.Uint48ToBytes(tx.Vin[0].Height, tx.Vin[0].Index))
+							delete(cl, i)
+
+							h := tx.Hash()
 							x := int(util.BytesToUint16([]byte(h[0:2]))) % GTileSize
 							y := int(util.BytesToUint16([]byte(h[2:4]))) % GTileSize
 
-							cl = append(cl, &FletaCityCoin{
+							if _, has := cl[h.String()]; has {
+								panic("has")
+							}
+
+							cl[h.String()] = &FletaCityCoin{
 								X:        int(x),
 								Y:        int(y),
 								Hash:     h.String(),
 								Height:   ctx.TargetHeight() + TimeCoinGenTime,
 								CoinType: TimeCoinType,
-							})
+							}
 							bf := &bytes.Buffer{}
 							_, err := CLWriteTo(bf, cl)
 							if err != nil {
 								return err
 							}
 							ctx.SetAccountData(tx.Address, []byte("CoinList"), bf.Bytes())
+							bs := ctx.AccountData(tx.Address, []byte("GetCoinCount"))
+							var coinCount uint32
+							if len(bs) == 4 {
+								coinCount = util.BytesToUint32(bs)
+							} else {
+								coinCount = 1
+							}
+							ctx.SetAccountData(tx.Address, []byte("GetCoinCount"), util.Uint32ToBytes(coinCount+1))
 							ctx.Commit(sn)
 							return nil
 						}

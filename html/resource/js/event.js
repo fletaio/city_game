@@ -271,11 +271,19 @@ function onMessage(ws,  e) {
 		gGame.height = noti.height
 		gGame.point_balance = noti.point_balance
 		if (typeof noti.fleta_city_coins !== "undefined") {
-			gGame.coin_list = {}
-			for (var i in noti.fleta_city_coins) {
-				var c = noti.fleta_city_coins[i]
-				gGame.coin_list[c.hash] = c;
+			for (var k in noti.fleta_city_coins) {
+				if (typeof gGame.coin_list[k] === "undefined") {
+					gGame.coin_list[k] = new FletaCityCoin(noti.fleta_city_coins[k])
+				}
 			}
+			for (var k in gGame.coin_list) {
+				if (typeof noti.fleta_city_coins[k] === "undefined") {
+					gGame.coin_list[k].Remove()
+				}
+			}
+		}
+		if (noti.coin_count) {
+			$("[key='coin_count']").html(noti.coin_count)
 		}
 
 		SendQueue.NewUTXO(noti.utxo)

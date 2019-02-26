@@ -132,10 +132,6 @@ Tile.prototype.CheckLvRound = function(checkLv) {
 	return lt.CheckLvRound(this, checkLv)
 };
 
-Tile.prototype.addCoin = function(coin) {
-	this.UI.addCoin(coin)
-};
-
 function LvFTiles () {
 	this.init()
 }

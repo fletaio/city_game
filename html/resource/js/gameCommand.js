@@ -60,8 +60,7 @@ Tile.prototype.Upgrade = function() {
 Tile.prototype.GetCoin = function(param) {
 	var ps = param.split(":")
 	if (ps.length === 3) {
-		gGame.coin_list[ps[2]].height += 100000
-		this.UI.removeCoin(ps[2])
+		gGame.coin_list[ps[2]].HideOnMap()
 	}
 	return this;
 }

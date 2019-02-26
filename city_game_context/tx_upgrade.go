@@ -184,13 +184,13 @@ func UpgradeTxExecFunc(ctx *data.Context, Fee *amount.Amount, t transaction.Tran
 		if cl, err := CLReadFrom(bf); err != nil {
 			return err
 		} else {
-			cl = append(cl, &FletaCityCoin{
+			cl[tx.Hash().String()] = &FletaCityCoin{
 				X:        int(tx.X),
 				Y:        int(tx.Y),
 				Hash:     tx.Hash().String(),
 				Height:   ctx.TargetHeight() + bd.BuildTime*2,
 				CoinType: ConstructCoinType,
-			})
+			}
 
 			bf := &bytes.Buffer{}
 			_, err := CLWriteTo(bf, cl)

@@ -23,6 +23,7 @@
 }
 
 #selectedInfo,
+#scoreboard #fletaCityCoinCount,
 #scoreboard #dollar,
 #scoreboard #power,
 #scoreboard #demographic {
@@ -42,6 +43,7 @@
 #scoreboard #dollar {background-image: url("/images/ui/dollar.png");}
 #scoreboard #power {background-image: url("/images/ui/power.png");}
 #scoreboard #demographic {background-image: url("/images/ui/demographic.png");}
+#scoreboard #fletaCityCoinCount {background-image: url("/images/ui/fletacoinpannel.png");}
 
 #scoreboard #dollar{
     line-height: 1.3vh;
