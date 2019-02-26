@@ -32,4 +32,5 @@ var (
 	ErrInsufficientResource        = errors.New("insufficient resource")
 	ErrTimeCoinNotExist            = errors.New("time coin not exist")
 	ErrTypeMissMatch               = errors.New("type miss match")
+	ErrNotExistGameData            = errors.New("not exist game data")
 )

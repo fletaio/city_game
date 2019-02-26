@@ -150,8 +150,8 @@ func init() {
 
 			targetCoinList := []*FletaCityCoin{}
 			for i := 0; i < 10; i++ {
-				x := util.BytesToUint16([]byte(h[i*2 : i*2+2]))
-				y := util.BytesToUint16([]byte(h[i*2+2 : i*2+4]))
+				x := util.BytesToUint16([]byte(h[i*2:i*2+2])) % GTileSize
+				y := util.BytesToUint16([]byte(h[i*2+2:i*2+4])) % GTileSize
 				h := hash.Hash([]byte(h[i*2 : i*2+4]))
 				targetCoinList = append(targetCoinList, &FletaCityCoin{
 					X:        int(x),

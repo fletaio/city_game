@@ -59,7 +59,13 @@ func init() {
 }
 
 func UpgradeTxExecFunc(ctx *data.Context, Fee *amount.Amount, t transaction.Transaction, coord *common.Coordinate) (interface{}, error) {
-	tx := t.(*UpgradeTx)
+	var tx *UpgradeTx
+	switch _tx := t.(type) {
+	case *UpgradeTx:
+		tx = _tx
+	case *ConstructionTx:
+		tx = _tx.UpgradeTx
+	}
 	sn := ctx.Snapshot()
 	defer ctx.Revert(sn)
 

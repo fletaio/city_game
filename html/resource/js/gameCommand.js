@@ -1,5 +1,10 @@
 Tile.prototype.RunCommand = function(func, param) {
 	if (typeof this[func] === "function") {
+		if (func == "GetCoin") {
+			var tile = this[func](param);
+			sendServer(func, tile, param)
+			return
+		}
 		(function (This) {
 			var tile = This;
 			UIAlert.Alert(func, function () {
@@ -51,6 +56,14 @@ Tile.prototype.Commercial = function() {
 }
 Tile.prototype.Upgrade = function() {
 	return this.Build();
+}
+Tile.prototype.GetCoin = function(param) {
+	var ps = param.split(":")
+	if (ps.length === 3) {
+		gGame.coin_list[ps[2]].height += 100000
+		this.UI.removeCoin(ps[2])
+	}
+	return this;
 }
 
 function buildingType(num) {
@@ -176,7 +189,7 @@ SendQueue.prototype.sendServer = function(utxo) {
 			tile.y
 			var coinType = ps[0]
 			var height = ps[1]
-			var hash = ps[1]
+			var hash = ps[2]
 
 
 			$.ajax({
@@ -186,8 +199,8 @@ SendQueue.prototype.sendServer = function(utxo) {
 					"utxo": utxo,
 					"x": tile.x,
 					"y": tile.y,
-					"coin_type": coinType,
-					"height": height,
+					"coin_type": +coinType,
+					"height": +height,
 					"hash": hash,
 				}),
 				success : function (d) {

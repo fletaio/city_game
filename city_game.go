@@ -28,6 +28,7 @@ import (
 	"git.fleta.io/fleta/core/formulator"
 	"git.fleta.io/fleta/core/kernel"
 	"git.fleta.io/fleta/core/key"
+	"git.fleta.io/fleta/core/message_def"
 	"git.fleta.io/fleta/core/observer"
 	"git.fleta.io/fleta/core/transaction"
 	"git.fleta.io/fleta/framework/peer"
@@ -168,9 +169,8 @@ func main() {
 
 		rd := &mockRewarder{}
 		kn, err := kernel.NewKernel(&kernel.Config{
-			ChainCoord:       GenCoord,
-			ObserverKeyMap:   ObserverKeyMap,
-			GenTimeThreshold: 300 * time.Millisecond,
+			ChainCoord:     GenCoord,
+			ObserverKeyMap: ObserverKeyMap,
 		}, ks, rd, GenesisContextData)
 		if err != nil {
 			panic(err)
@@ -219,9 +219,8 @@ func main() {
 
 		rd := &mockRewarder{}
 		kn, err := kernel.NewKernel(&kernel.Config{
-			ChainCoord:       GenCoord,
-			ObserverKeyMap:   ObserverKeyMap,
-			GenTimeThreshold: 300 * time.Millisecond,
+			ChainCoord:     GenCoord,
+			ObserverKeyMap: ObserverKeyMap,
 		}, ks, rd, GenesisContextData)
 		if err != nil {
 			panic(err)
@@ -801,7 +800,8 @@ func main() {
 		if req.Y > citygame.GTileSize {
 			return citygame.ErrInvalidPosition
 		}
-		if req.CoinType != uint8(citygame.ConstructCoinType) && req.CoinType != uint8(citygame.TimeCoinType) {
+		coinType := uint8(req.CoinType)
+		if coinType != uint8(citygame.ConstructCoinType) && coinType != uint8(citygame.TimeCoinType) {
 			return citygame.ErrInvalidCoinType
 		}
 
@@ -826,7 +826,7 @@ func main() {
 		tx.X = uint8(req.X)
 		tx.Y = uint8(req.Y)
 		tx.CoinType = citygame.CoinType(req.CoinType)
-		tx.TargetHash = hash.MustParseHash(req.Hash)
+		tx.TargetHash = hash.MustParseHex(req.Hash)
 		tx.TargetHeight = req.Height
 
 		var buffer bytes.Buffer
@@ -949,46 +949,23 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 	for i, t := range b.Body.Transactions {
 		switch tx := t.(type) {
 		case *citygame.DemolitionTx:
-			gd := citygame.NewGameData(b.Header.Height())
-			bs := ctx.AccountData(tx.Address, []byte("game"))
-			if len(bs) == 0 {
+			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), i)
+			if err != nil {
 				continue
 			}
-			if _, err := gd.ReadFrom(bytes.NewReader(bs)); err != nil {
-				continue
-			}
-			id := transaction.MarshalID(b.Header.Height(), uint16(i), 0)
-			var errorMsg string
-			for i := 0; i < citygame.GameAccountChannelSize; i++ {
-				newid := util.BytesToUint64(ctx.AccountData(tx.Address, []byte("utxo"+strconv.Itoa(i))))
-				if id == newid {
-					bs := ctx.AccountData(tx.Address, []byte("result"+strconv.Itoa(i)))
-					if len(bs) > 0 {
-						errorMsg = string(bs)
-					}
-					break
-				}
-			}
-			ew.Notify(tx.Address, &WebTileNotify{
-				Type:         0,
-				X:            int(tx.X),
-				Y:            int(tx.Y),
-				AreaType:     int(0),
-				Level:        int(0),
-				Height:       int(b.Header.Height()),
-				PointHeight:  int(gd.PointHeight),
-				PointBalance: int(gd.PointBalance),
-				UTXO:         int(id),
-				Tx: &UTXO{
-					ID:     id,
-					X:      int(tx.X),
-					Y:      int(tx.Y),
-					Hash:   t.Hash().String(),
-					Height: b.Header.Height(),
-					Type:   int(t.Type()),
-				},
-				Error: errorMsg,
-			})
+			wtn.Type = 0
+			wtn.X = int(tx.X)
+			wtn.Y = int(tx.Y)
+			wtn.AreaType = int(0)
+			wtn.Level = int(0)
+
+			wtn.Tx.X = int(tx.X)
+			wtn.Tx.Y = int(tx.Y)
+			wtn.Tx.Hash = t.Hash().String()
+			wtn.Tx.Height = b.Header.Height()
+			wtn.Tx.Type = int(t.Type())
+
+			ew.Notify(tx.Address, wtn)
 			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "")
 		case *citygame.UpgradeTx, *citygame.ConstructionTx:
 			var utx *citygame.UpgradeTx
@@ -998,47 +975,22 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 			case *citygame.ConstructionTx:
 				utx = _tx.UpgradeTx
 			}
-			gd := citygame.NewGameData(b.Header.Height())
-			bs := ctx.AccountData(utx.Address, []byte("game"))
-			if len(bs) == 0 {
+			wtn, gd, err := getWebTileNotify(ctx, utx.Address, b.Header.Height(), i)
+			if err != nil {
 				continue
-			}
-			if _, err := gd.ReadFrom(bytes.NewReader(bs)); err != nil {
-				continue
-			}
-			id := transaction.MarshalID(b.Header.Height(), uint16(i), 0)
-			var errorMsg string
-			for i := 0; i < citygame.GameAccountChannelSize; i++ {
-				newid := util.BytesToUint64(ctx.AccountData(utx.Address, []byte("utxo"+strconv.Itoa(i))))
-				if id == newid {
-					bs := ctx.AccountData(utx.Address, []byte("result"+strconv.Itoa(i)))
-					if len(bs) > 0 {
-						errorMsg = string(bs)
-					}
-					break
-				}
 			}
 
-			wtn := &WebTileNotify{
-				Type:         1,
-				X:            int(utx.X),
-				Y:            int(utx.Y),
-				AreaType:     int(utx.AreaType),
-				Level:        int(utx.TargetLevel),
-				Height:       int(b.Header.Height()),
-				PointHeight:  int(gd.PointHeight),
-				PointBalance: int(gd.PointBalance),
-				UTXO:         int(id),
-				Tx: &UTXO{
-					ID:     id,
-					X:      int(utx.X),
-					Y:      int(utx.Y),
-					Hash:   t.Hash().String(),
-					Height: b.Header.Height(),
-					Type:   int(t.Type()),
-				},
-				Error: errorMsg,
-			}
+			wtn.Type = 1
+			wtn.X = int(utx.X)
+			wtn.Y = int(utx.Y)
+			wtn.AreaType = int(utx.AreaType)
+			wtn.Level = int(utx.TargetLevel)
+
+			wtn.Tx.X = int(utx.X)
+			wtn.Tx.Y = int(utx.Y)
+			wtn.Tx.Hash = t.Hash().String()
+			wtn.Tx.Height = b.Header.Height()
+			wtn.Tx.Type = int(t.Type())
 
 			clbs := ctx.AccountData(utx.Address, []byte("CoinList"))
 			bf := bytes.NewBuffer(clbs)
@@ -1049,16 +1001,71 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 
 			ew.be.UpdateScore(gd, b.Header.Height(), utx.Address, "")
 		case *citygame.GetCoinTx:
+			wtn, _, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), i)
+			if err != nil {
+				continue
+			}
+			wtn.Type = 2
+			wtn.X = int(tx.X)
+			wtn.Y = int(tx.Y)
+
+			wtn.Tx.X = int(tx.X)
+			wtn.Tx.Y = int(tx.Y)
+			wtn.Tx.Hash = t.Hash().String()
+			wtn.Tx.Height = b.Header.Height()
+			wtn.Tx.Type = int(t.Type())
 
 			clbs := ctx.AccountData(tx.Address, []byte("CoinList"))
 			bf := bytes.NewBuffer(clbs)
 			if cl, err := citygame.CLReadFrom(bf); err == nil {
-				ew.Notify(tx.Address, &WebTileNotify{
-					CoinList: cl,
-				})
+				wtn.CoinList = cl
+				ew.Notify(tx.Address, wtn)
 			}
 		}
 	}
+}
+
+func (ew *EventWatcher) AfterPushTransaction(kn *kernel.Kernel, tx transaction.Transaction, sigs []common.Signature) {
+}
+
+// DoTransactionBroadcast called when a transaction need to be broadcast
+func (ew *EventWatcher) DoTransactionBroadcast(kn *kernel.Kernel, msg *message_def.TransactionMessage) {
+}
+
+// DebugLog TEMP
+func (ew *EventWatcher) DebugLog(kn *kernel.Kernel, args ...interface{}) {}
+
+func getWebTileNotify(ctx *data.Context, addr common.Address, height uint32, index int) (*WebTileNotify, *citygame.GameData, error) {
+	gd := citygame.NewGameData(height)
+	bs := ctx.AccountData(addr, []byte("game"))
+	if len(bs) == 0 {
+		return nil, nil, citygame.ErrNotExistGameData
+	}
+	if _, err := gd.ReadFrom(bytes.NewReader(bs)); err != nil {
+		return nil, nil, err
+	}
+	id := transaction.MarshalID(height, uint16(index), 0)
+	var errorMsg string
+	for i := 0; i < citygame.GameAccountChannelSize; i++ {
+		newid := util.BytesToUint64(ctx.AccountData(addr, []byte("utxo"+strconv.Itoa(index))))
+		if id == newid {
+			bs := ctx.AccountData(addr, []byte("result"+strconv.Itoa(index)))
+			if len(bs) > 0 {
+				errorMsg = string(bs)
+			}
+			break
+		}
+	}
+	return &WebTileNotify{
+		Height:       int(height),
+		PointHeight:  int(gd.PointHeight),
+		PointBalance: int(gd.PointBalance),
+		UTXO:         int(id),
+		Tx: &UTXO{
+			ID: id,
+		},
+		Error: errorMsg,
+	}, gd, nil
 }
 
 // Notify TODO
@@ -1126,7 +1133,7 @@ type WebGetCoinReq struct {
 	Y        int    `json:"y"`
 	Hash     string `json:"hash"`
 	Height   uint32 `json:"height"`
-	CoinType uint8  `json:"coin_type"`
+	CoinType int    `json:"coin_type"`
 }
 
 type WebTxRes struct {

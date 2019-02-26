@@ -226,5 +226,10 @@ TileUI.prototype.addCoin = function(coin) {
 	fc.attr("hash", coin.hash)
 	fc.attr("height", coin.height)
 	fc.attr("coin_type", coin.coin_type)
-	fc.attr("onclick", "gGame.Tiles["+(+coin.x + +coin.y*gConfig.Size)+"].RunCommand('GetCoin', '"+coin.coin_type+":"+coin.height+":"+coin.hash+"')")
+	fc.attr("onclick", "event.stopPropagation();gGame.tiles["+(+coin.x + +coin.y*gConfig.Size)+"].RunCommand('GetCoin', '"+coin.coin_type+":"+coin.height+":"+coin.hash+"')")
 }
+
+TileUI.prototype.removeCoin = function(hash) {
+	this.touch.find("[hash='"+hash+"']").remove()
+}
+

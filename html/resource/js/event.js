@@ -268,10 +268,14 @@ function onMessage(ws,  e) {
 
 		console.log(e.data)
 
-		gGame.height = noti.point_height
-		gGame.point_balance = noti.point_height
-		if (typeof d.fleta_city_coins !== "undefined") {
-			gGame.coin_list = d.fleta_city_coins;
+		gGame.height = noti.height
+		gGame.point_balance = noti.point_balance
+		if (typeof noti.fleta_city_coins !== "undefined") {
+			gGame.coin_list = {}
+			for (var i in noti.fleta_city_coins) {
+				var c = noti.fleta_city_coins[i]
+				gGame.coin_list[c.hash] = c;
+			}
 		}
 
 		SendQueue.NewUTXO(noti.utxo)

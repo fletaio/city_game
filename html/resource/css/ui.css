@@ -518,11 +518,30 @@
 }
 
 .fletaCoin {
-    background-image: url("/images/ui/fletacoin.png");
+    background-image: url(/images/ui/fletacoin.png);
     background-size: 100%;
     position: absolute;
+    width: 0.7rem;
+    height: 0.7rem;
+    z-index: 10000000;
+    background-color: transparent;
+    border: none;
+    left: 0.15rem;
+    top: -0.15rem;
+    -webkit-transition:width .2s, height .2s, left .2s, top .2s;
+    transition:width .2s, height .2s, left .2s, top .2s;
+    cursor: pointer;
 }
-
+.fletaCoin:hover {
+    width: 1rem;
+    height: 1rem;
+    left: 0rem;
+    top: -0.25rem;
+}
+.fletaCoin:active {
+    outline: none;
+    border: none;
+}
 
 #AlertBackground {
     position: absolute;

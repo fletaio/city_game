@@ -94,6 +94,7 @@ func init() {
 								return err
 							}
 							ctx.SetAccountData(tx.Address, []byte("CoinList"), bf.Bytes())
+							ctx.Commit(sn)
 							return nil
 						}
 					}
@@ -110,8 +111,8 @@ func init() {
 						if c.X == int(tx.X) && c.Y == int(tx.Y) && c.Hash == tx.TargetHash.String() && c.Height == tx.TargetHeight && c.Height < ctx.TargetHeight() {
 							cl = append(cl[:i], cl[i+1:]...)
 							h := hash.Hash(util.Uint48ToBytes(tx.Vin[0].Height, tx.Vin[0].Index))
-							x := util.BytesToUint16([]byte(h[0:2]))
-							y := util.BytesToUint16([]byte(h[2:4]))
+							x := int(util.BytesToUint16([]byte(h[0:2]))) % GTileSize
+							y := int(util.BytesToUint16([]byte(h[2:4]))) % GTileSize
 
 							cl = append(cl, &FletaCityCoin{
 								X:        int(x),
@@ -126,6 +127,7 @@ func init() {
 								return err
 							}
 							ctx.SetAccountData(tx.Address, []byte("CoinList"), bf.Bytes())
+							ctx.Commit(sn)
 							return nil
 						}
 					}
