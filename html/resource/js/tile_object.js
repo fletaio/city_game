@@ -127,7 +127,6 @@ Tile.prototype.completBuilding = function (effect) {
 	this.UI.completBuilding(effect)
 }
 
-
 Tile.prototype.CheckLvRound = function(checkLv) {
 	var lt = new LvFTiles()
 	return lt.CheckLvRound(this, checkLv)

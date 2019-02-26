@@ -23,6 +23,7 @@
 }
 
 #selectedInfo,
+#scoreboard #fletaCityCoinCount,
 #scoreboard #dollar,
 #scoreboard #power,
 #scoreboard #demographic {
@@ -42,6 +43,7 @@
 #scoreboard #dollar {background-image: url("/images/ui/dollar.png");}
 #scoreboard #power {background-image: url("/images/ui/power.png");}
 #scoreboard #demographic {background-image: url("/images/ui/demographic.png");}
+#scoreboard #fletaCityCoinCount {background-image: url("/images/ui/fletacoinpannel.png");}
 
 #scoreboard #dollar{
     line-height: 1.3vh;
@@ -516,3 +518,67 @@
 #txLog .descript {
     color: #fff;
 }
+
+.fletaCoin {
+    background-image: url(/images/ui/fletacoin.png);
+    background-size: 100%;
+    position: absolute;
+    width: 0.7rem;
+    height: 0.7rem;
+    z-index: 10000000;
+    background-color: transparent;
+    border: none;
+    left: 0.15rem;
+    top: -0.15rem;
+    -webkit-transition:width .2s, height .2s, left .2s, top .2s;
+    transition:width .2s, height .2s, left .2s, top .2s;
+    cursor: pointer;
+}
+.fletaCoin:hover {
+    width: 1rem;
+    height: 1rem;
+    left: 0rem;
+    top: -0.25rem;
+}
+.fletaCoin:active {
+    outline: none;
+    border: none;
+}
+
+#AlertBackground {
+    position: absolute;
+    top:0;
+    left:0;
+    bottom:0;
+    right: 0;
+    width:100%;
+    height:100%;
+    background-color: #000a;
+    text-align: center;
+    display: inline-block;
+}
+.AlertCase {
+    padding: 3vh 5vh 3vh 5vh;
+    background-image: url(/images/ui/alertwindow.png);
+    background-size: 100% 100%;
+    margin: 10vh 0 0 -19vh;
+    position: absolute;
+    display: inline-block;
+    width: 38vh;
+}
+.alertText{
+    padding: 2vh 0 6vh 0;
+    color: #fff;
+    font-size: 2vh;
+    word-break:break-all;
+}
+.okBtn{
+    width: 8vh;
+    height: 4vh;
+    background-image: url(/images/ui/alertbutton.png);
+    background-size: 100% 100%;
+    position: absolute;
+    bottom: 3.2vh;
+    left: 15vh;
+}
+.okBtn:hover{background-image: url("/images/ui/alertbutton_press.png");}

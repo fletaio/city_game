@@ -15,7 +15,10 @@ const (
 // AreaType is a area type of the target tile
 type AreaType uint8
 
-// types
+// CoinType is a coin type of the construct or time
+type CoinType uint8
+
+// area types
 const (
 	EmptyAreaType       = AreaType(0)
 	CommercialAreaType  = AreaType(1)
@@ -23,6 +26,18 @@ const (
 	ResidentialAreaType = AreaType(3)
 	EndOfAreaType       = AreaType(4)
 )
+
+// Coin types
+const (
+	EmptyCoinType     = CoinType(0)
+	ConstructCoinType = CoinType(1)
+	TimeCoinType      = CoinType(2)
+)
+
+// TimeCoinGenTime id define coin regenerate time
+// const TimeCoinGenTime = uint32(0.5 * 2 * 60 * 5) //blocktime * 1/blocktime * 1minute * 5
+// TODO fix time
+const TimeCoinGenTime = uint32(0.5 * 2 * 30) //blocktime * 1/blocktime * 1minute * 5
 
 // Tile reprents a information of the target tile
 type Tile struct {

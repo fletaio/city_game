@@ -1,7 +1,7 @@
 var gConfig = {
 	Unit: 64,
     Size: 16,
-	Explorer: "http://localhost:9088",
+	Explorer: "//"+window.location.hostname+":9088",
 }
 
 function Game() {
@@ -11,6 +11,7 @@ function Game() {
 	this.tiles = [];
 	this.define_map = null;
 	this.txs = [];
+	this.coin_list = {};
 }
 
 var currentResource = {}
@@ -88,6 +89,17 @@ Game.prototype.Update = function() {
 				sTile.completBuilding()
 			} else {
 				sTile.UI.ShowBuildProcessingTime((buildCompletHeight-gGame.height)/2)
+			}
+		}
+	}
+
+	for (var i in gGame.coin_list) {
+		var c = gGame.coin_list[i]
+		if (this.height > c.height) {
+			try {
+				c.PutOnMap()
+			} catch (e) {
+				console.log(e)
 			}
 		}
 	}

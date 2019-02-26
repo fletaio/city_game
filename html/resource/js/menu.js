@@ -127,13 +127,16 @@ function addTx (tx) {
 	switch(tx.tx_type) {
 		case 2:
 			tx.type = "Demolition"
-		break;
+			break;
 		case 3:
 			tx.type = "Construction"
-		break;
+			break;
 		case 4:
 			tx.type = "Upgrade"
-		break;
+			break;
+		case 5:
+			tx.type = "GetCoin"
+			break;
 		default:
 		return;
 	}

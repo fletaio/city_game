@@ -55,6 +55,14 @@ function loadTile() {
 			gConfig.Size = Math.pow(d.tiles.length, 0.5);
 			gGame.define_map = gBuildingDefine;
 			gGame.txs = d.txs;
+			gGame.coin_list = {}
+			for (var k in d.fleta_city_coins) {
+				gGame.coin_list[k] = new FletaCityCoin(d.fleta_city_coins[k])
+			}
+			if (d.coin_count) {
+				$("[key='coin_count']").html(d.coin_count)
+			}
+
 			gGame.height = d.height;
 			gGame.point_height = d.point_height;
 			gGame.point_balance = d.point_balance;

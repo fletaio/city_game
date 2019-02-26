@@ -2,6 +2,7 @@ package citygame
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"strconv"
 
@@ -144,6 +145,27 @@ func init() {
 				ctx.SetAccountData(addr, []byte("utxo"+strconv.Itoa(i)), util.Uint64ToBytes(id))
 			}
 
+			hbs := util.Uint32ToBytes(ctx.TargetHeight())
+			h := hash.Hash(hbs)
+
+			targetCoinMap := map[string]*FletaCityCoin{}
+			for i := 0; i < 10; i++ {
+				x := int(util.BytesToUint16([]byte(h[i*2:i*2+2]))) % GTileSize
+				y := int(util.BytesToUint16([]byte(h[i*2+2:i*2+4]))) % GTileSize
+				h := hash.Hash([]byte(h[i:])).String()
+				targetCoinMap[h] = &FletaCityCoin{
+					X:        x,
+					Y:        y,
+					Hash:     h,
+					Height:   ctx.TargetHeight() + TimeCoinGenTime*2,
+					CoinType: TimeCoinType,
+				}
+			}
+			bf := &bytes.Buffer{}
+			CLWriteTo(bf, targetCoinMap)
+			ctx.SetAccountData(addr, []byte("CoinList"), bf.Bytes())
+			ctx.SetAccountData(addr, []byte("GetCoinCount"), util.Uint32ToBytes(0))
+
 			ctx.Commit(sn)
 		}()
 
@@ -233,4 +255,70 @@ func (tx *CreateAccountTx) ReadFrom(r io.Reader) (int64, error) {
 		tx.Reward = v
 	}
 	return read, nil
+}
+
+// MarshalJSON is a marshaler function
+func (tx *CreateAccountTx) MarshalJSON() ([]byte, error) {
+	var buffer bytes.Buffer
+	buffer.WriteString(`{`)
+	buffer.WriteString(`"chain_coord":`)
+	if bs, err := tx.ChainCoord_.MarshalJSON(); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`,`)
+	buffer.WriteString(`"timestamp":`)
+	if bs, err := json.Marshal(tx.Timestamp_); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`,`)
+	buffer.WriteString(`"type":`)
+	if bs, err := json.Marshal(tx.Type_); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`,`)
+	buffer.WriteString(`"vin":`)
+	buffer.WriteString(`[`)
+	for i, vin := range tx.Vin {
+		if i > 0 {
+			buffer.WriteString(`,`)
+		}
+		if bs, err := json.Marshal(vin.ID()); err != nil {
+			return nil, err
+		} else {
+			buffer.Write(bs)
+		}
+	}
+	buffer.WriteString(`]`)
+	buffer.WriteString(`,`)
+
+	buffer.WriteString(`"key_hash":`)
+	if bs, err := json.Marshal(tx.KeyHash); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`,`)
+
+	buffer.WriteString(`"user_id":`)
+	if bs, err := json.Marshal(tx.UserID); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`,`)
+
+	buffer.WriteString(`"reward":`)
+	if bs, err := json.Marshal(tx.Reward); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`}`)
+	return buffer.Bytes(), nil
 }

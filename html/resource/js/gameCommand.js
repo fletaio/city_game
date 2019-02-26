@@ -1,5 +1,10 @@
-Tile.prototype.RunCommand = function(func, e) {
+Tile.prototype.RunCommand = function(func, param) {
 	if (typeof this[func] === "function") {
+		if (func == "GetCoin") {
+			var tile = this[func](param);
+			sendServer(func, tile, param)
+			return
+		}
 		(function (This) {
 			var tile = This;
 			UIAlert.Alert(func, function () {
@@ -11,7 +16,7 @@ Tile.prototype.RunCommand = function(func, e) {
 				// 	return
 				// }
 				try{
-					tile = tile[func]();
+					tile = tile[func](param);
 				} catch(e) {
 					console.log(e)
 				}
@@ -27,7 +32,7 @@ Tile.prototype.RunCommand = function(func, e) {
 					// 		onMessage({_init:true}, {data : "{\"point_height\":"+height+",\"point_balance\":"+balance+",\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":"+tile.type+",\"level\":"+(tile.level+1)+",\"type\":1,\"height\":"+gGame.height+"}"})
 					// 	}
 					// }, 100)
-					sendServer(func, tile)
+					sendServer(func, tile, param)
 				} else {
 					// loginInfo.pushUTXO(utxo)
 				}
@@ -52,6 +57,13 @@ Tile.prototype.Commercial = function() {
 Tile.prototype.Upgrade = function() {
 	return this.Build();
 }
+Tile.prototype.GetCoin = function(param) {
+	var ps = param.split(":")
+	if (ps.length === 3) {
+		gGame.coin_list[ps[2]].HideOnMap()
+	}
+	return this;
+}
 
 function buildingType(num) {
 	switch (num) {
@@ -75,15 +87,16 @@ function buildingNum(str) {
 	}
 }
 
-function sendServer(func, tile, utxo) {
-	var q = new SendQueue(func, tile)
+function sendServer(func, tile, param) {
+	var q = new SendQueue(func, tile, param)
 	q.Enqueue()
 	q.Do()
 }
 
-function SendQueue(func, tile) {
+function SendQueue(func, tile, param) {
 	this.func = func;
 	this.tile = tile;
+	this.param = param;
 }
 SendQueue.quere = [];
 SendQueue.utxo = [];
@@ -112,6 +125,7 @@ SendQueue.prototype.Do = function () {
 SendQueue.prototype.sendServer = function(utxo) {
 	var func = this.func;
 	var tile = this.tile;
+	var param = this.param;
 	if (func == "Demolition") {
 		$.ajax({
 			type: "POST",
@@ -166,6 +180,47 @@ SendQueue.prototype.sendServer = function(utxo) {
 					Alert(language["Failed to execute upgrade command"])
 				}
 			})
+		}
+	} else if (func == "GetCoin") {
+		var ps = param.split(":")
+		if (ps.length == 3) {
+			tile.x
+			tile.y
+			var coinType = ps[0]
+			var height = ps[1]
+			var hash = ps[2]
+
+
+			$.ajax({
+				type: "POST",
+				url : "/api/games/"+loginInfo.Addr+"/commands/getcoin",
+				data : JSON.stringify({
+					"utxo": utxo,
+					"x": tile.x,
+					"y": tile.y,
+					"coin_type": +coinType,
+					"height": +height,
+					"hash": hash,
+				}),
+				success : function (d) {
+					if (typeof d === "string") {
+						d = JSON.parse(d)
+					}
+					/*
+						"type": 3,
+						"tx_hex": TRANSACTION_HEX,
+						"hash_hex": HASH_HEX
+					*/
+					commit(d)
+				},
+				error: function(d) {
+					SendQueue.NewUTXO(utxo)
+					Alert(language["Failed to execute upgrade command"])
+				}
+			})
+
+		} else {
+			alert("not Enough parameter")
 		}
 	}
 

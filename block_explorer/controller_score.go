@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"git.fleta.io/fleta/common"
+	"git.fleta.io/fleta/common/util"
 
 	citygame "git.fleta.io/fleta/city_game/city_game_context"
 
@@ -38,6 +39,11 @@ func (e *ScoreController) User(r *http.Request) (map[string][]byte, error) {
 	e.kn.Lock()
 	bs := e.kn.Loader().AccountData(addr, []byte("game"))
 	Height := e.kn.Provider().Height()
+	ccbs := e.kn.Loader().AccountData(addr, []byte("GetCoinCount"))
+	var coinCount uint32
+	if len(ccbs) == 4 {
+		coinCount = util.BytesToUint32(ccbs)
+	}
 	e.kn.Unlock()
 
 	if len(bs) == 0 {
@@ -55,6 +61,7 @@ func (e *ScoreController) User(r *http.Request) (map[string][]byte, error) {
 	return map[string][]byte{
 		"ID":          []byte(userid),
 		"Addr":        []byte(addrStr),
+		"Coin":        []byte(fmt.Sprintf("%v", coinCount)),
 		"Gold":        []byte(fmt.Sprintf("%v", gr.Balance)),
 		"Population":  []byte(fmt.Sprintf("%v", gr.ManProvided)),
 		"Electricity": []byte(fmt.Sprintf("%v", gr.PowerProvided)),

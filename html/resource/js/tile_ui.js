@@ -217,3 +217,4 @@ TileUI.prototype.Remove = function() {
 	this.obj.find(".floor").attr("src", "/images/tile/base_floor/groundtiles_tile"+this.num+".png").attr("class", "floor");
 	this.obj.css("z-index", (+this.x + +this.y)*10)
 }
+

@@ -29,11 +29,14 @@
 .footer {
     background: #6e45e5;
 }
-
 .clickable {
     cursor: pointer;
 }
 .active {
+    background-color: #1b2436;
+    color: #fff;
+}
+.fleta-table th.active {
     background-color: #1b2436;
     color: #fff;
 }

@@ -128,7 +128,7 @@ function login () {
             loginFlag = false
 			switch(d.responseText) {
 			case "not exist account":
-                Alert(language["Account or password in correct"])
+                Alert(language["Invalid Id or Password"])
 				break;
 			default:
 				Alert(d.responseText);
