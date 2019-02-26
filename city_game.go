@@ -973,6 +973,11 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 			wtn.Tx.Hash = t.Hash().String()
 			wtn.Tx.Height = b.Header.Height()
 			wtn.Tx.Type = int(t.Type())
+			clbs := ctx.AccountData(tx.Address, []byte("CoinList"))
+			bf := bytes.NewBuffer(clbs)
+			if cl, err := citygame.CLReadFrom(bf); err == nil {
+				wtn.CoinList = cl
+			}
 
 			ew.Notify(tx.Address, wtn)
 			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "", wtn.CoinCount)

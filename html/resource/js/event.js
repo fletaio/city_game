@@ -266,8 +266,6 @@ function onMessage(ws,  e) {
 			var noti = e.data;
 		}
 
-		console.log(e.data)
-
 		gGame.height = noti.height
 		gGame.point_balance = noti.point_balance
 		if (typeof noti.fleta_city_coins !== "undefined") {

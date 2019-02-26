@@ -574,12 +574,12 @@
     word-break:break-all;
 }
 .okBtn{
-    width: 8vh;
-    height: 4vh;
+    width: 9vh;
+    height: 3vh;
     background-image: url(/images/ui/alertbutton.png);
     background-size: 100% 100%;
     position: absolute;
     bottom: 3.2vh;
-    left: 15vh;
+    left: 14.5vh;
 }
 .okBtn:hover{background-image: url("/images/ui/alertbutton_press.png");}

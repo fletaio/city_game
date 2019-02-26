@@ -3,6 +3,9 @@ var gConfig = {
     Size: 16,
 	Explorer: "//"+window.location.hostname+":9088",
 }
+if (window.location.hostname.indexOf("fleta.io")) {
+	gConfig.Explorer = "//fletacityexplorer.fleta.io"
+}
 
 function Game() {
 	this.height = 0;
@@ -33,13 +36,18 @@ Game.prototype.Update = function() {
 		var tile = gGame.tiles[k];
 		if (tile.level||tile.BuildProcessing) {
 			var level = tile.level
-			var bd = gBuildingDefine[tile.type][level-1];
-			if (tile.BuildProcessing) {
+			if (tile.BuildProcessing && (!tile.headTile || tile.headTile.index == tile.index)) {
 				level++
-				var bd = gBuildingDefine[tile.type][level-1];
 			}
-			used.man_remained += bd.man_usage||0;
-			used.power_remained += bd.power_usage||0;
+			var bd = gBuildingDefine[tile.type][level-1];
+			
+			if (!tile.BuildProcessing && tile.headTile && tile.headTile.index == tile.index) {
+				var bd2 = gBuildingDefine[tile.type][level-2];
+				used.man_remained += bd2.acc_man_usage*3||0;
+				used.power_remained += bd2.acc_power_usage*3||0;
+			}
+			used.man_remained += bd.acc_man_usage||0;
+			used.power_remained += bd.acc_power_usage||0;
 
 			if (tile.type == CommercialType) {
 				addBalance += bd.output;
@@ -47,7 +55,11 @@ Game.prototype.Update = function() {
 
 			var ConstructionHeight = tile.build_height + bd.build_time*2
 			if (this.height < ConstructionHeight || tile.BuildProcessing) {
-				bd = gBuildingDefine[tile.type][level-2];
+				if (tile.BuildProcessing && (tile.headTile && tile.headTile.index != tile.index)) {
+					continue
+				} else {
+					bd = gBuildingDefine[tile.type][level-2];
+				}
 			}
 			if (!(this.height < ConstructionHeight || tile.BuildProcessing) || level != 1) {
 				switch (tile.type) {
@@ -77,7 +89,10 @@ Game.prototype.Update = function() {
 				}
 			}
 		}
+	}
 
+	for (var k in gGame.tiles) {
+		var tile = gGame.tiles[k];
 		if (tile.BuildProcessing) {
 			var sTile = tile
 			if (tile.headTile) {
