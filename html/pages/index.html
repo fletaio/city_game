@@ -32,7 +32,7 @@
             <p>Terms and Conditions of Use</p>
             <textarea readonly="readonly" class="termsOfUse" >{{terms_use}}</textarea>
             <input type="checkbox" id="termsOfUse" name="termsOfUse" />
-            <button class="login-check" onclick="($('#PrivacyPolicy').prop('checked') && $('#termsOfUse').prop('checked'))?nextStep('join'):alert(language['Available after agreeing'])"></button>
+            <button class="login-check" onclick="($('#PrivacyPolicy').prop('checked') && $('#termsOfUse').prop('checked'))?nextStep('join'):Alert(language['Available after agreeing'])"></button>
         </div>
         <div class="login-join-view" step="join" >
             <span class="eth-addr-field"><input type="text" id="ethAddr" class="focus" /></span>

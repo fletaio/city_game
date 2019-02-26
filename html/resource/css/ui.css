@@ -520,7 +520,8 @@
 }
 
 .fletaCoin {
-    background-image: url(/images/ui/fletacoin.png);
+    /* background-image: url(/images/ui/fletacoin.png); */
+    background-image: url(/images/animate/fleta_coin.gif);
     background-size: 100%;
     position: absolute;
     width: 0.7rem;
