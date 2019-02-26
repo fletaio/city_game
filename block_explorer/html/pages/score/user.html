@@ -1,6 +1,7 @@
 <script fletaId="headScript">
     var data = {{data}}
 
+    var Coin = "{{Coin}}"
     var Gold = "{{Gold}}"
     var Population = "{{Population}}"
     var Electricity = "{{Electricity}}"
@@ -20,6 +21,7 @@
 
     $(function () {
         $("#Score").html(numberWithCommas(Score))
+        $("#Coin").html(numberWithCommas(Coin))
         $("#Gold").html(numberWithCommas(Gold))
         $("#Population").html(numberWithCommas(Population))
         $("#Electricity").html(numberWithCommas(Electricity))
@@ -63,6 +65,7 @@
                                         <!-- <th>RANK</th> -->
                                         <th>ID</th>
                                         <th>Score</th>
+                                        <th>Coin</th>
                                         <th>Gold</th>
                                         <th>Population</th>
                                         <th>Electricity</th>
@@ -73,6 +76,7 @@
                                         <!-- <th>{{RANK}}</th> -->
                                         <td>{{ID}}</td>
                                         <td id="Score"></td>
+                                        <td id="Coin"></td>
                                         <td id="Gold"></td>
                                         <td id="Population"></td>
                                         <td id="Electricity"></td>

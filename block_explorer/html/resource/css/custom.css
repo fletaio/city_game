@@ -36,6 +36,10 @@
     background-color: #1b2436;
     color: #fff;
 }
+.fleta-table th.active {
+    background-color: #1b2436;
+    color: #fff;
+}
 .pagination .active {
     background-color: #fff;
 }

@@ -294,7 +294,7 @@ func (e *BlockExplorer) updateHashs(txn *badger.Txn, height uint32, currHeight u
 			if err := txn.Set([]byte("GameId"+caTx.UserID), addr[:]); err != nil {
 				return err
 			}
-			e.UpdateScore(nil, currHeight, addr, caTx.UserID)
+			e.UpdateScore(nil, currHeight, addr, caTx.UserID, 0)
 		}
 
 	}
@@ -418,7 +418,7 @@ func (e *BlockExplorer) dataHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (e *BlockExplorer) UpdateScore(gd *citygame.GameData, height uint32, addr common.Address, userId string) {
+func (e *BlockExplorer) UpdateScore(gd *citygame.GameData, height uint32, addr common.Address, userId string, coinCountValue int) {
 	if gd == nil {
 		gd = citygame.NewGameData(height)
 		bs := e.Kernel.Loader().AccountData(addr, []byte("game"))
@@ -460,12 +460,14 @@ func (e *BlockExplorer) UpdateScore(gd *citygame.GameData, height uint32, addr c
 			Balance:       uint64(r.Balance),
 			ManProvided:   uint64(r.ManProvided),
 			PowerProvided: uint64(r.PowerProvided),
+			CoinCount:     uint64(coinCountValue),
 		}
 
 		updateSortedKey(txn, Level, addrStr, sc)
 		updateSortedKey(txn, Balance, addrStr, sc)
 		updateSortedKey(txn, ManProvided, addrStr, sc)
 		updateSortedKey(txn, PowerProvided, addrStr, sc)
+		updateSortedKey(txn, CoinCount, addrStr, sc)
 
 		return nil
 	}); err != nil {

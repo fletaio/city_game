@@ -5,6 +5,7 @@
     <td>{Rank}</td>
     <td><a href="/score/user?addr={Addr}&userid={ID}">{ID}</a></td>
     <td>{Level}</td>
+    <td>{CoinCount}</td>
     <td>{Gold}</td>
     <td>{Population}</td>
     <td>{Electricity}</td>
@@ -23,6 +24,7 @@
                 var row = data[i]
                 row.ID = row.AllScore.UserID
                 row.Level = numberWithCommas(row.AllScore.Level)
+                row.CoinCount = numberWithCommas(row.AllScore.CoinCount)
                 row.Gold = numberWithCommas(row.AllScore.Balance)
                 row.Population = numberWithCommas(row.AllScore.ManProvided)
                 row.Electricity = numberWithCommas(row.AllScore.PowerProvided)
@@ -83,6 +85,7 @@
                                         <th>RANK</th>
                                         <th>ID</th>
                                         <th class="clickable" sortType="Score" onclick="scoreTable.load('Score')">Score</th>
+                                        <th class="clickable" sortType="Coin" onclick="scoreTable.load('Coin')">Coin</th>
                                         <th class="clickable" sortType="Balance" onclick="scoreTable.load('Balance')">Gold</th>
                                         <th class="clickable" sortType="Man" onclick="scoreTable.load('Man')">Population</th>
                                         <th class="clickable" sortType="Power" onclick="scoreTable.load('Power')">Electricity</th>

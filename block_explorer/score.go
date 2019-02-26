@@ -15,6 +15,7 @@ const (
 	Balance       ScoreType = 2
 	ManProvided   ScoreType = 3
 	PowerProvided ScoreType = 4
+	CoinCount     ScoreType = 5
 )
 
 //ScoreCase is score struct
@@ -24,6 +25,7 @@ type ScoreCase struct {
 	Balance       uint64
 	ManProvided   uint64
 	PowerProvided uint64
+	CoinCount     uint64
 }
 
 func (c *ScoreCase) getValue(s ScoreType) uint64 {
@@ -36,6 +38,8 @@ func (c *ScoreCase) getValue(s ScoreType) uint64 {
 		return c.ManProvided
 	case PowerProvided:
 		return c.PowerProvided
+	case CoinCount:
+		return c.CoinCount
 	}
 	return 0
 }
@@ -50,6 +54,8 @@ func getType(s ScoreType) string {
 		return "GameMan"
 	case PowerProvided:
 		return "GamePower"
+	case CoinCount:
+		return "GameCoin"
 	}
 	return ""
 }
@@ -64,6 +70,8 @@ func getTypeFromString(s string) ScoreType {
 		return ManProvided
 	case "GamePower":
 		return PowerProvided
+	case "GameCoin":
+		return CoinCount
 	}
 	return Level
 }
@@ -92,6 +100,11 @@ func (c *ScoreCase) WriteTo(w io.Writer) (int64, error) {
 		wrote += n
 	}
 	if n, err := util.WriteUint64(w, c.PowerProvided); err != nil {
+		return wrote, err
+	} else {
+		wrote += n
+	}
+	if n, err := util.WriteUint64(w, c.CoinCount); err != nil {
 		return wrote, err
 	} else {
 		wrote += n
@@ -132,6 +145,12 @@ func (c *ScoreCase) ReadFrom(r io.Reader) (int64, error) {
 	} else {
 		read += n
 		c.PowerProvided = v
+	}
+	if v, n, err := util.ReadUint64(r); err != nil {
+		return read, err
+	} else {
+		read += n
+		c.CoinCount = v
 	}
 
 	return read, nil

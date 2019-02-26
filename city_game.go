@@ -975,7 +975,7 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 			wtn.Tx.Type = int(t.Type())
 
 			ew.Notify(tx.Address, wtn)
-			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "")
+			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "", wtn.CoinCount)
 		case *citygame.UpgradeTx, *citygame.ConstructionTx:
 			var utx *citygame.UpgradeTx
 			switch _tx := tx.(type) {
@@ -1008,9 +1008,9 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 			}
 			ew.Notify(utx.Address, wtn)
 
-			ew.be.UpdateScore(gd, b.Header.Height(), utx.Address, "")
+			ew.be.UpdateScore(gd, b.Header.Height(), utx.Address, "", wtn.CoinCount)
 		case *citygame.GetCoinTx:
-			wtn, _, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), i)
+			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), i)
 			if err != nil {
 				continue
 			}
@@ -1030,6 +1030,7 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 				wtn.CoinList = cl
 				ew.Notify(tx.Address, wtn)
 			}
+			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "", wtn.CoinCount)
 		}
 	}
 }

@@ -35,6 +35,7 @@
                 dataType: "JSON",
                 success : function (data) {
                     scoreTable.templateLoad(data.Total, "TotalDataBody")
+                    scoreTable.templateLoad(data.CoinCount, "CoinDataBody")
                     scoreTable.templateLoad(data.Gold, "GoldDataBody")
                     scoreTable.templateLoad(data.Population, "PopulationDataBody")
                     scoreTable.templateLoad(data.Electricity, "ElectricityDataBody")
@@ -54,31 +55,61 @@
     <div class="row">
         <div class="col-xl-6">
             <div class="portlet">
-                <div class="portlet_head">
-                    <h3 class="portlet_head-text">
-                        Total Score
-                    </h3>
-                    <h3 class="portlet_head-text">
-                        <a href="/score/all?sort=Score">All</a>
-                    </h3>
-                </div>
-                <div class="portlet_body">
-                    <div class="m-portlet m-portlet--bordered-semi m-portlet--full-height ">
-                        <div class="m-portlet__body">
-                            <table class="table fleta-table fleta-table2">
-                                <thead>
-                                    <tr>
-                                        <th>RANK</th>
-                                        <th>ID</th>
-                                        <th>SCORE</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="TotalDataBody">
-                                </tbody>
-                            </table>
-                        </div>
+                <div class="portlet">
+                    <div class="portlet_head">
+                        <h3 class="portlet_head-text">
+                            Total Score
+                        </h3>
+                        <h3 class="portlet_head-text">
+                            <a href="/score/all?sort=Score">All</a>
+                        </h3>
                     </div>
-
+                    <div class="portlet_body">
+                        <div class="m-portlet m-portlet--bordered-semi m-portlet--full-height ">
+                            <div class="m-portlet__body">
+                                <table class="table fleta-table fleta-table2">
+                                    <thead>
+                                        <tr>
+                                            <th>RANK</th>
+                                            <th>ID</th>
+                                            <th>SCORE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="TotalDataBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+    
+                    </div>
+                </div>
+                <div class="portlet">
+                    <div class="portlet_head">
+                        <h3 class="portlet_head-text">
+                            Coin Score
+                        </h3>
+                        <h3 class="portlet_head-text">
+                            <a href="/score/all?sort=Score">All</a>
+                        </h3>
+                    </div>
+                    <div class="portlet_body">
+                        <div class="m-portlet m-portlet--bordered-semi m-portlet--full-height ">
+                            <div class="m-portlet__body">
+                                <table class="table fleta-table fleta-table2">
+                                    <thead>
+                                        <tr>
+                                            <th>RANK</th>
+                                            <th>ID</th>
+                                            <th>SCORE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="CoinDataBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+    
+                    </div>
                 </div>
             </div>
         </div>

@@ -214,6 +214,7 @@ type allScore struct {
 	Gold        []score
 	Population  []score
 	Electricity []score
+	CoinCount   []score
 }
 
 func (e *BlockExplorer) allScore(r *http.Request) (result []score) {
@@ -269,9 +270,11 @@ func (e *BlockExplorer) totalScore(r *http.Request) (result *allScore) {
 		Gold:        []score{},
 		Population:  []score{},
 		Electricity: []score{},
+		CoinCount:   []score{},
 	}
 	e.db.View(func(txn *badger.Txn) error {
-		result.Total, _ = getScore(txn, nil, Level, 20)
+		result.Total, _ = getScore(txn, nil, Level, 10)
+		result.CoinCount, _ = getScore(txn, nil, CoinCount, 10)
 		result.Gold, _ = getScore(txn, nil, Balance, 5)
 		result.Population, _ = getScore(txn, nil, ManProvided, 5)
 		result.Electricity, _ = getScore(txn, nil, PowerProvided, 5)
