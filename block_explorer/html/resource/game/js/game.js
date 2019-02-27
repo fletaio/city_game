@@ -317,12 +317,14 @@ Tile.prototype.Resize = function() {
 }
 
 function ChangeUnit(unit) {
-	gConfig.Unit = unit;
-
-	var h = [], i =0
-	h[i++] = ".island{width:"+(gConfig.Size*1.12625)+"rem;height:"+(gConfig.Size*0.84875)+"rem}"
-	h[i++] = "#tileCase{top:"+(gConfig.Size*0.251875)+"rem;left:"+(gConfig.Size*0.0625)+"rem}"
-
-	$("#cssControll").html(h.join("\n"));
-	$("html").css("font-size", gConfig.Unit+"px");
+	if (!isNaN(unit)) {
+		gConfig.Unit = unit;
+	
+		var h = [], i =0
+		h[i++] = ".island{width:"+(gConfig.Size*1.12625)+"rem;height:"+(gConfig.Size*0.84875)+"rem}"
+		h[i++] = "#tileCase{top:"+(gConfig.Size*0.251875)+"rem;left:"+(gConfig.Size*0.0625)+"rem}"
+	
+		$("#cssControll").html(h.join("\n"));
+		$("html").css("font-size", gConfig.Unit+"px");
+	}
 }

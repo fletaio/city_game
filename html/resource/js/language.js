@@ -16,14 +16,14 @@ Language.prototype.add = function (key, msg, location) {
 
 var language = new Language()
 
-language.add("not enough balance", "not enough balance")
-language.add("not enough people", "not enough people")
-language.add("not enough power", "not enough power")
+language.add("not enough balance", "Insufficient Balance")
+language.add("not enough people", "Insufficient Manpower")
+language.add("not enough power", "Insufficient power")
 language.add("too fast", "too fast")
 language.add("BuildProcessing not finished", "The construction was not completed.")
 language.add("not enough lv5 building", "not enough lv5 buildings")
 language.add("under construction", "It is not possible to build on a tile under construction.")
-language.add("Available after agreeing", "Available after agreeing to the Terms and Conditions and Privacy Policy")
+language.add("Available after agreeing", "First Agree to Terms and Conditions and Privace Policy")
 language.add("Duplicate id or ether addr", "Duplicate entry. Need another ID or ethereum wallet address")
 language.add("Failed to execute demolation command", "Failed to execute the demolation command")
 language.add("Failed to execute upgrade command", "Failed to execute the upgrade command")
@@ -40,3 +40,4 @@ language.add("login Success", "Login Success!")
 language.add("Invalid Id or Password", "Invalid ID or PASSWORD")
 
 language.add("duplicated connection", "Duplicated connection.")
+language.add("restart page", "Failed to communicate with server, page reload.")

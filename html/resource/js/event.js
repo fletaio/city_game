@@ -231,6 +231,7 @@ function connectToServer (addr) {
 	var ws = connect();
 	function onOpen(ws,  e)
 	{
+		disconnectedCount = 1
 		console.log("CONNECTED");
 	}
 
