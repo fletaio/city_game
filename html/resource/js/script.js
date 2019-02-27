@@ -56,7 +56,7 @@ Game.prototype.Update = function() {
 			var ConstructionHeight = tile.build_height + bd.build_time*2
 			if (this.height < ConstructionHeight || tile.BuildProcessing) {
 				if (tile.BuildProcessing && (tile.headTile && tile.headTile.index != tile.index)) {
-					continue
+					bd = gBuildingDefine[tile.type][level-1];
 				} else {
 					bd = gBuildingDefine[tile.type][level-2];
 				}
