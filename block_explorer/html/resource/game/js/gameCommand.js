@@ -157,7 +157,9 @@ function commit(data) {
 			} else if (data.type == 3) {
 				Alert(language["Failed to execute upgrade command"])
 			} else {
-				Alert(language["commit error"])
+				Alert(language["restart page"], function () {
+					location.reload();
+				})
 			}
 		}
 	})

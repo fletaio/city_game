@@ -190,7 +190,7 @@ function secondToDate(time) {
 	} else if (ss >= 0) {
 		r += ss+"s"
 	} else {
-        return "pandding"
+        return "pending"
     }
 	// r += ("0"+mm).substr(-2)+"m"
 	return r

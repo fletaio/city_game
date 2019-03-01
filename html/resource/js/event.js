@@ -231,6 +231,7 @@ function connectToServer (addr) {
 	var ws = connect();
 	function onOpen(ws,  e)
 	{
+		disconnectedCount = 1
 		console.log("CONNECTED");
 	}
 
@@ -265,8 +266,6 @@ function onMessage(ws,  e) {
 		} else {
 			var noti = e.data;
 		}
-
-		console.log(e.data)
 
 		gGame.height = noti.height
 		gGame.point_balance = noti.point_balance

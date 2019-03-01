@@ -157,10 +157,15 @@ func (gd *GameData) Resource(TargetHeight uint32) *Resource {
 	for _, tile := range gd.Tiles {
 		if tile != nil {
 			bd := GBuildingDefine[tile.AreaType][tile.Level-1]
-			used.ManRemained += bd.ManUsage
-			used.PowerRemained += bd.PowerUsage
-
+			used.ManRemained += bd.AccManUsage
+			used.PowerRemained += bd.AccPowerUsage
 			ConstructionHeight := tile.BuildHeight + bd.BuildTime*2
+			if tile.Level == 6 && TargetHeight > ConstructionHeight {
+				bd2 := GBuildingDefine[tile.AreaType][tile.Level-2]
+				used.ManRemained += bd2.AccManUsage * 3
+				used.PowerRemained += bd2.AccPowerUsage * 3
+			}
+
 			if TargetHeight < ConstructionHeight {
 				if tile.Level == 1 {
 					continue
