@@ -17,8 +17,8 @@ import (
 
 	citygame "git.fleta.io/fleta/city_game/city_game_context"
 	"git.fleta.io/fleta/common"
+	"git.fleta.io/fleta/framework/template"
 
-	"git.fleta.io/fleta/city_game/block_explorer/template"
 	"git.fleta.io/fleta/common/util"
 	"git.fleta.io/fleta/core/kernel"
 	"github.com/dgraph-io/badger"
@@ -287,7 +287,7 @@ func (e *BlockExplorer) updateHashs(txn *badger.Txn, height uint32, currHeight u
 			caTx := tx.(*citygame.CreateAccountTx)
 
 			coord := &common.Coordinate{Height: height, Index: uint16(i)}
-			addr := common.NewAddress(coord, e.Kernel.ChainCoord(), 0)
+			addr := common.NewAddress(coord, 0)
 			if err := txn.Set([]byte("GameAddr"+addr.String()), []byte(caTx.UserID)); err != nil {
 				return err
 			}
@@ -337,7 +337,7 @@ func appendListLimit(ci []countInfo, count int, limit int) []countInfo {
 // StartExplorer is start web server
 func (e *BlockExplorer) StartExplorer(port int) {
 
-	e.Template.AddController("", NewExplorerController(e.db, e))
+	e.Template.AddController("/", NewExplorerController(e.db, e))
 	e.Template.AddController("score", &ScoreController{kn: e.Kernel})
 	e.Template.AddController("game", &GameController{kn: e.Kernel})
 

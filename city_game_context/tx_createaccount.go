@@ -37,12 +37,11 @@ func UnregisterAllowedPublicHash(ChainCoord *common.Coordinate) {
 }
 
 func init() {
-	data.RegisterTransaction("fletacity.CreateAccount", func(coord *common.Coordinate, t transaction.Type) transaction.Transaction {
+	data.RegisterTransaction("fletacity.CreateAccount", func(t transaction.Type) transaction.Transaction {
 		return &CreateAccountTx{
 			Base: utxo_tx.Base{
 				Base: transaction.Base{
-					ChainCoord_: coord,
-					Type_:       t,
+					Type_: t,
 				},
 				Vin: []*transaction.TxIn{},
 			},
@@ -86,8 +85,7 @@ func init() {
 			sn := ctx.Snapshot()
 			defer ctx.Revert(sn)
 
-			chainCoord := ctx.ChainCoord()
-			addr := common.NewAddress(coord, chainCoord, 0)
+			addr := common.NewAddress(coord, 0)
 			if is, err := ctx.IsExistAccount(addr); err != nil {
 				//log.Println(err)
 				return
@@ -261,13 +259,6 @@ func (tx *CreateAccountTx) ReadFrom(r io.Reader) (int64, error) {
 func (tx *CreateAccountTx) MarshalJSON() ([]byte, error) {
 	var buffer bytes.Buffer
 	buffer.WriteString(`{`)
-	buffer.WriteString(`"chain_coord":`)
-	if bs, err := tx.ChainCoord_.MarshalJSON(); err != nil {
-		return nil, err
-	} else {
-		buffer.Write(bs)
-	}
-	buffer.WriteString(`,`)
 	buffer.WriteString(`"timestamp":`)
 	if bs, err := json.Marshal(tx.Timestamp_); err != nil {
 		return nil, err

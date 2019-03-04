@@ -79,7 +79,7 @@ func initGenesisContextData(loader data.Loader, ctd *data.ContextData) error {
 	acg := &accCoordGenerator{}
 	adminPubHash := common.MustParsePublicHash("3Zmc4bGPP7TuMYxZZdUhA9kVjukdsE2S8Xpbj4Laovv")
 	addUTXO(loader, ctd, adminPubHash, acg.Generate(), citygame.CreateAccountChannelSize)
-	addFormulator(loader, ctd, common.MustParsePublicHash("2xASBuEWw6LcQGjYxeGZH9w1DUsEDt7fvUh8p3auxyN"), common.NewAddress(acg.Generate(), loader.ChainCoord(), 0))
+	addFormulator(loader, ctd, common.MustParsePublicHash("2xASBuEWw6LcQGjYxeGZH9w1DUsEDt7fvUh8p3auxyN"), common.NewAddress(acg.Generate(), 0))
 	//addFormulator(loader, ctd, common.MustParsePublicHash("2VdGunZe8yZNm2mErqQqrFx2B7Mb4SBRPWviWnapahw"), common.NewAddress(acg.Generate(), st.ChainCoord(), 0))
 	/*
 		addFormulator(loader, ctd, common.MustParsePublicHash("3eiovnNMgNCSkmxqwkjAabRTbNkkauMVk167Pgqon2Q"), common.NewAddress(acg.Generate(), st.ChainCoord(), 0))
@@ -111,11 +111,9 @@ func addSingleAccount(loader data.Loader, ctd *data.ContextData, KeyHash common.
 	}
 	acc := a.(*citygame.Account)
 	acc.Address_ = addr
+	acc.Balance_ = amount.NewCoinAmount(0, 0)
 	acc.KeyHash = KeyHash
 	ctd.CreatedAccountMap[acc.Address_] = acc
-	balance := account.NewBalance()
-	balance.AddBalance(loader.ChainCoord(), amount.NewCoinAmount(10000000000, 0))
-	ctd.AccountBalanceMap[acc.Address_] = balance
 }
 
 func addFormulator(loader data.Loader, ctd *data.ContextData, KeyHash common.PublicHash, addr common.Address) {
@@ -125,6 +123,7 @@ func addFormulator(loader data.Loader, ctd *data.ContextData, KeyHash common.Pub
 	}
 	acc := a.(*consensus.FormulationAccount)
 	acc.Address_ = addr
+	acc.Balance_ = amount.NewCoinAmount(0, 0)
 	acc.KeyHash = KeyHash
 	ctd.CreatedAccountMap[acc.Address_] = acc
 }

@@ -19,12 +19,11 @@ import (
 )
 
 func init() {
-	data.RegisterTransaction("fletacity.Upgrade", func(coord *common.Coordinate, t transaction.Type) transaction.Transaction {
+	data.RegisterTransaction("fletacity.Upgrade", func(t transaction.Type) transaction.Transaction {
 		return &UpgradeTx{
 			Base: utxo_tx.Base{
 				Base: transaction.Base{
-					ChainCoord_: coord,
-					Type_:       t,
+					Type_: t,
 				},
 				Vin: []*transaction.TxIn{},
 			},
@@ -324,13 +323,6 @@ func (tx *UpgradeTx) ReadFrom(r io.Reader) (int64, error) {
 func (tx *UpgradeTx) MarshalJSON() ([]byte, error) {
 	var buffer bytes.Buffer
 	buffer.WriteString(`{`)
-	buffer.WriteString(`"chain_coord":`)
-	if bs, err := tx.ChainCoord_.MarshalJSON(); err != nil {
-		return nil, err
-	} else {
-		buffer.Write(bs)
-	}
-	buffer.WriteString(`,`)
 	buffer.WriteString(`"timestamp":`)
 	if bs, err := json.Marshal(tx.Timestamp_); err != nil {
 		return nil, err

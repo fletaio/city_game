@@ -13,13 +13,12 @@ import (
 )
 
 func init() {
-	data.RegisterTransaction("fletacity.Construction", func(coord *common.Coordinate, t transaction.Type) transaction.Transaction {
+	data.RegisterTransaction("fletacity.Construction", func(t transaction.Type) transaction.Transaction {
 		return &ConstructionTx{
 			UpgradeTx: &UpgradeTx{
 				Base: utxo_tx.Base{
 					Base: transaction.Base{
-						ChainCoord_: coord,
-						Type_:       t,
+						Type_: t,
 					},
 					Vin: []*transaction.TxIn{},
 				},

@@ -152,7 +152,6 @@ func (e *BlockExplorer) txDetailMap(tran *data.Transactor, height uint32, txInde
 	m["Tx Hash"] = t.Hash().String()
 	tm = time.Unix(int64(t.Timestamp()/uint64(time.Second)), 0)
 	m["Tx TimeStamp"] = tm.Format("2006-01-02 15:04:05")
-	m["Chain"] = t.ChainCoord().String()
 
 	switch name {
 	case "fletacity.CreateAccount":
@@ -199,7 +198,7 @@ func (e *BlockExplorer) txDetailMap(tran *data.Transactor, height uint32, txInde
 		tx := t.(*consensus.RevokeFormulation)
 		m["Seq_"] = tx.Seq_
 		m["From_"] = tx.From_.String()
-		m["To"] = tx.To.String()
+		m["To"] = tx.Heritor.String()
 
 	case "consensus.CreateFormulation":
 		tx := t.(*consensus.CreateFormulation)

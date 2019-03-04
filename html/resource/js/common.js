@@ -195,3 +195,17 @@ function secondToDate(time) {
 	// r += ("0"+mm).substr(-2)+"m"
 	return r
 }
+
+
+function c (str) {
+    var strs = str.split(" ")
+    var t = (strs[0]-strs[1])/1000
+    const input = document.createElement('input');
+    input.style.position = 'fixed';
+    input.style.opacity = 0;
+    input.value = t;
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand('Copy');
+    document.body.removeChild(input);
+}
