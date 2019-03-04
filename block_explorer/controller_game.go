@@ -7,10 +7,10 @@ import (
 	"log"
 	"net/http"
 
-	citygame "git.fleta.io/fleta/city_game/city_game_context"
+	citygame "github.com/fletaio/city_game/city_game_context"
 
-	"git.fleta.io/fleta/common"
-	"git.fleta.io/fleta/core/kernel"
+	"github.com/fletaio/common"
+	"github.com/fletaio/core/kernel"
 )
 
 type GameController struct {

@@ -3,7 +3,7 @@ package citygame
 import (
 	"io"
 
-	"git.fleta.io/fleta/common/util"
+	"github.com/fletaio/common/util"
 )
 
 //FletaCityCoin is FletaCityCoin

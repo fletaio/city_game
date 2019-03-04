@@ -7,14 +7,14 @@ import (
 	"strconv"
 	"time"
 
-	"git.fleta.io/fleta/common/hash"
+	"github.com/fletaio/common/hash"
 
-	"git.fleta.io/fleta/core/consensus"
+	"github.com/fletaio/core/consensus"
 
-	citygame "git.fleta.io/fleta/city_game/city_game_context"
+	citygame "github.com/fletaio/city_game/city_game_context"
 
-	"git.fleta.io/fleta/common/util"
-	"git.fleta.io/fleta/core/data"
+	"github.com/fletaio/common/util"
+	"github.com/fletaio/core/data"
 	"github.com/dgraph-io/badger"
 )
 

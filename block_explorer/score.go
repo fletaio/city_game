@@ -3,7 +3,7 @@ package blockexplorer
 import (
 	"io"
 
-	"git.fleta.io/fleta/common/util"
+	"github.com/fletaio/common/util"
 )
 
 //ScoreType is define score type

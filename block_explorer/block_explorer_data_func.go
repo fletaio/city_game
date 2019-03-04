@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"git.fleta.io/fleta/common"
+	"github.com/fletaio/common"
 
-	"git.fleta.io/fleta/core/block"
+	"github.com/fletaio/core/block"
 	"github.com/dgraph-io/badger"
 )
 

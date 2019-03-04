@@ -1,9 +1,9 @@
 package citygame
 
 import (
-	_ "git.fleta.io/fleta/extension/account_tx"
-	_ "git.fleta.io/fleta/extension/utxo_tx"
-	_ "git.fleta.io/fleta/solidity"
+	_ "github.com/fletaio/extension/account_tx"
+	_ "github.com/fletaio/extension/utxo_tx"
+	_ "github.com/fletaio/solidity"
 )
 
 // consts

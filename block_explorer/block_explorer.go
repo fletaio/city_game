@@ -15,12 +15,12 @@ import (
 	"strings"
 	"time"
 
-	citygame "git.fleta.io/fleta/city_game/city_game_context"
-	"git.fleta.io/fleta/common"
-	"git.fleta.io/fleta/framework/template"
+	citygame "github.com/fletaio/city_game/city_game_context"
+	"github.com/fletaio/common"
+	"github.com/fletaio/framework/template"
 
-	"git.fleta.io/fleta/common/util"
-	"git.fleta.io/fleta/core/kernel"
+	"github.com/fletaio/common/util"
+	"github.com/fletaio/core/kernel"
 	"github.com/dgraph-io/badger"
 )
 

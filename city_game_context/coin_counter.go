@@ -4,7 +4,7 @@ import (
 	"io"
 	"sort"
 
-	"git.fleta.io/fleta/common/util"
+	"github.com/fletaio/common/util"
 )
 
 // CLWriteTo is a serialization function
