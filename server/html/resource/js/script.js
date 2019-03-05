@@ -31,7 +31,7 @@ Game.prototype.Update = function() {
 	var used = new Resource();
 	var provide = new Resource(this.point_balance + parseInt(base.balance/2)*parseInt(forward_height), base.power_remained, base.man_remained);
 
-	var addBalance = 0
+	var addBalance = parseInt(base.balance)
 	for (var k in gGame.tiles) {
 		var tile = gGame.tiles[k];
 		if (tile.level||tile.BuildProcessing) {
@@ -49,10 +49,6 @@ Game.prototype.Update = function() {
 			used.man_remained += bd.acc_man_usage||0;
 			used.power_remained += bd.acc_power_usage||0;
 
-			if (tile.type == CommercialType) {
-				addBalance += bd.output;
-			}
-
 			var ConstructionHeight = tile.build_height + bd.build_time*2
 			if (this.height < ConstructionHeight || tile.BuildProcessing) {
 				if (tile.BuildProcessing && (tile.headTile && tile.headTile.index != tile.index)) {
@@ -62,6 +58,9 @@ Game.prototype.Update = function() {
 				}
 			}
 			if (!(this.height < ConstructionHeight || tile.BuildProcessing) || level != 1) {
+				if (tile.type == CommercialType) {
+					addBalance += bd.output;
+				}
 				switch (tile.type) {
 				case CommercialType:
 					if (this.height > ConstructionHeight) {

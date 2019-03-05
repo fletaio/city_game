@@ -36,7 +36,12 @@ function addMenu(tile, funcs) {
 			$tooltip.find("#needDollar").html(toShotUnit(r.cost_usage))
 			$tooltip.find("#needPower").html(toShotUnit(r.power_usage))
 			$tooltip.find("#needDemographic").html(toShotUnit(r.man_usage))
-			$tooltip.find("#resource").attr("class", buildingType(type)).html("+"+toShotUnit(r.output)+"/s").attr("class", buildingType(type))
+
+			if (funcs[key] !== "Commercial") {
+				$tooltip.find("#resource").attr("class", buildingType(type)).html("+"+toShotUnit(r.output)).attr("class", buildingType(type))
+			} else {
+				$tooltip.find("#resource").attr("class", buildingType(type)).html("+"+toShotUnit(r.output)+"/s").attr("class", buildingType(type))
+			}
 
 			var time = secondToDate(r.build_time);
 		} else {
