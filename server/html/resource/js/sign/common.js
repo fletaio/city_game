@@ -124,12 +124,10 @@ function buf2hex(buffer) { // buffer is an ArrayBuffer
     return r.join('')
 }
 
-function skToPHash(privKey) {
-    if (Buffer.isBuffer(privKey)) {
-        privKey = buf2hex(privKey)
+function pkToPHash(pubKey) {
+    if (!Buffer.isBuffer(pubKey)) {
+        pubKey = new Buffer(pubKey, "hex")
     }
-    var pubKey = secp256k1.getPk(privKey)
-    pubKey = new Buffer(pubKey, "hex")
 
     var dh = DoubleHash(pubKey)
 
@@ -141,6 +139,14 @@ function skToPHash(privKey) {
     }
 
     return bs58.encode(r)
+}
+
+function skToPHash(privKey) {
+    if (Buffer.isBuffer(privKey)) {
+        privKey = buf2hex(privKey)
+    }
+    var pubKey = secp256k1.getPk(privKey)
+    return pkToPHash(pubKey)
 }
 
 function verify(hash, sig, pubKey) {
