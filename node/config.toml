@@ -1,9 +1,9 @@
 SeedNodes = [
-	"testnet_seednode1.fleta.io:51000",
-	"testnet_seednode2.fleta.io:51000",
-	"testnet_seednode3.fleta.io:51000",
-	"testnet_seednode4.fleta.io:51000",
-	"testnet_seednode5.fleta.io:51000"
+	"citygame_seednode1.fleta.io:51000",
+	"citygame_seednode2.fleta.io:51000",
+	"citygame_seednode3.fleta.io:51000",
+	"citygame_seednode4.fleta.io:51000",
+	"citygame_seednode5.fleta.io:51000"
 ]
 ObserverKeys = [
 	"3e5PNobd577YEdjeb59zG6N7BBZbyRKMja2s55QQMQE",
