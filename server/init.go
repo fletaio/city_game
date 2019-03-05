@@ -4,8 +4,7 @@ import (
 	"log"
 	"strconv"
 
-	citygame "github.com/fletaio/city_game/city_game_context"
-
+	"github.com/fletaio/citygame/server/citygame"
 	"github.com/fletaio/common"
 	"github.com/fletaio/common/util"
 	"github.com/fletaio/core/account"
@@ -17,6 +16,11 @@ import (
 	_ "github.com/fletaio/extension/account_tx"
 	_ "github.com/fletaio/extension/utxo_tx"
 	_ "github.com/fletaio/solidity"
+)
+
+// consts
+const (
+	BlockchainVersion = 1
 )
 
 // transaction_type transaction types
@@ -75,7 +79,10 @@ func initChainComponent(act *data.Accounter, tran *data.Transactor) error {
 	return nil
 }
 
-func initGenesisContextData(loader data.Loader, ctd *data.ContextData) error {
+func initGenesisContextData(act *data.Accounter, tran *data.Transactor) (*data.ContextData, error) {
+	loader := data.NewEmptyLoader(act.ChainCoord(), act, tran)
+	ctd := data.NewContextData(loader, nil)
+
 	acg := &accCoordGenerator{}
 	adminPubHash := common.MustParsePublicHash("3Zmc4bGPP7TuMYxZZdUhA9kVjukdsE2S8Xpbj4Laovv")
 	addUTXO(loader, ctd, adminPubHash, acg.Generate(), citygame.CreateAccountChannelSize)
@@ -92,7 +99,7 @@ func initGenesisContextData(loader data.Loader, ctd *data.ContextData) error {
 		addFormulator(loader, ctd, common.MustParsePublicHash("4D5m6ssnsf3NxJmqKg7PpwoyG2PdMNPAuQjpB8ZKjDo"), common.NewAddress(acg.Generate(), st.ChainCoord(), 0))
 	*/
 	citygame.RegisterAllowedPublicHash(loader.ChainCoord(), adminPubHash)
-	return nil
+	return ctd, nil
 }
 
 func addUTXO(loader data.Loader, ctd *data.ContextData, KeyHash common.PublicHash, coord *common.Coordinate, count int) {

@@ -15,13 +15,13 @@ import (
 	"strings"
 	"time"
 
-	citygame "github.com/fletaio/city_game/city_game_context"
+	"github.com/fletaio/citygame/server/citygame"
 	"github.com/fletaio/common"
 	"github.com/fletaio/framework/template"
 
+	"github.com/dgraph-io/badger"
 	"github.com/fletaio/common/util"
 	"github.com/fletaio/core/kernel"
-	"github.com/dgraph-io/badger"
 )
 
 var (

@@ -6,11 +6,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/fletaio/citygame/server/citygame"
 	"github.com/fletaio/common"
 	"github.com/fletaio/common/util"
-
-	citygame "github.com/fletaio/city_game/city_game_context"
-
 	"github.com/fletaio/core/kernel"
 )
 

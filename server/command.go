@@ -12,7 +12,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	citygame "github.com/fletaio/city_game/city_game_context"
+	"github.com/fletaio/citygame/server/citygame"
 	"github.com/fletaio/common"
 	"github.com/fletaio/common/hash"
 	"github.com/fletaio/common/util"

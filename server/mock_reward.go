@@ -1,9 +1,8 @@
 package main
 
 import (
-	"github.com/fletaio/core/data"
-
 	"github.com/fletaio/common"
+	"github.com/fletaio/core/data"
 )
 
 type mockRewarder struct {

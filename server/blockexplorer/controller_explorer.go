@@ -7,15 +7,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/fletaio/common/hash"
-
-	"github.com/fletaio/core/consensus"
-
-	citygame "github.com/fletaio/city_game/city_game_context"
-
-	"github.com/fletaio/common/util"
-	"github.com/fletaio/core/data"
 	"github.com/dgraph-io/badger"
+	"github.com/fletaio/citygame/server/citygame"
+	"github.com/fletaio/common/hash"
+	"github.com/fletaio/common/util"
+	"github.com/fletaio/core/consensus"
+	"github.com/fletaio/core/data"
 )
 
 type ExplorerController struct {
