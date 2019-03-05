@@ -280,6 +280,7 @@ func main() {
 
 	cg := &cityGameCommand{
 		GameKernel: GameKernel,
+		Node:       nd,
 		Key:        GameKey,
 		ew:         ew,
 	}

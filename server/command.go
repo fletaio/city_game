@@ -18,6 +18,7 @@ import (
 	"github.com/fletaio/common/util"
 	"github.com/fletaio/core/kernel"
 	"github.com/fletaio/core/key"
+	"github.com/fletaio/core/node"
 	"github.com/fletaio/core/transaction"
 
 	"github.com/gorilla/websocket"
@@ -27,6 +28,7 @@ import (
 type cityGameCommand struct {
 	Key                    key.Key
 	GameKernel             *kernel.Kernel
+	Node                   *node.Node
 	ew                     *EventWatcher
 	CreateAccountChannelID uint64
 	UsingChannelCount      int64
@@ -211,7 +213,7 @@ func (cg *cityGameCommand) accountsPost(c echo.Context) error {
 
 	if sig, err := cg.Key.Sign(TxHash); err != nil {
 		return err
-	} else if err := cg.GameKernel.AddTransaction(tx, []common.Signature{sig}); err != nil {
+	} else if err := cg.Node.CommitTransaction(tx, []common.Signature{sig}); err != nil {
 		return err
 	}
 
@@ -638,7 +640,7 @@ func (cg *cityGameCommand) gamesAddressCommit(c echo.Context) error {
 		return err
 	}
 
-	if err := cg.GameKernel.AddTransaction(tx, []common.Signature{sig}); err != nil {
+	if err := cg.Node.CommitTransaction(tx, []common.Signature{sig}); err != nil {
 		return err
 	}
 	return c.NoContent(http.StatusOK)
