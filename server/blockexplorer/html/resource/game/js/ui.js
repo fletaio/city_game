@@ -72,6 +72,9 @@ function secondToDate(time) {
 	var ss = time%60
 	time = parseInt((time)/60)
 	var mm = time%60
+	if (time > 60 && ss > 0) {
+		mm++
+	}
 	var hh = parseInt(time/60)
 	var r = ""
 	if (hh > 0) {
