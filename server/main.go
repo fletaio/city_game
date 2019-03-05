@@ -73,6 +73,7 @@ type Config struct {
 	Port         int
 	APIPort      int
 	ServerPort   int
+	ExplorerPort int
 	KeyHex       string
 	StoreRoot    string
 	ForceRecover bool
@@ -310,7 +311,7 @@ func main() {
 	gAPI.POST("/games/:address/commands/getcoin", cg.gamesAddressGetcoin)
 	gAPI.POST("/games/:address/commands/commit", cg.gamesAddressCommit)
 
-	go be.StartExplorer(cfg.ServerPort)
+	go be.StartExplorer(cfg.ExplorerPort)
 	go e.Start(":" + strconv.Itoa(cfg.ServerPort))
 
 	go func() {
