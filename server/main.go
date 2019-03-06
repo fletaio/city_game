@@ -72,7 +72,6 @@ type Config struct {
 	Port         int
 	APIPort      int
 	ServerPort   int
-	ExplorerPort int
 	KeyHex       string
 	StoreRoot    string
 	ForceRecover bool
