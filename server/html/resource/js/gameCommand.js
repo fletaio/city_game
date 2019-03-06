@@ -9,12 +9,6 @@ Tile.prototype.RunCommand = function(func, param) {
 			var tile = This;
 			UIAlert.Alert(func, function () {
 				message("command : "+ func + " x : " + tile.x + " y : " + tile.y );
-
-				// var utxo = loginInfo.popUTXO()
-				// if (!utxo) {
-				// 	Alert(language["too fast"])
-				// 	return
-				// }
 				try{
 					tile = tile[func](param);
 				} catch(e) {
@@ -22,19 +16,7 @@ Tile.prototype.RunCommand = function(func, param) {
 				}
 				if (IsTile(tile)){
 					menuOpen(tile);
-					// setTimeout(function () {
-					// 	var balance = parseInt($("#dollar[key='balance']").html())
-					// 	balance -=  gBuildingDefine[tile.type][tile.level].cost_usage
-					// 	var height = gGame.height
-					// 	if (func == "Demolition") {
-					// 		onMessage({_init:true}, {data : "{\"point_height\":"+height+",\"point_balance\":"+balance+",\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":0,\"level\":0,\"type\":0,\"height\":"+gGame.height+"}"})
-					// 	} else {
-					// 		onMessage({_init:true}, {data : "{\"point_height\":"+height+",\"point_balance\":"+balance+",\"x\":"+(tile.x)+",\"y\":"+(tile.y)+",\"area_type\":"+tile.type+",\"level\":"+(tile.level+1)+",\"type\":1,\"height\":"+gGame.height+"}"})
-					// 	}
-					// }, 100)
 					sendServer(func, tile, param)
-				} else {
-					// loginInfo.pushUTXO(utxo)
 				}
 			})
 		})(this)
@@ -98,27 +80,40 @@ function SendQueue(func, tile, param) {
 	this.tile = tile;
 	this.param = param;
 }
+SendQueue.firstQuere = [];
 SendQueue.quere = [];
 SendQueue.utxo = [];
 SendQueue.NewUTXO = function (UTXO) {
 	var send;
-	if (!!(send = SendQueue.quere.splice(0, 1)) && send.length > 0) {
+	if (!!(send = SendQueue.firstQuere.splice(0, 1)) && send.length > 0) {
 		send[0].sendServer(UTXO)
 	} else {
-		SendQueue.utxo.push(UTXO)
+		if (!!(send = SendQueue.quere.splice(0, 1)) && send.length > 0) {
+			send[0].sendServer(UTXO)
+		} else {
+			SendQueue.utxo.push(UTXO)
+		}
 	}
 }
 SendQueue.prototype.Enqueue = function () {
-	SendQueue.quere.push(this)
+	if (this.func == "GetCoin") {
+		SendQueue.quere.push(this)
+	} else {
+		SendQueue.firstQuere.push(this)
+	}
 }
 SendQueue.prototype.Do = function () {
 	var utxo, send;
 	while (!!(utxo = SendQueue.utxo.splice(0, 1)) && utxo.length > 0) {
-		if (!!(send = SendQueue.quere.splice(0, 1)) && send.length > 0) {
+		if (!!(send = SendQueue.firstQuere.splice(0, 1)) && send.length > 0) {
 			send[0].sendServer(utxo[0])
 		} else {
-			SendQueue.utxo.push(utxo[0])
-			break;
+			if (!!(send = SendQueue.quere.splice(0, 1)) && send.length > 0) {
+				send[0].sendServer(utxo[0])
+			} else {
+				SendQueue.utxo.push(utxo[0])
+				break;
+			}
 		}
 	}
 }
