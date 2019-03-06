@@ -4,10 +4,10 @@
 
 
     $(function () {
-        var head = $("<tr><td>id</td></tr>")
+        var head = $("<tr><th>id</th></tr>")
         var template = "<tr><td>{id}</td>"
         for (var name in fields) {
-            head.append("<td>"+name+"</td>")
+            head.append("<th>"+name+"</th>")
             template += "<td class='"+name+"'></td>"
         }
         template += "</tr>"

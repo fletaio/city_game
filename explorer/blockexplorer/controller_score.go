@@ -97,11 +97,11 @@ func (e *ScoreController) Coincount(r *http.Request) (map[string][]byte, error) 
 							m[accTx.UserID] = data
 						}
 						hTime := time.Unix(0, int64(b.Header.Timestamp()))
-						str := hTime.Format("2006-01-02T15:12:13")
+						str := hTime.Format("2006-01-02T15:12:13+09:00")
 						var k string
 						if str[:13] < str[:11]+"14" { //안지남
 							hTime = hTime.Add(-time.Hour * 24)
-							str2 := hTime.Format("2006-01-02T15:13:14")
+							str2 := hTime.Format("2006-01-02T15:13:14+09:00")
 							k = str2[:10]
 						} else { //지남
 							k = str[:10]
