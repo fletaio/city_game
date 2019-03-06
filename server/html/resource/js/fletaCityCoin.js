@@ -45,6 +45,8 @@ FletaCityCoin.prototype.ShowOnMap = function () {
 }
 
 FletaCityCoin.prototype.Remove = function () {
-    this.UI.remove()
+    if (this.UI) {
+        this.UI.remove()
+    }
     delete gGame.coin_list[this.hash]
 }
