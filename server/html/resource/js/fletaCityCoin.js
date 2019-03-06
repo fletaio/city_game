@@ -28,13 +28,6 @@ FletaCityCoin.prototype.PutOnMap = function () {
 
 FletaCityCoin.prototype.HideOnMap = function () {
     this.UI.hide();
-    (function (hash) {
-        setTimeout(function () {
-            if (gGame.coin_list[hash]) {
-                gGame.coin_list[hash].Remove()
-            }
-        }, 3000)
-    })(this.hash)
 }
 
 FletaCityCoin.prototype.ShowOnMap = function () {
