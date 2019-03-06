@@ -302,9 +302,8 @@ func (e *BlockExplorer) updateHashs(txn *badger.Txn, height uint32, currHeight u
 			if err := txn.Set([]byte("GameId"+caTx.UserID), addr[:]); err != nil {
 				return err
 			}
-			e.UpdateScore(nil, currHeight, addr, caTx.UserID, 0)
+			e.UpdateScore(nil, currHeight, addr, caTx.UserID, 0, 0)
 		}
-
 	}
 	return nil
 }
@@ -346,7 +345,7 @@ func appendListLimit(ci []countInfo, count int, time int64, limit int) []countIn
 func (e *BlockExplorer) StartExplorer(port int) {
 
 	e.Template.AddController("/", NewExplorerController(e.db, e))
-	e.Template.AddController("score", &ScoreController{kn: e.Kernel})
+	e.Template.AddController("score", &ScoreController{kn: e.Kernel,db:e.db})
 	e.Template.AddController("game", &GameController{kn: e.Kernel})
 
 	e.Template.SetTile("game", "game")
@@ -426,7 +425,7 @@ func (e *BlockExplorer) dataHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (e *BlockExplorer) UpdateScore(gd *citygame.GameData, height uint32, addr common.Address, userId string, coinCountValue int) {
+func (e *BlockExplorer) UpdateScore(gd *citygame.GameData, height uint32, addr common.Address, userId string, coinCountValue int, usedBalance uint64) {
 	if gd == nil {
 		gd = citygame.NewGameData(height)
 		bs := e.Kernel.Loader().AccountData(addr, []byte("game"))
@@ -451,6 +450,21 @@ func (e *BlockExplorer) UpdateScore(gd *citygame.GameData, height uint32, addr c
 				userId = string(value)
 			}
 		}
+		var totalUsedBalance uint64
+		if true {
+			key := []byte("UsedBalance" + addr.String())
+			item, err := txn.Get(key)
+			if err != nil {
+			} else {
+				value, err := item.ValueCopy(nil)
+				if err != nil {
+					return err
+				}
+				totalUsedBalance = util.BytesToUint64(value)
+			}
+			totalUsedBalance += usedBalance
+			txn.Set(key, util.Uint64ToBytes(totalUsedBalance))
+		}
 		buf := &bytes.Buffer{}
 		_, err := e.CurrentChainInfo.WriteTo(buf)
 		if err != nil {
@@ -460,12 +474,12 @@ func (e *BlockExplorer) UpdateScore(gd *citygame.GameData, height uint32, addr c
 		addrStr := addr.String()
 		r := gd.Resource(height)
 
-		level := r.Balance + uint64(r.ManProvided*4) + uint64(r.PowerProvided*6)
+		level := totalUsedBalance + r.Balance + uint64(r.ManProvided*4) + uint64(r.PowerProvided*6)
 
 		sc := ScoreCase{
 			UserID:        userId,
 			Level:         level,
-			Balance:       uint64(r.Balance),
+			Balance:       totalUsedBalance + uint64(r.Balance),
 			ManProvided:   uint64(r.ManProvided),
 			PowerProvided: uint64(r.PowerProvided),
 			CoinCount:     uint64(coinCountValue),

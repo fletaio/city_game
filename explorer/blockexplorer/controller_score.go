@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/dgraph-io/badger"
 	"github.com/fletaio/citygame/server/citygame"
 	"github.com/fletaio/common"
 	"github.com/fletaio/common/util"
@@ -14,6 +15,7 @@ import (
 
 type ScoreController struct {
 	kn *kernel.Kernel
+	db *badger.DB
 }
 
 func (e *ScoreController) All(r *http.Request) (map[string][]byte, error) {
@@ -33,6 +35,22 @@ func (e *ScoreController) User(r *http.Request) (map[string][]byte, error) {
 	userid := param.Get("userid")
 
 	addr := common.MustParseAddress(addrStr)
+	var totalUsedBalance uint64
+	if err := e.db.View(func(txn *badger.Txn) error {
+		key := []byte("UsedBalance" + addr.String())
+		item, err := txn.Get(key)
+		if err != nil {
+		} else {
+			value, err := item.ValueCopy(nil)
+			if err != nil {
+				return err
+			}
+			totalUsedBalance = util.BytesToUint64(value)
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
 
 	e.kn.Lock()
 	bs := e.kn.Loader().AccountData(addr, []byte("game"))
@@ -60,7 +78,7 @@ func (e *ScoreController) User(r *http.Request) (map[string][]byte, error) {
 		"ID":          []byte(userid),
 		"Addr":        []byte(addrStr),
 		"Coin":        []byte(fmt.Sprintf("%v", coinCount)),
-		"Gold":        []byte(fmt.Sprintf("%v", gr.Balance)),
+		"Gold":        []byte(fmt.Sprintf("%v", totalUsedBalance+gr.Balance)),
 		"Population":  []byte(fmt.Sprintf("%v", gr.ManProvided)),
 		"Electricity": []byte(fmt.Sprintf("%v", gr.PowerProvided)),
 		"data":        data,
