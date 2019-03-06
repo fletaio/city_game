@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-	"sort"
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -16,6 +15,7 @@ import (
 	"github.com/fletaio/common"
 	"github.com/fletaio/common/hash"
 	"github.com/fletaio/common/util"
+	"github.com/fletaio/core/data"
 	"github.com/fletaio/core/kernel"
 	"github.com/fletaio/core/key"
 	"github.com/fletaio/core/node"
@@ -257,10 +257,17 @@ func (cg *cityGameCommand) reportsAddress(c echo.Context) error {
 		return err
 	}
 
-	cg.GameKernel.Lock()
-	bs := cg.GameKernel.Loader().AccountData(addr, []byte("game"))
-	Height := cg.GameKernel.Provider().Height()
-	cg.GameKernel.Unlock()
+	var bs []byte
+	var Height uint32
+	if e := cg.ew.LastBlockEvent(); e != nil {
+		bs = e.ctx.AccountData(addr, []byte("game"))
+		Height = e.b.Header.Height()
+	} else {
+		cg.GameKernel.Lock()
+		bs = cg.GameKernel.Loader().AccountData(addr, []byte("game"))
+		Height = cg.GameKernel.Provider().Height()
+		cg.GameKernel.Unlock()
+	}
 
 	if len(bs) == 0 {
 		return citygame.ErrNotExistAccount
@@ -291,66 +298,26 @@ func (cg *cityGameCommand) gamesAddress(c echo.Context) error {
 		return err
 	}
 
-	cg.GameKernel.Lock()
-	bs := cg.GameKernel.Loader().AccountData(addr, []byte("game"))
-	Height := cg.GameKernel.Provider().Height()
-	cg.GameKernel.Unlock()
+	var bs []byte
+	var Height uint32
+	var loader data.Loader
+	if e := cg.ew.LastBlockEvent(); e != nil {
+		bs = e.ctx.AccountData(addr, []byte("game"))
+		Height = e.b.Header.Height()
+		loader = e.ctx
+	} else {
+		loader = cg.GameKernel.Loader()
+		cg.GameKernel.Lock()
+		bs = loader.AccountData(addr, []byte("game"))
+		Height = cg.GameKernel.Provider().Height()
+		cg.GameKernel.Unlock()
+	}
 
 	if len(bs) == 0 {
 		return citygame.ErrNotExistAccount
 	}
 
 	gd := citygame.NewGameData(Height)
-
-	txs := []*UTXO{}
-	for i := 0; i < citygame.GameAccountChannelSize; i++ {
-		utxoID := util.BytesToUint64(cg.GameKernel.Loader().AccountData(addr, []byte("utxo"+strconv.Itoa(i))))
-		txIn := transaction.NewTxIn(utxoID)
-		vin := []*transaction.TxIn{txIn}
-		for len(vin) > 0 {
-			txIn := vin[0]
-			utxoID := transaction.MarshalID(txIn.Height, txIn.Index, txIn.N)
-			b, err := cg.GameKernel.Block(txIn.Height)
-			if err == nil {
-				t := b.Body.Transactions[txIn.Index]
-				var x int
-				var y int
-				switch tx := t.(type) {
-				case *citygame.DemolitionTx:
-					vin = tx.Vin
-					x = int(tx.X)
-					y = int(tx.Y)
-				case *citygame.UpgradeTx:
-					vin = tx.Vin
-					x = int(tx.X)
-					y = int(tx.Y)
-				case *citygame.ConstructionTx:
-					vin = tx.Vin
-					x = int(tx.X)
-					y = int(tx.Y)
-				case *citygame.GetCoinTx:
-					vin = tx.Vin
-					x = int(tx.X)
-					y = int(tx.Y)
-				default:
-					vin = nil
-				}
-
-				index := sort.Search(len(txs), func(i int) bool { return txs[i].ID > utxoID })
-				txs = append(txs, nil)
-				copy(txs[index+1:], txs[index:])
-				txs[index] = &UTXO{
-					ID:     utxoID,
-					X:      x,
-					Y:      y,
-					Type:   int(t.Type()),
-					Height: txIn.Height,
-					Hash:   t.Hash().String(),
-				}
-
-			}
-		}
-	}
 
 	if _, err := gd.ReadFrom(bytes.NewReader(bs)); err != nil {
 		return err
@@ -361,10 +328,10 @@ func (cg *cityGameCommand) gamesAddress(c echo.Context) error {
 		PointHeight:  int(gd.PointHeight),
 		PointBalance: int(gd.PointBalance),
 		Tiles:        make([]*WebTile, len(gd.Tiles)),
-		Txs:          txs,
+		Txs:          []*UTXO{},
 		DefineMap:    citygame.GBuildingDefine,
 	}
-	clbs := cg.GameKernel.Loader().AccountData(addr, []byte("CoinList"))
+	clbs := loader.AccountData(addr, []byte("CoinList"))
 	bf := bytes.NewBuffer(clbs)
 	if cl, err := citygame.CLReadFrom(bf); err == nil {
 		res.CoinList = cl
@@ -380,7 +347,7 @@ func (cg *cityGameCommand) gamesAddress(c echo.Context) error {
 		}
 	}
 
-	ccbs := cg.GameKernel.Loader().AccountData(addr, []byte("GetCoinCount"))
+	ccbs := loader.AccountData(addr, []byte("GetCoinCount"))
 	if len(ccbs) == 4 {
 		coinCount := util.BytesToUint32(ccbs)
 		res.CoinCount = int(coinCount)

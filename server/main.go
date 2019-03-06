@@ -329,6 +329,7 @@ type EventWatcher struct {
 	sync.Mutex
 	writerMap      map[common.Address]*websocket.Conn
 	blockEventChan chan *BlockEvent
+	lastBlockEvent *BlockEvent
 }
 
 // NewEventWatcher returns a EventWatcher
@@ -338,6 +339,13 @@ func NewEventWatcher() *EventWatcher {
 		blockEventChan: make(chan *BlockEvent, 10000),
 	}
 	return ew
+}
+
+// LastBlockEvent returns the last block event
+func (ew *EventWatcher) LastBlockEvent() *BlockEvent {
+	ew.Lock()
+	defer ew.Unlock()
+	return ew.lastBlockEvent
 }
 
 // AddWriter TODO
@@ -379,7 +387,7 @@ func (ew *EventWatcher) processBlock(b *block.Block, ctx *data.Context) {
 	for i, t := range b.Body.Transactions {
 		switch tx := t.(type) {
 		case *citygame.DemolitionTx:
-			wtn, _, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), i)
+			wtn, _, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), uint16(i))
 			if err != nil {
 				continue
 			}
@@ -409,7 +417,7 @@ func (ew *EventWatcher) processBlock(b *block.Block, ctx *data.Context) {
 			case *citygame.ConstructionTx:
 				utx = _tx.UpgradeTx
 			}
-			wtn, _, err := getWebTileNotify(ctx, utx.Address, b.Header.Height(), i)
+			wtn, _, err := getWebTileNotify(ctx, utx.Address, b.Header.Height(), uint16(i))
 			if err != nil {
 				continue
 			}
@@ -433,7 +441,7 @@ func (ew *EventWatcher) processBlock(b *block.Block, ctx *data.Context) {
 			}
 			ew.Notify(utx.Address, wtn)
 		case *citygame.GetCoinTx:
-			wtn, _, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), i)
+			wtn, _, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), uint16(i))
 			if err != nil {
 				continue
 			}
@@ -469,10 +477,16 @@ func (ew *EventWatcher) OnPushTransaction(kn *kernel.Kernel, tx transaction.Tran
 
 // AfterProcessBlock called when processed block to the chain
 func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *block.ObserverSigned, ctx *data.Context) {
-	ew.blockEventChan <- &BlockEvent{
+	e := &BlockEvent{
 		b:   b,
 		ctx: ctx,
 	}
+
+	ew.Lock()
+	ew.lastBlockEvent = e
+	ew.Unlock()
+
+	ew.blockEventChan <- e
 }
 
 func (ew *EventWatcher) AfterPushTransaction(kn *kernel.Kernel, tx transaction.Transaction, sigs []common.Signature) {
@@ -485,7 +499,7 @@ func (ew *EventWatcher) DoTransactionBroadcast(kn *kernel.Kernel, msg *message_d
 // DebugLog TEMP
 func (ew *EventWatcher) DebugLog(kn *kernel.Kernel, args ...interface{}) {}
 
-func getWebTileNotify(ctx *data.Context, addr common.Address, height uint32, index int) (*WebTileNotify, *citygame.GameData, error) {
+func getWebTileNotify(ctx *data.Context, addr common.Address, height uint32, index uint16) (*WebTileNotify, *citygame.GameData, error) {
 	gd := citygame.NewGameData(height)
 	bs := ctx.AccountData(addr, []byte("game"))
 	if len(bs) == 0 {
@@ -494,12 +508,16 @@ func getWebTileNotify(ctx *data.Context, addr common.Address, height uint32, ind
 	if _, err := gd.ReadFrom(bytes.NewReader(bs)); err != nil {
 		return nil, nil, err
 	}
-	id := transaction.MarshalID(height, uint16(index), 0)
+	id := transaction.MarshalID(height, index, 0)
 	var errorMsg string
 	for i := 0; i < citygame.GameAccountChannelSize; i++ {
-		newid := util.BytesToUint64(ctx.AccountData(addr, []byte("utxo"+strconv.Itoa(index))))
+		bs := ctx.AccountData(addr, []byte("utxo"+strconv.Itoa(i)))
+		if len(bs) < 8 {
+			continue
+		}
+		newid := util.BytesToUint64(bs)
 		if id == newid {
-			bs := ctx.AccountData(addr, []byte("result"+strconv.Itoa(index)))
+			bs := ctx.AccountData(addr, []byte("result"+strconv.Itoa(i)))
 			if len(bs) > 0 {
 				errorMsg = string(bs)
 			}
