@@ -55,7 +55,6 @@ var (
 // BlockExplorer struct
 type BlockExplorer struct {
 	Kernel                 *kernel.Kernel
-	formulatorCountList    []countInfo
 	transactionCountList   []countInfo
 	CurrentChainInfo       currentChainInfo
 	lastestTransactionList []txInfos
@@ -108,7 +107,6 @@ func NewBlockExplorer(dbPath string, Kernel *kernel.Kernel) (*BlockExplorer, err
 
 	e := &BlockExplorer{
 		Kernel:                 Kernel,
-		formulatorCountList:    []countInfo{},
 		transactionCountList:   []countInfo{},
 		lastestTransactionList: []txInfos{},
 		Template: template.NewTemplate(&template.TemplateConfig{
@@ -164,11 +162,7 @@ func NewBlockExplorer(dbPath string, Kernel *kernel.Kernel) (*BlockExplorer, err
 	go func(e *BlockExplorer) {
 		for {
 			time.Sleep(time.Second)
-
 			e.updateChainInfoCount()
-
-			e.formulatorCountList = appendListLimit(e.formulatorCountList, e.CurrentChainInfo.Foumulators, 200)
-			e.transactionCountList = appendListLimit(e.transactionCountList, e.CurrentChainInfo.currentTransactions, 200)
 		}
 	}(e)
 
@@ -186,6 +180,9 @@ func (e *BlockExplorer) updateChainInfoCount() error {
 	e.CurrentChainInfo.currentTransactions = 0
 	e.CurrentChainInfo.Foumulators = e.Kernel.CandidateCount()
 
+	txCounts := []int{}
+	txTimes := []int64{}
+
 	newTxs := []txInfos{}
 	for i := int(currHeight); i > int(e.CurrentChainInfo.Blocks) && i >= 0; i-- {
 		height := uint32(i)
@@ -194,6 +191,13 @@ func (e *BlockExplorer) updateChainInfoCount() error {
 			continue
 		}
 		e.CurrentChainInfo.currentTransactions += len(b.Body.Transactions)
+		if height%2 == 0 {
+			b2, err := e.Kernel.Block(height - 1)
+			if err == nil {
+				txCounts = append(txCounts, len(b.Body.Transactions)+len(b2.Body.Transactions))
+				txTimes = append(txTimes, int64(b.Header.Timestamp()))
+			}
+		}
 
 		txs := b.Body.Transactions
 		for _, tx := range txs {
@@ -219,6 +223,10 @@ func (e *BlockExplorer) updateChainInfoCount() error {
 			return err
 		}
 
+	}
+
+	for i := len(txCounts) - 1; i >= 0; i-- {
+		e.transactionCountList = appendListLimit(e.transactionCountList, txCounts[i], txTimes[i], 200)
 	}
 
 	if len(newTxs) > 0 {
@@ -323,12 +331,12 @@ func (e *BlockExplorer) GetBlockCount(formulatorAddr string) (height uint32) {
 	return
 }
 
-func appendListLimit(ci []countInfo, count int, limit int) []countInfo {
+func appendListLimit(ci []countInfo, count int, time int64, limit int) []countInfo {
 	if len(ci) >= limit {
 		ci = ci[len(ci)-limit+1 : len(ci)]
 	}
 	ci = append(ci, countInfo{
-		Time:  time.Now().UnixNano(),
+		Time:  time,
 		Count: count,
 	})
 	return ci

@@ -10,13 +10,10 @@ import (
 
 	"github.com/fletaio/common"
 
-	"github.com/fletaio/core/block"
 	"github.com/dgraph-io/badger"
+	"github.com/fletaio/core/block"
 )
 
-func (e *BlockExplorer) formulators() []countInfo {
-	return e.formulatorCountList
-}
 func (e *BlockExplorer) transactions() []countInfo {
 	return e.transactionCountList
 }
