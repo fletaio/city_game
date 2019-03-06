@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/fletaio/citygame/server/citygame"
 	"github.com/fletaio/common"
@@ -63,5 +64,63 @@ func (e *ScoreController) User(r *http.Request) (map[string][]byte, error) {
 		"Population":  []byte(fmt.Sprintf("%v", gr.ManProvided)),
 		"Electricity": []byte(fmt.Sprintf("%v", gr.PowerProvided)),
 		"data":        data,
+	}, nil
+}
+
+func (e *ScoreController) Coincount(r *http.Request) (map[string][]byte, error) {
+	currHeight := e.kn.Provider().Height()
+	m := map[string]map[string]int{}
+	fields := map[string]bool{}
+	for i := uint32(1); i <= currHeight; i++ {
+		b, err := e.kn.Block(i)
+		if err != nil {
+			continue
+		}
+		txs := b.Body.Transactions
+		for _, tx := range txs {
+			switch tx := tx.(type) {
+			case *citygame.GetCoinTx:
+				cd := common.Coordinate{}
+				buf := bytes.NewBuffer(tx.Address[:])
+				cd.ReadFrom(buf)
+				ob, err := e.kn.Block(cd.Height)
+				if err != nil {
+					continue
+				}
+				if uint16(len(ob.Body.Transactions)) > cd.Index {
+					accTx := ob.Body.Transactions[cd.Index]
+					switch accTx := accTx.(type) {
+					case *citygame.CreateAccountTx:
+						data, has := m[accTx.UserID]
+						if has == false {
+							data = map[string]int{}
+							m[accTx.UserID] = data
+						}
+						hTime := time.Unix(0, int64(b.Header.Timestamp()))
+						str := hTime.Format("2006-01-02T15:12:13")
+						var k string
+						if str[:13] < str[:11]+"14" { //안지남
+							hTime = hTime.Add(-time.Hour * 24)
+							str2 := hTime.Format("2006-01-02T15:13:14")
+							k = str2[:10]
+						} else { //지남
+							k = str[:10]
+						}
+						fields[k] = true
+						i, _ := data[k]
+						i++
+						data[k] = i
+					}
+				}
+			}
+		}
+	}
+
+	jm, _ := json.Marshal(m)
+	jFields, _ := json.Marshal(fields)
+
+	return map[string][]byte{
+		"coin":   jm,
+		"fields": jFields,
 	}, nil
 }
