@@ -13,6 +13,6 @@ ObserverKeys = [
 	"3HLUjZYeUDc7nGKqCaRyqB8yJHwj3BgFMWUYNmMSYfE"
 ]
 Port = 51000
-APIPort = 56000
+APIPort = 58000
 StoreRoot = "./data"
 ForceRecover = true
