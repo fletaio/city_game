@@ -299,7 +299,7 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 			if cl, err := citygame.CLReadFrom(bf); err == nil {
 				wtn.CoinList = cl
 			}
-			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "", wtn.CoinCount)
+			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "", wtn.CoinCount, 0)
 		case *citygame.UpgradeTx, *citygame.ConstructionTx:
 			var utx *citygame.UpgradeTx
 			switch _tx := tx.(type) {
@@ -330,7 +330,12 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 			if cl, err := citygame.CLReadFrom(bf); err == nil {
 				wtn.CoinList = cl
 			}
-			ew.be.UpdateScore(gd, b.Header.Height(), utx.Address, "", wtn.CoinCount)
+			var usedBalance uint64
+			if len(wtn.Error) == 0 {
+				def := citygame.GBuildingDefine[utx.AreaType][utx.TargetLevel]
+				usedBalance = def.CostUsage
+			}
+			ew.be.UpdateScore(gd, b.Header.Height(), utx.Address, "", wtn.CoinCount, usedBalance)
 		case *citygame.GetCoinTx:
 			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), i)
 			if err != nil {
@@ -351,7 +356,7 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 			if cl, err := citygame.CLReadFrom(bf); err == nil {
 				wtn.CoinList = cl
 			}
-			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "", wtn.CoinCount)
+			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "", wtn.CoinCount, 0)
 		}
 	}
 }
