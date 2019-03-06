@@ -2,62 +2,36 @@ package main
 
 import (
 	"bytes"
-	"encoding/hex"
 	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
-	"runtime"
 	"strconv"
 	"strings"
-	"sync"
 	"syscall"
 
 	"github.com/dgraph-io/badger"
 	"github.com/fletaio/cmd/closer"
+	"github.com/fletaio/common/util"
 	"github.com/fletaio/framework/config"
 	"github.com/fletaio/framework/router/evilnode"
 	"github.com/fletaio/framework/rpc"
 
+	"github.com/fletaio/citygame/explorer/blockexplorer"
 	"github.com/fletaio/citygame/server/citygame"
 	"github.com/fletaio/common"
-	"github.com/fletaio/common/util"
 	"github.com/fletaio/core/block"
 	"github.com/fletaio/core/data"
 	"github.com/fletaio/core/kernel"
-	"github.com/fletaio/core/key"
 	"github.com/fletaio/core/message_def"
 	"github.com/fletaio/core/node"
 	"github.com/fletaio/core/reward"
 	"github.com/fletaio/core/transaction"
 	"github.com/fletaio/framework/peer"
 	"github.com/fletaio/framework/router"
-	"github.com/fletaio/framework/template"
 
 	"github.com/gorilla/websocket"
-	"github.com/labstack/echo"
 )
-
-var (
-	libPath string
-)
-
-func init() {
-	var pwd string
-	{
-		pc := make([]uintptr, 10) // at least 1 entry needed
-		runtime.Callers(1, pc)
-		f := runtime.FuncForPC(pc[0])
-		pwd, _ = f.FileLine(pc[0])
-
-		path := strings.Split(pwd, "/")
-		pwd = strings.Join(path[:len(path)-1], "/")
-	}
-
-	libPath = pwd + "/"
-}
-
-var t *template.Template
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
@@ -71,9 +45,7 @@ type Config struct {
 	ObserverKeys []string
 	Port         int
 	APIPort      int
-	ServerPort   int
 	ExplorerPort int
-	KeyHex       string
 	StoreRoot    string
 	ForceRecover bool
 }
@@ -252,62 +224,16 @@ func main() {
 		return b, nil
 	})
 
-	t = template.NewTemplate(&template.TemplateConfig{
-		TemplatePath: libPath + "html/pages/",
-		LayoutPath:   libPath + "html/layout/",
-	})
-
-	GameKernel := kn
-
-	var GameKey key.Key
-	if bs, err := hex.DecodeString(cfg.KeyHex); err != nil {
+	basePath := "./test/"
+	be, err := blockexplorer.NewBlockExplorer(basePath, kn)
+	if err != nil {
 		panic(err)
-	} else if Key, err := key.NewMemoryKeyFromBytes(bs); err != nil {
-		panic(err)
-	} else {
-		GameKey = Key
 	}
 
-	ew := NewEventWatcher()
-	GameKernel.AddEventHandler(ew)
+	ew := NewEventWatcher(be)
+	kn.AddEventHandler(ew)
 
-	cg := &cityGameCommand{
-		GameKernel: GameKernel,
-		Node:       nd,
-		Key:        GameKey,
-		ew:         ew,
-	}
-
-	e := echo.New()
-	e.Static("/js", libPath+"html/resource/js")
-	e.Static("/css", libPath+"html/resource/css")
-	e.Static("/images", libPath+"html/resource/images")
-	e.HTTPErrorHandler = func(err error, c echo.Context) {
-		code := http.StatusInternalServerError
-		if he, ok := err.(*echo.HTTPError); ok {
-			code = he.Code
-		}
-		c.Logger().Error(err)
-		c.HTML(code, err.Error())
-	}
-
-	e.GET("/", cg.index)
-	e.GET("/websocket/:address", cg.websocketAddress)
-
-	gAPI := e.Group("/api")
-	gAPI.GET("/chain/height", cg.chainHeight)
-	gAPI.GET("/accounts", cg.accountsGet)
-	gAPI.POST("/accounts", cg.accountsPost)
-	gAPI.GET("/reports/:address", cg.reportsAddress)
-	gAPI.GET("/games/:address", cg.gamesAddress)
-	gAPI.POST("/games/:address/commands/demolition", cg.gamesAddressDemolition)
-	gAPI.POST("/games/:address/commands/upgrade", cg.gamesAddressUpgrade)
-	gAPI.POST("/games/:address/commands/getcoin", cg.gamesAddressGetcoin)
-	gAPI.POST("/games/:address/commands/commit", cg.gamesAddressCommit)
-
-	go ew.Run()
-	go e.Start(":" + strconv.Itoa(cfg.ServerPort))
-
+	go be.StartExplorer(cfg.ExplorerPort)
 	go func() {
 		if err := rm.Run(kn, ":"+strconv.Itoa(cfg.APIPort)); err != nil {
 			if http.ErrServerClosed != err {
@@ -319,67 +245,40 @@ func main() {
 	cm.Wait()
 }
 
-type BlockEvent struct {
-	b   *block.Block
-	ctx *data.Context
-}
-
 // EventWatcher TODO
 type EventWatcher struct {
-	sync.Mutex
-	writerMap      map[common.Address]*websocket.Conn
-	blockEventChan chan *BlockEvent
+	be *blockexplorer.BlockExplorer
 }
 
 // NewEventWatcher returns a EventWatcher
-func NewEventWatcher() *EventWatcher {
+func NewEventWatcher(be *blockexplorer.BlockExplorer) *EventWatcher {
 	ew := &EventWatcher{
-		writerMap:      map[common.Address]*websocket.Conn{},
-		blockEventChan: make(chan *BlockEvent, 10000),
+		be: be,
 	}
 	return ew
 }
 
-// AddWriter TODO
-func (ew *EventWatcher) AddWriter(addr common.Address, w *websocket.Conn) {
-	ew.Lock()
-	defer ew.Unlock()
-
-	if old, has := ew.writerMap[addr]; has {
-		old.WriteJSON(&WebTileNotify{
-			Type: 99,
-		})
-		old.Close()
-	}
-	ew.writerMap[addr] = w
+// OnCreateContext called when a context creation (error prevent using context)
+func (ew *EventWatcher) OnCreateContext(kn *kernel.Kernel, ctx *data.Context) error {
+	return nil
 }
 
-// RemoveWriter TODO
-func (ew *EventWatcher) RemoveWriter(addr common.Address, w *websocket.Conn) {
-	ew.Lock()
-	defer ew.Unlock()
-
-	if old, has := ew.writerMap[addr]; has {
-		old.Close()
-	}
-	delete(ew.writerMap, addr)
+// OnProcessBlock called when processing a block to the chain (error prevent processing block)
+func (ew *EventWatcher) OnProcessBlock(kn *kernel.Kernel, b *block.Block, s *block.ObserverSigned, ctx *data.Context) error {
+	return nil
 }
 
-// Run TODO
-func (ew *EventWatcher) Run() {
-	for {
-		select {
-		case e := <-ew.blockEventChan:
-			ew.processBlock(e.b, e.ctx)
-		}
-	}
+// OnPushTransaction called when pushing a transaction to the transaction pool (error prevent push transaction)
+func (ew *EventWatcher) OnPushTransaction(kn *kernel.Kernel, tx transaction.Transaction, sigs []common.Signature) error {
+	return nil
 }
 
-func (ew *EventWatcher) processBlock(b *block.Block, ctx *data.Context) {
+// AfterProcessBlock called when processed block to the chain
+func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *block.ObserverSigned, ctx *data.Context) {
 	for i, t := range b.Body.Transactions {
 		switch tx := t.(type) {
 		case *citygame.DemolitionTx:
-			wtn, _, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), i)
+			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), i)
 			if err != nil {
 				continue
 			}
@@ -394,13 +293,13 @@ func (ew *EventWatcher) processBlock(b *block.Block, ctx *data.Context) {
 			wtn.Tx.Hash = t.Hash().String()
 			wtn.Tx.Height = b.Header.Height()
 			wtn.Tx.Type = int(t.Type())
+
 			clbs := ctx.AccountData(tx.Address, []byte("CoinList"))
 			bf := bytes.NewBuffer(clbs)
 			if cl, err := citygame.CLReadFrom(bf); err == nil {
 				wtn.CoinList = cl
 			}
-
-			ew.Notify(tx.Address, wtn)
+			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "", wtn.CoinCount)
 		case *citygame.UpgradeTx, *citygame.ConstructionTx:
 			var utx *citygame.UpgradeTx
 			switch _tx := tx.(type) {
@@ -409,7 +308,7 @@ func (ew *EventWatcher) processBlock(b *block.Block, ctx *data.Context) {
 			case *citygame.ConstructionTx:
 				utx = _tx.UpgradeTx
 			}
-			wtn, _, err := getWebTileNotify(ctx, utx.Address, b.Header.Height(), i)
+			wtn, gd, err := getWebTileNotify(ctx, utx.Address, b.Header.Height(), i)
 			if err != nil {
 				continue
 			}
@@ -431,9 +330,9 @@ func (ew *EventWatcher) processBlock(b *block.Block, ctx *data.Context) {
 			if cl, err := citygame.CLReadFrom(bf); err == nil {
 				wtn.CoinList = cl
 			}
-			ew.Notify(utx.Address, wtn)
+			ew.be.UpdateScore(gd, b.Header.Height(), utx.Address, "", wtn.CoinCount)
 		case *citygame.GetCoinTx:
-			wtn, _, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), i)
+			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), i)
 			if err != nil {
 				continue
 			}
@@ -451,27 +350,9 @@ func (ew *EventWatcher) processBlock(b *block.Block, ctx *data.Context) {
 			bf := bytes.NewBuffer(clbs)
 			if cl, err := citygame.CLReadFrom(bf); err == nil {
 				wtn.CoinList = cl
-				ew.Notify(tx.Address, wtn)
 			}
+			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "", wtn.CoinCount)
 		}
-	}
-}
-
-// OnProcessBlock called when processing a block to the chain (error prevent processing block)
-func (ew *EventWatcher) OnProcessBlock(kn *kernel.Kernel, b *block.Block, s *block.ObserverSigned, ctx *data.Context) error {
-	return nil
-}
-
-// OnPushTransaction called when pushing a transaction to the transaction pool (error prevent push transaction)
-func (ew *EventWatcher) OnPushTransaction(kn *kernel.Kernel, tx transaction.Transaction, sigs []common.Signature) error {
-	return nil
-}
-
-// AfterProcessBlock called when processed block to the chain
-func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *block.ObserverSigned, ctx *data.Context) {
-	ew.blockEventChan <- &BlockEvent{
-		b:   b,
-		ctx: ctx,
 	}
 }
 
@@ -497,7 +378,11 @@ func getWebTileNotify(ctx *data.Context, addr common.Address, height uint32, ind
 	id := transaction.MarshalID(height, uint16(index), 0)
 	var errorMsg string
 	for i := 0; i < citygame.GameAccountChannelSize; i++ {
-		newid := util.BytesToUint64(ctx.AccountData(addr, []byte("utxo"+strconv.Itoa(index))))
+		data := ctx.AccountData(addr, []byte("utxo"+strconv.Itoa(index)))
+		if len(data) < 8 {
+			continue
+		}
+		newid := util.BytesToUint64(data)
 		if id == newid {
 			bs := ctx.AccountData(addr, []byte("result"+strconv.Itoa(index)))
 			if len(bs) > 0 {
@@ -523,87 +408,6 @@ func getWebTileNotify(ctx *data.Context, addr common.Address, height uint32, ind
 	}, gd, nil
 }
 
-// Notify TODO
-func (ew *EventWatcher) Notify(addr common.Address, noti *WebTileNotify) {
-	ew.Lock()
-	defer ew.Unlock()
-
-	if conn, has := ew.writerMap[addr]; has {
-		conn.WriteJSON(noti)
-	}
-}
-
-type WebAccountReq struct {
-	PublicKey string `json:"public_key"`
-	UserID    string `json:"user_id"`
-	Reward    string `json:"reward"`
-}
-
-type WebAccountRes struct {
-	Address string   `json:"address"`
-	UTXOs   []uint64 `json:"utxos"`
-}
-
-type WebReportRes struct {
-	Height        int `json:"height"`
-	PointHeight   int `json:"point_height"`
-	Balance       int `json:"balance"`
-	PowerRemained int `json:"power_remained"`
-	PowerProvided int `json:"power_provided"`
-	ManRemained   int `json:"man_remained"`
-	ManProvided   int `json:"man_provided"`
-}
-
-type WebGameRes struct {
-	Height       int                                              `json:"height"`
-	PointHeight  int                                              `json:"point_height"`
-	PointBalance int                                              `json:"point_balance"`
-	CoinCount    int                                              `json:"coin_count"`
-	Tiles        []*WebTile                                       `json:"tiles"`
-	Txs          []*UTXO                                          `json:"txs"`
-	CoinList     map[string]*citygame.FletaCityCoin               `json:"fleta_city_coins"`
-	DefineMap    map[citygame.AreaType][]*citygame.BuildingDefine `json:"define_map"`
-}
-
-type WebHeightRes struct {
-	Height int `json:"height"`
-}
-
-type WebDemolitionReq struct {
-	UTXO uint64 `json:"utxo"`
-	X    int    `json:"x"`
-	Y    int    `json:"y"`
-}
-
-type WebUpgradeReq struct {
-	UTXO        uint64 `json:"utxo"`
-	X           int    `json:"x"`
-	Y           int    `json:"y"`
-	AreaType    int    `json:"area_type"`
-	TargetLevel int    `json:"target_level"`
-}
-
-type WebGetCoinReq struct {
-	UTXO     uint64 `json:"utxo"`
-	X        int    `json:"x"`
-	Y        int    `json:"y"`
-	Hash     string `json:"hash"`
-	Height   uint32 `json:"height"`
-	CoinType int    `json:"coin_type"`
-}
-
-type WebTxRes struct {
-	Type    int    `json:"type"`
-	TxHex   string `json:"tx_hex"`
-	HashHex string `json:"hash_hex"`
-}
-
-type WebCommitReq struct {
-	Type   int    `json:"type"`
-	TxHex  string `json:"tx_hex"`
-	SigHex string `json:"sig_hex"`
-}
-
 type WebTileNotify struct {
 	Type         int                                `json:"type"`
 	X            int                                `json:"x"`
@@ -618,12 +422,6 @@ type WebTileNotify struct {
 	Tx           *UTXO                              `json:"tx"`
 	CoinList     map[string]*citygame.FletaCityCoin `json:"fleta_city_coins"`
 	Error        string                             `json:"error"`
-}
-
-type WebTile struct {
-	AreaType    int `json:"area_type"`
-	Level       int `json:"level"`
-	BuildHeight int `json:"build_height"`
 }
 
 type UTXO struct {
