@@ -179,6 +179,19 @@ func (e *BlockExplorer) txDetailMap(tran *data.Transactor, height uint32, txInde
 
 		m["AreaType"] = tx.AreaType
 		m["TargetLevel"] = tx.TargetLevel
+	case "fletacity.GetCoin":
+		tx := t.(*citygame.GetCoinTx)
+		m["Vin Count"] = fmt.Sprint(len(tx.Vin))
+		m["Vins"] = extractVin(tx.Vin)
+
+		m["Address"] = tx.Address.String()
+		m["X"] = tx.X
+		m["Y"] = tx.Y
+
+		m["TargetHeight"] = tx.TargetHeight
+		m["TargetHash"] = tx.TargetHash
+		m["CoinType"] = tx.CoinType
+
 	case "fletacity.Construction":
 		tx := t.(*citygame.ConstructionTx)
 		m["Vin Count"] = fmt.Sprint(len(tx.Vin))
