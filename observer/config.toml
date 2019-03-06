@@ -1,5 +1,5 @@
 Port = 51000
-APIPort = 56000
+APIPort = 58000
 KeyHex = "THIS_IS_A_PRIVATE_KEY_THAT_IS_FORMATTED_WITH_HEX"
 ObseverPort = 55000
 FormulatorPort = 57000
