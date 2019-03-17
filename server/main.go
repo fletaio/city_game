@@ -509,7 +509,7 @@ func getWebTileNotify(ctx *data.Context, addr common.Address, height uint32, ind
 	}
 	id := transaction.MarshalID(height, index, 0)
 	var errorMsg string
-	for i := 0; i < citygame.GameAccountChannelSize; i++ {
+	for i := 0; i < citygame.GameCommandChannelSize; i++ {
 		bs := ctx.AccountData(addr, []byte("utxo"+strconv.Itoa(i)))
 		if len(bs) < 8 {
 			continue

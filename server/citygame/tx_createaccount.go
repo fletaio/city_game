@@ -123,6 +123,18 @@ func init() {
 			ctx.CreateAccount(acc)
 
 			gd := NewGameData(ctx.TargetHeight())
+			hbs := util.Uint32ToBytes(ctx.TargetHeight())
+			h := hash.Hash(hbs)
+			for i := 0; i < 10; i++ {
+				x := uint8(util.BytesToUint16([]byte(h[i*2:i*2+2]))) % GTileSize
+				y := uint8(util.BytesToUint16([]byte(h[i*2+2:i*2+4]))) % GTileSize
+				gd.Coins = append(gd.Coins, &FletaCityCoin{
+					X:      x,
+					Y:      y,
+					Index:  uint8(i),
+					Height: ctx.TargetHeight() + TimeCoinGenTime*2,
+				})
+			}
 			var buffer bytes.Buffer
 			if _, err := gd.WriteTo(&buffer); err != nil {
 				//log.Println(err)
@@ -134,7 +146,7 @@ func init() {
 			ctx.SetAccountData(rootAddress, UserIDHashID, addr[:])
 			ctx.SetAccountData(rootAddress, RewardHashID, addr[:])
 
-			for i := 0; i < GameAccountChannelSize; i++ {
+			for i := 0; i < GameCommandChannelSize; i++ {
 				id := transaction.MarshalID(coord.Height, coord.Index, uint16(i+1))
 				ctx.CreateUTXO(id, &transaction.TxOut{
 					Amount:     amount.NewCoinAmount(0, 0),
@@ -142,28 +154,6 @@ func init() {
 				})
 				ctx.SetAccountData(addr, []byte("utxo"+strconv.Itoa(i)), util.Uint64ToBytes(id))
 			}
-
-			hbs := util.Uint32ToBytes(ctx.TargetHeight())
-			h := hash.Hash(hbs)
-
-			targetCoinMap := map[string]*FletaCityCoin{}
-			for i := 0; i < 10; i++ {
-				x := int(util.BytesToUint16([]byte(h[i*2:i*2+2]))) % GTileSize
-				y := int(util.BytesToUint16([]byte(h[i*2+2:i*2+4]))) % GTileSize
-				h := hash.Hash([]byte(h[i:])).String()
-				targetCoinMap[h] = &FletaCityCoin{
-					X:        x,
-					Y:        y,
-					Hash:     h,
-					Height:   ctx.TargetHeight() + TimeCoinGenTime*2,
-					CoinType: TimeCoinType,
-				}
-			}
-			bf := &bytes.Buffer{}
-			CLWriteTo(bf, targetCoinMap)
-			ctx.SetAccountData(addr, []byte("CoinList"), bf.Bytes())
-			ctx.SetAccountData(addr, []byte("GetCoinCount"), util.Uint32ToBytes(0))
-
 			ctx.Commit(sn)
 		}()
 

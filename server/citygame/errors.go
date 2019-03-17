@@ -12,7 +12,7 @@ var (
 	ErrInvalidAccountSigner        = errors.New("invalid account signer")
 	ErrInvalidLevel                = errors.New("invalid level")
 	ErrInvalidAreaType             = errors.New("invalid area type")
-	ErrInvalidCoinType             = errors.New("invalid coin type")
+	ErrInvalidCoinIndex            = errors.New("invalid coin index")
 	ErrInvalidDemolition           = errors.New("invalid demolition")
 	ErrInvalidPosition             = errors.New("invalid position")
 	ErrInvalidAddress              = errors.New("invalid address")

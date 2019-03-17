@@ -6,16 +6,16 @@ import (
 	"github.com/fletaio/common/util"
 )
 
-//FletaCityCoin is FletaCityCoin
-type FletaCityCoin struct {
-	X      uint8  `json:"x"`
-	Y      uint8  `json:"y"`
-	Index  uint8  `json:"index"`
-	Height uint32 `json:"height"`
+//FletaCityExp is FletaCityExp
+type FletaCityExp struct {
+	X        uint8    `json:"x"`
+	Y        uint8    `json:"y"`
+	AreaType AreaType `json:"area_type"`
+	Level    uint8    `json:"level"`
 }
 
 // WriteTo is a serialization function
-func (f *FletaCityCoin) WriteTo(w io.Writer) (int64, error) {
+func (f *FletaCityExp) WriteTo(w io.Writer) (int64, error) {
 	var wrote int64
 	if n, err := util.WriteUint8(w, f.X); err != nil {
 		return wrote, err
@@ -27,12 +27,12 @@ func (f *FletaCityCoin) WriteTo(w io.Writer) (int64, error) {
 	} else {
 		wrote += n
 	}
-	if n, err := util.WriteUint8(w, f.Index); err != nil {
+	if n, err := util.WriteUint8(w, uint8(f.AreaType)); err != nil {
 		return wrote, err
 	} else {
 		wrote += n
 	}
-	if n, err := util.WriteUint32(w, f.Height); err != nil {
+	if n, err := util.WriteUint8(w, f.Level); err != nil {
 		return wrote, err
 	} else {
 		wrote += n
@@ -41,7 +41,7 @@ func (f *FletaCityCoin) WriteTo(w io.Writer) (int64, error) {
 }
 
 // ReadFrom is a deserialization function
-func (f *FletaCityCoin) ReadFrom(r io.Reader) (int64, error) {
+func (f *FletaCityExp) ReadFrom(r io.Reader) (int64, error) {
 	var read int64
 	if v, n, err := util.ReadUint8(r); err != nil {
 		return read, err
@@ -59,13 +59,13 @@ func (f *FletaCityCoin) ReadFrom(r io.Reader) (int64, error) {
 		return read, err
 	} else {
 		read += n
-		f.Index = v
+		f.AreaType = AreaType(v)
 	}
-	if v, n, err := util.ReadUint32(r); err != nil {
+	if v, n, err := util.ReadUint8(r); err != nil {
 		return read, err
 	} else {
 		read += n
-		f.Height = v
+		f.Level = v
 	}
 	return read, nil
 }

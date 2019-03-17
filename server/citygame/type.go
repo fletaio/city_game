@@ -27,13 +27,6 @@ const (
 	EndOfAreaType       = AreaType(4)
 )
 
-// Coin types
-const (
-	EmptyCoinType     = CoinType(0)
-	ConstructCoinType = CoinType(1)
-	TimeCoinType      = CoinType(2)
-)
-
 // TimeCoinGenTime id define coin regenerate time
 const TimeCoinGenTime = uint32(0.5 * 2 * 60 * 5) //blocktime * 1/blocktime * 1minute * 5
 
@@ -112,15 +105,23 @@ type Resource struct {
 type GameData struct {
 	PointBalance uint64
 	PointHeight  uint32
+	CoinCount    uint32
+	TotalExp     uint64
+	Coins        []*FletaCityCoin
+	Exps         []*FletaCityExp
+	MaxLevels    []uint8
 	Tiles        []*Tile
 }
 
 // NewGameData returns a GameData
 func NewGameData(TargetHeight uint32) *GameData {
 	gd := &GameData{
-		Tiles:        make([]*Tile, GTileSize*GTileSize),
 		PointBalance: 900,
 		PointHeight:  TargetHeight,
+		Coins:        []*FletaCityCoin{},
+		Exps:         []*FletaCityExp{},
+		MaxLevels:    make([]uint8, GTileSize*GTileSize),
+		Tiles:        make([]*Tile, GTileSize*GTileSize),
 	}
 	return gd
 }
@@ -223,6 +224,52 @@ func (gd *GameData) WriteTo(w io.Writer) (int64, error) {
 	} else {
 		wrote += n
 	}
+	if n, err := util.WriteUint32(w, gd.CoinCount); err != nil {
+		return wrote, err
+	} else {
+		wrote += n
+	}
+	if n, err := util.WriteUint64(w, gd.TotalExp); err != nil {
+		return wrote, err
+	} else {
+		wrote += n
+	}
+	if n, err := util.WriteUint16(w, uint16(len(gd.Coins))); err != nil {
+		return 0, err
+	} else {
+		wrote += n
+		for _, c := range gd.Coins {
+			if n, err := c.WriteTo(w); err != nil {
+				return 0, err
+			} else {
+				wrote += n
+			}
+		}
+	}
+	if n, err := util.WriteUint16(w, uint16(len(gd.Exps))); err != nil {
+		return 0, err
+	} else {
+		wrote += n
+		for _, e := range gd.Exps {
+			if n, err := e.WriteTo(w); err != nil {
+				return 0, err
+			} else {
+				wrote += n
+			}
+		}
+	}
+	if n, err := util.WriteUint16(w, uint16(len(gd.MaxLevels))); err != nil {
+		return 0, err
+	} else {
+		wrote += n
+		for _, v := range gd.MaxLevels {
+			if n, err := util.WriteUint8(w, v); err != nil {
+				return 0, err
+			} else {
+				wrote += n
+			}
+		}
+	}
 
 	coords := []int{}
 	tileMap := map[int]*Tile{}
@@ -271,6 +318,62 @@ func (gd *GameData) ReadFrom(r io.Reader) (int64, error) {
 		read += n
 		gd.PointHeight = v
 	}
+	if v, n, err := util.ReadUint32(r); err != nil {
+		return read, err
+	} else {
+		read += n
+		gd.CoinCount = v
+	}
+	if v, n, err := util.ReadUint64(r); err != nil {
+		return read, err
+	} else {
+		read += n
+		gd.TotalExp = v
+	}
+	if Len, n, err := util.ReadUint16(r); err != nil {
+		return read, err
+	} else {
+		read += n
+		gd.Coins = make([]*FletaCityCoin, 0, Len)
+		for i := 0; i < int(Len); i++ {
+			c := &FletaCityCoin{}
+			if n, err := c.ReadFrom(r); err != nil {
+				return read, err
+			} else {
+				read += n
+			}
+			gd.Coins = append(gd.Coins, c)
+		}
+	}
+	if Len, n, err := util.ReadUint16(r); err != nil {
+		return read, err
+	} else {
+		read += n
+		gd.Exps = make([]*FletaCityExp, 0, Len)
+		for i := 0; i < int(Len); i++ {
+			e := &FletaCityExp{}
+			if n, err := e.ReadFrom(r); err != nil {
+				return read, err
+			} else {
+				read += n
+			}
+			gd.Exps = append(gd.Exps, e)
+		}
+	}
+	if Len, n, err := util.ReadUint16(r); err != nil {
+		return read, err
+	} else {
+		read += n
+		gd.MaxLevels = make([]uint8, 0, Len)
+		for i := 0; i < int(Len); i++ {
+			if v, n, err := util.ReadUint8(r); err != nil {
+				return read, err
+			} else {
+				read += n
+				gd.MaxLevels = append(gd.MaxLevels, v)
+			}
+		}
+	}
 
 	if Len, n, err := util.ReadUint32(r); err != nil {
 		return read, err
@@ -300,6 +403,7 @@ type BuildingDefine struct {
 	CostUsage     uint64 `json:"cost_usage"`      // all
 	BuildTime     uint32 `json:"build_time"`      // all
 	Output        uint32 `json:"output"`          // all
+	Exp           uint32 `json:"exp"`             // all
 	ManUsage      uint32 `json:"man_usage"`       // commerial, industrial
 	PowerUsage    uint32 `json:"power_usage"`     // commerial, residential
 	AccManUsage   uint32 `json:"acc_man_usage"`   // commerial, industrial
@@ -326,6 +430,7 @@ var GBuildingDefine = map[AreaType][]*BuildingDefine{
 			CostUsage:  400,
 			BuildTime:  30,
 			Output:     4,
+			Exp:        1,
 			ManUsage:   2,
 			PowerUsage: 3,
 		},
@@ -333,6 +438,7 @@ var GBuildingDefine = map[AreaType][]*BuildingDefine{
 			CostUsage:  2400,
 			BuildTime:  140,
 			Output:     10,
+			Exp:        2,
 			ManUsage:   3,
 			PowerUsage: 4,
 		},
@@ -340,6 +446,7 @@ var GBuildingDefine = map[AreaType][]*BuildingDefine{
 			CostUsage:  12000,
 			BuildTime:  700,
 			Output:     24,
+			Exp:        3,
 			ManUsage:   8,
 			PowerUsage: 12,
 		},
@@ -347,6 +454,7 @@ var GBuildingDefine = map[AreaType][]*BuildingDefine{
 			CostUsage:  60000,
 			BuildTime:  3500,
 			Output:     64,
+			Exp:        4,
 			ManUsage:   40,
 			PowerUsage: 30,
 		},
@@ -354,6 +462,7 @@ var GBuildingDefine = map[AreaType][]*BuildingDefine{
 			CostUsage:  300000,
 			BuildTime:  18000,
 			Output:     160,
+			Exp:        5,
 			ManUsage:   200,
 			PowerUsage: 80,
 		},
@@ -361,6 +470,7 @@ var GBuildingDefine = map[AreaType][]*BuildingDefine{
 			CostUsage:  6000000,
 			BuildTime:  86400,
 			Output:     1600,
+			Exp:        6,
 			ManUsage:   4000,
 			PowerUsage: 1500,
 		},
@@ -370,36 +480,42 @@ var GBuildingDefine = map[AreaType][]*BuildingDefine{
 			CostUsage: 200,
 			BuildTime: 60,
 			Output:    5,
+			Exp:       1,
 			ManUsage:  1,
 		},
 		&BuildingDefine{
 			CostUsage: 1700,
 			BuildTime: 200,
 			Output:    14,
+			Exp:       2,
 			ManUsage:  2,
 		},
 		&BuildingDefine{
 			CostUsage: 12000,
 			BuildTime: 700,
 			Output:    96,
+			Exp:       3,
 			ManUsage:  8,
 		},
 		&BuildingDefine{
 			CostUsage: 80000,
 			BuildTime: 2700,
 			Output:    390,
+			Exp:       4,
 			ManUsage:  54,
 		},
 		&BuildingDefine{
 			CostUsage: 450000,
 			BuildTime: 12000,
 			Output:    1440,
+			Exp:       5,
 			ManUsage:  300,
 		},
 		&BuildingDefine{
 			CostUsage: 9100000,
 			BuildTime: 57000,
 			Output:    33000,
+			Exp:       6,
 			ManUsage:  6100,
 		},
 	},
@@ -408,36 +524,42 @@ var GBuildingDefine = map[AreaType][]*BuildingDefine{
 			CostUsage:  300,
 			BuildTime:  45,
 			Output:     3,
+			Exp:        1,
 			PowerUsage: 2,
 		},
 		&BuildingDefine{
 			CostUsage:  2000,
 			BuildTime:  170,
 			Output:     10,
+			Exp:        2,
 			PowerUsage: 3,
 		},
 		&BuildingDefine{
 			CostUsage:  12000,
 			BuildTime:  700,
 			Output:     64,
+			Exp:        3,
 			PowerUsage: 12,
 		},
 		&BuildingDefine{
 			CostUsage:  66000,
 			BuildTime:  3200,
 			Output:     564,
+			Exp:        4,
 			PowerUsage: 35,
 		},
 		&BuildingDefine{
 			CostUsage:  360000,
 			BuildTime:  15000,
 			Output:     4000,
+			Exp:        5,
 			PowerUsage: 100,
 		},
 		&BuildingDefine{
 			CostUsage:  7200000,
 			BuildTime:  72000,
 			Output:     101000,
+			Exp:        6,
 			PowerUsage: 1800,
 		},
 	},

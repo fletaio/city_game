@@ -1,13 +1,18 @@
 package citygame
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"io"
+	"strconv"
 
 	"github.com/fletaio/extension/utxo_tx"
 
 	"github.com/fletaio/common"
 	"github.com/fletaio/common/hash"
 	"github.com/fletaio/common/util"
+	"github.com/fletaio/core/amount"
 	"github.com/fletaio/core/data"
 	"github.com/fletaio/core/transaction"
 )
@@ -15,13 +20,11 @@ import (
 func init() {
 	data.RegisterTransaction("fletacity.Construction", func(t transaction.Type) transaction.Transaction {
 		return &ConstructionTx{
-			UpgradeTx: &UpgradeTx{
-				Base: utxo_tx.Base{
-					Base: transaction.Base{
-						Type_: t,
-					},
-					Vin: []*transaction.TxIn{},
+			Base: utxo_tx.Base{
+				Base: transaction.Base{
+					Type_: t,
 				},
+				Vin: []*transaction.TxIn{},
 			},
 		}
 	}, func(loader data.Loader, t transaction.Transaction, signers []common.PublicHash) error {
@@ -50,19 +53,131 @@ func init() {
 			return err
 		}
 		return nil
-	}, UpgradeTxExecFunc)
+	}, func(ctx *data.Context, Fee *amount.Amount, t transaction.Transaction, coord *common.Coordinate) (interface{}, error) {
+		tx := t.(*ConstructionTx)
+		sn := ctx.Snapshot()
+		defer ctx.Revert(sn)
+
+		utxo, err := ctx.UTXO(tx.Vin[0].ID())
+		if err != nil {
+			return nil, err
+		}
+
+		if err := ctx.DeleteUTXO(utxo.ID()); err != nil {
+			return nil, err
+		}
+
+		gameErr := func() error {
+			sn := ctx.Snapshot()
+			defer ctx.Revert(sn)
+
+			gd := NewGameData(ctx.TargetHeight())
+			bs := ctx.AccountData(tx.Address, []byte("game"))
+			if _, err := gd.ReadFrom(bytes.NewReader(bs)); err != nil {
+				return err
+			}
+
+			bds, has := GBuildingDefine[tx.AreaType]
+			if !has {
+				return ErrInvalidAreaType
+			}
+
+			res := gd.Resource(ctx.TargetHeight())
+			bd := bds[0]
+			if bd.CostUsage > res.Balance {
+				fmt.Println("Cost need ", bd.CostUsage, " but has ", res.Balance)
+				return ErrInsufficientResource
+			}
+			if bd.ManUsage > res.ManRemained {
+				fmt.Println("Man need ", bd.ManUsage, " but has ", res.ManRemained)
+				return ErrInsufficientResource
+			}
+			if bd.PowerUsage > res.PowerRemained {
+				fmt.Println("Power need ", bd.PowerUsage, " but has ", res.PowerRemained)
+				return ErrInsufficientResource
+			}
+
+			idx := tx.X + GTileSize*tx.Y
+			tile := gd.Tiles[idx]
+			if tile != nil {
+				return ErrInvalidLevel
+			}
+
+			tile = NewTile(tx.AreaType, ctx.TargetHeight())
+			gd.Tiles[idx] = tile
+
+			bInsideX := (tx.X < GTileSize-1)
+			bInsideY := (tx.Y < GTileSize-1)
+			if bInsideX {
+				if nearTile := gd.Tiles[tx.X+1+GTileSize*(tx.Y)]; nearTile != nil && nearTile.Level == 6 {
+					return ErrInvalidPosition
+				}
+			}
+			if bInsideY {
+				if nearTile := gd.Tiles[tx.X+GTileSize*(tx.Y+1)]; nearTile != nil && nearTile.Level == 6 {
+					return ErrInvalidPosition
+				}
+			}
+			if bInsideX && bInsideY {
+				if nearTile := gd.Tiles[tx.X+1+GTileSize*(tx.Y+1)]; nearTile != nil && nearTile.Level == 6 {
+					return ErrInvalidPosition
+				}
+			}
+
+			gd.UpdatePoint(ctx.TargetHeight(), res.Balance-bd.CostUsage)
+
+			MaxLevel := gd.MaxLevels[tx.X+tx.Y*GTileSize]
+			if MaxLevel == 0 {
+				gd.Exps = append(gd.Exps, &FletaCityExp{
+					X:     tx.X,
+					Y:     tx.Y,
+					Level: 1,
+				})
+				gd.MaxLevels[tx.X+tx.Y*GTileSize] = 1
+			}
+
+			var buffer bytes.Buffer
+			if _, err := gd.WriteTo(&buffer); err != nil {
+				return err
+			}
+			ctx.SetAccountData(tx.Address, []byte("game"), buffer.Bytes())
+			ctx.Commit(sn)
+
+			return nil
+		}()
+
+		for i := 0; i < GameCommandChannelSize; i++ {
+			did := []byte("utxo" + strconv.Itoa(i))
+			oldid := util.BytesToUint64(ctx.AccountData(tx.Address, did))
+			if oldid == tx.Vin[0].ID() {
+				id := transaction.MarshalID(coord.Height, coord.Index, 0)
+				ctx.CreateUTXO(id, &transaction.TxOut{
+					Amount:     amount.NewCoinAmount(0, 0),
+					PublicHash: utxo.PublicHash,
+				})
+				ctx.SetAccountData(tx.Address, did, util.Uint64ToBytes(id))
+				if gameErr != nil {
+					ctx.SetAccountData(tx.Address, []byte("result"+strconv.Itoa(i)), []byte(gameErr.Error()))
+				} else {
+					ctx.SetAccountData(tx.Address, []byte("result"+strconv.Itoa(i)), nil)
+				}
+				break
+			}
+		}
+
+		ctx.Commit(sn)
+		return nil, nil
+	})
 }
 
 // ConstructionTx is a fleta.ConstructionTx
 // It is used to make a single account
 type ConstructionTx struct {
-	*UpgradeTx
-	// utxo_tx.Base
-	// Address     common.Address
-	// X           uint8
-	// Y           uint8
-	// AreaType    AreaType
-	// TargetLevel uint8
+	utxo_tx.Base
+	Address  common.Address
+	X        uint8
+	Y        uint8
+	AreaType AreaType
 }
 
 // Hash returns the hash value of it
@@ -94,11 +209,6 @@ func (tx *ConstructionTx) WriteTo(w io.Writer) (int64, error) {
 		wrote += n
 	}
 	if n, err := util.WriteUint8(w, uint8(tx.AreaType)); err != nil {
-		return wrote, err
-	} else {
-		wrote += n
-	}
-	if n, err := util.WriteUint8(w, tx.TargetLevel); err != nil {
 		return wrote, err
 	} else {
 		wrote += n
@@ -137,11 +247,68 @@ func (tx *ConstructionTx) ReadFrom(r io.Reader) (int64, error) {
 		read += n
 		tx.AreaType = AreaType(v)
 	}
-	if v, n, err := util.ReadUint8(r); err != nil {
-		return read, err
-	} else {
-		read += n
-		tx.TargetLevel = v
-	}
 	return read, nil
+}
+
+// MarshalJSON is a marshaler function
+func (tx *ConstructionTx) MarshalJSON() ([]byte, error) {
+	var buffer bytes.Buffer
+	buffer.WriteString(`{`)
+	buffer.WriteString(`"timestamp":`)
+	if bs, err := json.Marshal(tx.Timestamp_); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`,`)
+	buffer.WriteString(`"type":`)
+	if bs, err := json.Marshal(tx.Type_); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`,`)
+	buffer.WriteString(`"vin":`)
+	buffer.WriteString(`[`)
+	for i, vin := range tx.Vin {
+		if i > 0 {
+			buffer.WriteString(`,`)
+		}
+		if bs, err := json.Marshal(vin.ID()); err != nil {
+			return nil, err
+		} else {
+			buffer.Write(bs)
+		}
+	}
+	buffer.WriteString(`]`)
+	buffer.WriteString(`,`)
+	buffer.WriteString(`"address":`)
+	if bs, err := json.Marshal(tx.Address); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`,`)
+	buffer.WriteString(`"x":`)
+	if bs, err := json.Marshal(tx.X); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`,`)
+	buffer.WriteString(`"y":`)
+	if bs, err := json.Marshal(tx.Y); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`,`)
+	buffer.WriteString(`"area_type":`)
+	if bs, err := json.Marshal(tx.AreaType); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`}`)
+	return buffer.Bytes(), nil
 }

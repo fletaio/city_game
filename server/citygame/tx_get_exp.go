@@ -6,8 +6,9 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/fletaio/core/amount"
 	"github.com/fletaio/extension/utxo_tx"
+
+	"github.com/fletaio/core/amount"
 
 	"github.com/fletaio/common"
 	"github.com/fletaio/common/hash"
@@ -17,8 +18,8 @@ import (
 )
 
 func init() {
-	data.RegisterTransaction("fletacity.Demolition", func(t transaction.Type) transaction.Transaction {
-		return &DemolitionTx{
+	data.RegisterTransaction("fletacity.GetExp", func(t transaction.Type) transaction.Transaction {
+		return &GetExpTx{
 			Base: utxo_tx.Base{
 				Base: transaction.Base{
 					Type_: t,
@@ -27,7 +28,7 @@ func init() {
 			},
 		}
 	}, func(loader data.Loader, t transaction.Transaction, signers []common.PublicHash) error {
-		tx := t.(*DemolitionTx)
+		tx := t.(*GetExpTx)
 		if len(tx.Vin) != 1 {
 			return ErrInvalidTxInCount
 		}
@@ -53,7 +54,7 @@ func init() {
 		}
 		return nil
 	}, func(ctx *data.Context, Fee *amount.Amount, t transaction.Transaction, coord *common.Coordinate) (interface{}, error) {
-		tx := t.(*DemolitionTx)
+		tx := t.(*GetExpTx)
 		sn := ctx.Snapshot()
 		defer ctx.Revert(sn)
 
@@ -75,37 +76,40 @@ func init() {
 			if _, err := gd.ReadFrom(bytes.NewReader(bs)); err != nil {
 				return err
 			}
+			for i, e := range gd.Exps {
+				if e.X == tx.X && e.Y == tx.Y {
+					bds, has := GBuildingDefine[e.AreaType]
+					if !has {
+						return ErrInvalidAreaType
+					}
+					if e.Level == 0 || int(e.Level) >= len(bds)+1 {
+						return ErrInvalidLevel
+					}
+					gd.TotalExp += uint64(bds[e.Level-1].Exp)
 
-			idx := tx.X + GTileSize*tx.Y
-			tile := gd.Tiles[idx]
-			if tile == nil {
-				return ErrNotExistTile
-			}
+					if len(gd.Exps) == 1 {
+						gd.Exps = []*FletaCityExp{}
+					} else {
+						if i == 0 {
+							gd.Exps = gd.Exps[1:]
+						} else if i == len(gd.Exps)-1 {
+							gd.Exps = gd.Exps[:len(gd.Exps)-1]
+						} else {
+							gd.Exps = append(gd.Exps[:i], gd.Exps[i+1:]...)
+						}
+					}
 
-			res := gd.Resource(ctx.TargetHeight())
-			bd := GBuildingDefine[tile.AreaType][tile.Level-1]
-			switch tile.AreaType {
-			case IndustrialAreaType:
-				if res.PowerRemained < bd.Output {
-					return ErrInvalidDemolition
+					var buffer bytes.Buffer
+					if _, err := gd.WriteTo(&buffer); err != nil {
+						return err
+					}
+					ctx.SetAccountData(tx.Address, []byte("game"), buffer.Bytes())
+
+					ctx.Commit(sn)
+					return nil
 				}
-			case ResidentialAreaType:
-				if res.ManRemained < bd.Output {
-					return ErrInvalidDemolition
-				}
 			}
-			gd.Tiles[idx] = nil
-
-			gd.UpdatePoint(ctx.TargetHeight(), gd.Resource(ctx.TargetHeight()).Balance)
-
-			var buffer bytes.Buffer
-			if _, err := gd.WriteTo(&buffer); err != nil {
-				return err
-			}
-			ctx.SetAccountData(tx.Address, []byte("game"), buffer.Bytes())
-
-			ctx.Commit(sn)
-			return nil
+			return ErrTimeCoinNotExist
 		}()
 
 		for i := 0; i < GameCommandChannelSize; i++ {
@@ -132,9 +136,8 @@ func init() {
 	})
 }
 
-// DemolitionTx is a fleta.DemolitionTx
-// It is engraved dapp on main chain
-type DemolitionTx struct {
+// GetExpTx is a fleta.GetExpTx
+type GetExpTx struct {
 	utxo_tx.Base
 	Address common.Address
 	X       uint8
@@ -142,12 +145,12 @@ type DemolitionTx struct {
 }
 
 // Hash returns the hash value of it
-func (tx *DemolitionTx) Hash() hash.Hash256 {
+func (tx *GetExpTx) Hash() hash.Hash256 {
 	return hash.DoubleHashByWriterTo(tx)
 }
 
 // WriteTo is a serialization function
-func (tx *DemolitionTx) WriteTo(w io.Writer) (int64, error) {
+func (tx *GetExpTx) WriteTo(w io.Writer) (int64, error) {
 	var wrote int64
 	if n, err := tx.Base.WriteTo(w); err != nil {
 		return wrote, err
@@ -173,7 +176,7 @@ func (tx *DemolitionTx) WriteTo(w io.Writer) (int64, error) {
 }
 
 // ReadFrom is a deserialization function
-func (tx *DemolitionTx) ReadFrom(r io.Reader) (int64, error) {
+func (tx *GetExpTx) ReadFrom(r io.Reader) (int64, error) {
 	var read int64
 	if n, err := tx.Base.ReadFrom(r); err != nil {
 		return read, err
@@ -201,7 +204,7 @@ func (tx *DemolitionTx) ReadFrom(r io.Reader) (int64, error) {
 }
 
 // MarshalJSON is a marshaler function
-func (tx *DemolitionTx) MarshalJSON() ([]byte, error) {
+func (tx *GetExpTx) MarshalJSON() ([]byte, error) {
 	var buffer bytes.Buffer
 	buffer.WriteString(`{`)
 	buffer.WriteString(`"timestamp":`)
@@ -239,7 +242,6 @@ func (tx *DemolitionTx) MarshalJSON() ([]byte, error) {
 		buffer.Write(bs)
 	}
 	buffer.WriteString(`,`)
-
 	buffer.WriteString(`"x":`)
 	if bs, err := json.Marshal(tx.X); err != nil {
 		return nil, err
@@ -247,7 +249,6 @@ func (tx *DemolitionTx) MarshalJSON() ([]byte, error) {
 		buffer.Write(bs)
 	}
 	buffer.WriteString(`,`)
-
 	buffer.WriteString(`"y":`)
 	if bs, err := json.Marshal(tx.Y); err != nil {
 		return nil, err

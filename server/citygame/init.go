@@ -9,5 +9,5 @@ import (
 // consts
 const (
 	CreateAccountChannelSize = 100
-	GameAccountChannelSize   = 4
+	GameCommandChannelSize   = 8
 )

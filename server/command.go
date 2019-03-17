@@ -123,7 +123,7 @@ func (cg *cityGameCommand) accountsGet(c echo.Context) error {
 		var addr common.Address
 		copy(addr[:], bs)
 		utxos := []uint64{}
-		for i := 0; i < citygame.GameAccountChannelSize; i++ {
+		for i := 0; i < citygame.GameCommandChannelSize; i++ {
 			utxos = append(utxos, util.BytesToUint64(loader.AccountData(addr, []byte("utxo"+strconv.Itoa(i)))))
 		}
 		res := &WebAccountRes{
@@ -172,7 +172,7 @@ func (cg *cityGameCommand) accountsPost(c echo.Context) error {
 		var addr common.Address
 		copy(addr[:], bs)
 		utxos := []uint64{}
-		for i := 0; i < citygame.GameAccountChannelSize; i++ {
+		for i := 0; i < citygame.GameCommandChannelSize; i++ {
 			utxos = append(utxos, util.BytesToUint64(loader.AccountData(addr, []byte("utxo"+strconv.Itoa(i)))))
 		}
 		res := &WebAccountRes{
@@ -235,7 +235,7 @@ func (cg *cityGameCommand) accountsPost(c echo.Context) error {
 					var addr common.Address
 					copy(addr[:], bs)
 					utxos := []uint64{}
-					for i := 0; i < citygame.GameAccountChannelSize; i++ {
+					for i := 0; i < citygame.GameCommandChannelSize; i++ {
 						utxos = append(utxos, util.BytesToUint64(loader.AccountData(addr, []byte("utxo"+strconv.Itoa(i)))))
 					}
 					res := &WebAccountRes{

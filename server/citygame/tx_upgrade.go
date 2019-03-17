@@ -54,89 +54,59 @@ func init() {
 			return err
 		}
 		return nil
-	}, UpgradeTxExecFunc)
-}
+	}, func(ctx *data.Context, Fee *amount.Amount, t transaction.Transaction, coord *common.Coordinate) (interface{}, error) {
+		tx := t.(*UpgradeTx)
 
-func UpgradeTxExecFunc(ctx *data.Context, Fee *amount.Amount, t transaction.Transaction, coord *common.Coordinate) (interface{}, error) {
-	var tx *UpgradeTx
-	switch _tx := t.(type) {
-	case *UpgradeTx:
-		tx = _tx
-	case *ConstructionTx:
-		tx = _tx.UpgradeTx
-	}
-	sn := ctx.Snapshot()
-	defer ctx.Revert(sn)
-
-	utxo, err := ctx.UTXO(tx.Vin[0].ID())
-	if err != nil {
-		return nil, err
-	}
-
-	if err := ctx.DeleteUTXO(utxo.ID()); err != nil {
-		return nil, err
-	}
-
-	gameErr := func() error {
 		sn := ctx.Snapshot()
 		defer ctx.Revert(sn)
 
-		gd := NewGameData(ctx.TargetHeight())
-		bs := ctx.AccountData(tx.Address, []byte("game"))
-		if _, err := gd.ReadFrom(bytes.NewReader(bs)); err != nil {
-			return err
+		utxo, err := ctx.UTXO(tx.Vin[0].ID())
+		if err != nil {
+			return nil, err
 		}
 
-		bds, has := GBuildingDefine[tx.AreaType]
-		if !has {
-			return ErrInvalidAreaType
-		}
-		if tx.TargetLevel == 0 || int(tx.TargetLevel) >= len(bds)+1 {
-			return ErrInvalidLevel
+		if err := ctx.DeleteUTXO(utxo.ID()); err != nil {
+			return nil, err
 		}
 
-		res := gd.Resource(ctx.TargetHeight())
-		bd := bds[tx.TargetLevel-1]
-		if bd.CostUsage > res.Balance {
-			fmt.Println("Cost need ", bd.CostUsage, " but has ", res.Balance)
-			return ErrInsufficientResource
-		}
-		if bd.ManUsage > res.ManRemained {
-			fmt.Println("Man need ", bd.ManUsage, " but has ", res.ManRemained)
-			return ErrInsufficientResource
-		}
-		if bd.PowerUsage > res.PowerRemained {
-			fmt.Println("Power need ", bd.PowerUsage, " but has ", res.PowerRemained)
-			return ErrInsufficientResource
-		}
+		gameErr := func() error {
+			sn := ctx.Snapshot()
+			defer ctx.Revert(sn)
 
-		idx := tx.X + GTileSize*tx.Y
-		tile := gd.Tiles[idx]
-		if tile == nil {
-			if tx.TargetLevel != 1 {
+			gd := NewGameData(ctx.TargetHeight())
+			bs := ctx.AccountData(tx.Address, []byte("game"))
+			if _, err := gd.ReadFrom(bytes.NewReader(bs)); err != nil {
+				return err
+			}
+
+			bds, has := GBuildingDefine[tx.AreaType]
+			if !has {
+				return ErrInvalidAreaType
+			}
+			if tx.TargetLevel == 0 || int(tx.TargetLevel) >= len(bds)+1 {
 				return ErrInvalidLevel
 			}
-			tile = NewTile(tx.AreaType, ctx.TargetHeight())
-			gd.Tiles[idx] = tile
 
-			bInsideX := (tx.X < GTileSize-1)
-			bInsideY := (tx.Y < GTileSize-1)
-			if bInsideX {
-				if nearTile := gd.Tiles[tx.X+1+GTileSize*(tx.Y)]; nearTile != nil && nearTile.Level == 6 {
-					return ErrInvalidPosition
-				}
+			res := gd.Resource(ctx.TargetHeight())
+			bd := bds[tx.TargetLevel-1]
+			if bd.CostUsage > res.Balance {
+				fmt.Println("Cost need ", bd.CostUsage, " but has ", res.Balance)
+				return ErrInsufficientResource
 			}
-			if bInsideY {
-				if nearTile := gd.Tiles[tx.X+GTileSize*(tx.Y+1)]; nearTile != nil && nearTile.Level == 6 {
-					return ErrInvalidPosition
-				}
+			if bd.ManUsage > res.ManRemained {
+				fmt.Println("Man need ", bd.ManUsage, " but has ", res.ManRemained)
+				return ErrInsufficientResource
 			}
-			if bInsideX && bInsideY {
-				if nearTile := gd.Tiles[tx.X+1+GTileSize*(tx.Y+1)]; nearTile != nil && nearTile.Level == 6 {
-					return ErrInvalidPosition
-				}
+			if bd.PowerUsage > res.PowerRemained {
+				fmt.Println("Power need ", bd.PowerUsage, " but has ", res.PowerRemained)
+				return ErrInsufficientResource
 			}
-		} else {
+
+			idx := tx.X + GTileSize*tx.Y
+			tile := gd.Tiles[idx]
+			if tile == nil {
+				return ErrInvalidLevel
+			}
 			if tx.AreaType != tile.AreaType {
 				return ErrInvalidAreaType
 			}
@@ -168,63 +138,51 @@ func UpgradeTxExecFunc(ctx *data.Context, Fee *amount.Amount, t transaction.Tran
 				tile.Level++
 				tile.BuildHeight = ctx.TargetHeight()
 			}
-		}
 
-		gd.UpdatePoint(ctx.TargetHeight(), res.Balance-bd.CostUsage)
+			gd.UpdatePoint(ctx.TargetHeight(), res.Balance-bd.CostUsage)
 
-		var buffer bytes.Buffer
-		if _, err := gd.WriteTo(&buffer); err != nil {
-			return err
-		}
-		ctx.SetAccountData(tx.Address, []byte("game"), buffer.Bytes())
-
-		clbs := ctx.AccountData(tx.Address, []byte("CoinList"))
-		bf := bytes.NewBuffer(clbs)
-		if cl, err := CLReadFrom(bf); err != nil {
-			return err
-		} else {
-			cl[tx.Hash().String()] = &FletaCityCoin{
-				X:        int(tx.X),
-				Y:        int(tx.Y),
-				Hash:     tx.Hash().String(),
-				Height:   ctx.TargetHeight() + bd.BuildTime*2,
-				CoinType: ConstructCoinType,
+			MaxLevel := gd.MaxLevels[tx.X+tx.Y*GTileSize]
+			if MaxLevel < tx.TargetLevel {
+				gd.Exps = append(gd.Exps, &FletaCityExp{
+					X:     tx.X,
+					Y:     tx.Y,
+					Level: tx.TargetLevel,
+				})
+				gd.MaxLevels[tx.X+tx.Y*GTileSize] = tx.TargetLevel
 			}
 
-			bf := &bytes.Buffer{}
-			_, err := CLWriteTo(bf, cl)
-			if err != nil {
+			var buffer bytes.Buffer
+			if _, err := gd.WriteTo(&buffer); err != nil {
 				return err
 			}
+			ctx.SetAccountData(tx.Address, []byte("game"), buffer.Bytes())
+			ctx.Commit(sn)
 
-			ctx.SetAccountData(tx.Address, []byte("CoinList"), bf.Bytes())
-		}
-		ctx.Commit(sn)
+			return nil
+		}()
 
-		return nil
-	}()
-
-	for i := 0; i < GameAccountChannelSize; i++ {
-		did := []byte("utxo" + strconv.Itoa(i))
-		oldid := util.BytesToUint64(ctx.AccountData(tx.Address, did))
-		if oldid == tx.Vin[0].ID() {
-			id := transaction.MarshalID(coord.Height, coord.Index, 0)
-			ctx.CreateUTXO(id, &transaction.TxOut{
-				Amount:     amount.NewCoinAmount(0, 0),
-				PublicHash: utxo.PublicHash,
-			})
-			ctx.SetAccountData(tx.Address, did, util.Uint64ToBytes(id))
-			if gameErr != nil {
-				ctx.SetAccountData(tx.Address, []byte("result"+strconv.Itoa(i)), []byte(gameErr.Error()))
-			} else {
-				ctx.SetAccountData(tx.Address, []byte("result"+strconv.Itoa(i)), nil)
+		for i := 0; i < GameCommandChannelSize; i++ {
+			did := []byte("utxo" + strconv.Itoa(i))
+			oldid := util.BytesToUint64(ctx.AccountData(tx.Address, did))
+			if oldid == tx.Vin[0].ID() {
+				id := transaction.MarshalID(coord.Height, coord.Index, 0)
+				ctx.CreateUTXO(id, &transaction.TxOut{
+					Amount:     amount.NewCoinAmount(0, 0),
+					PublicHash: utxo.PublicHash,
+				})
+				ctx.SetAccountData(tx.Address, did, util.Uint64ToBytes(id))
+				if gameErr != nil {
+					ctx.SetAccountData(tx.Address, []byte("result"+strconv.Itoa(i)), []byte(gameErr.Error()))
+				} else {
+					ctx.SetAccountData(tx.Address, []byte("result"+strconv.Itoa(i)), nil)
+				}
+				break
 			}
-			break
 		}
-	}
 
-	ctx.Commit(sn)
-	return nil, nil
+		ctx.Commit(sn)
+		return nil, nil
+	})
 }
 
 // UpgradeTx is a fleta.UpgradeTx

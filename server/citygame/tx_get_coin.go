@@ -76,93 +76,36 @@ func init() {
 			if _, err := gd.ReadFrom(bytes.NewReader(bs)); err != nil {
 				return err
 			}
-
-			if tx.CoinType == ConstructCoinType {
-				clbs := ctx.AccountData(tx.Address, []byte("CoinList"))
-				bf := bytes.NewBuffer(clbs)
-				if cl, err := CLReadFrom(bf); err != nil {
-					return err
-				} else {
-					for i, c := range cl {
-						if c.X == int(tx.X) && c.Y == int(tx.Y) && c.Hash == tx.TargetHash.String() && c.Height == tx.TargetHeight {
-							delete(cl, i)
-
-							bf := &bytes.Buffer{}
-							_, err := CLWriteTo(bf, cl)
-							if err != nil {
-								return err
-							}
-							ctx.SetAccountData(tx.Address, []byte("CoinList"), bf.Bytes())
-							bs := ctx.AccountData(tx.Address, []byte("GetCoinCount"))
-							var coinCount uint32
-							if len(bs) == 4 {
-								coinCount = util.BytesToUint32(bs)
-							} else {
-								coinCount = 1
-							}
-							ctx.SetAccountData(tx.Address, []byte("GetCoinCount"), util.Uint32ToBytes(coinCount+1))
-
-							ctx.Commit(sn)
-							return nil
-						}
-					}
-					return ErrTimeCoinNotExist
-				}
-			} else if tx.CoinType == TimeCoinType {
-				clbs := ctx.AccountData(tx.Address, []byte("CoinList"))
-				bf := bytes.NewBuffer(clbs)
-				if cl, err := CLReadFrom(bf); err != nil {
-					return err
-				} else {
-					// tl := CalcTargetCoinList(startHeight, cl)
-					for i, c := range cl {
-						if c.X == int(tx.X) && c.Y == int(tx.Y) && c.Hash == tx.TargetHash.String() && c.Height == tx.TargetHeight && c.Height < ctx.TargetHeight() {
-							delete(cl, i)
-
-							h := tx.Hash()
-							x := int(util.BytesToUint16([]byte(h[0:2]))) % GTileSize
-							y := int(util.BytesToUint16([]byte(h[2:4]))) % GTileSize
-
-							if _, has := cl[h.String()]; has {
-								panic("has")
-							}
-
-							cl[h.String()] = &FletaCityCoin{
-								X:        int(x),
-								Y:        int(y),
-								Hash:     h.String(),
-								Height:   ctx.TargetHeight() + TimeCoinGenTime,
-								CoinType: TimeCoinType,
-							}
-							bf := &bytes.Buffer{}
-							_, err := CLWriteTo(bf, cl)
-							if err != nil {
-								return err
-							}
-							ctx.SetAccountData(tx.Address, []byte("CoinList"), bf.Bytes())
-							bs := ctx.AccountData(tx.Address, []byte("GetCoinCount"))
-							var coinCount uint32
-							if len(bs) == 4 {
-								coinCount = util.BytesToUint32(bs)
-							} else {
-								coinCount = 1
-							}
-							ctx.SetAccountData(tx.Address, []byte("GetCoinCount"), util.Uint32ToBytes(coinCount+1))
-							ctx.Commit(sn)
-							return nil
-						}
-					}
-
-					return ErrTimeCoinNotExist
-				}
+			if len(gd.Coins) <= int(tx.Index) {
+				return ErrInvalidCoinIndex
 			}
+			c := gd.Coins[tx.Index]
+			if c.X == tx.X && c.Y == tx.Y && c.Height < ctx.TargetHeight() {
+				h := tx.Hash()
+				x := uint8(util.BytesToUint16([]byte(h[0:2]))) % GTileSize
+				y := uint8(util.BytesToUint16([]byte(h[2:4]))) % GTileSize
 
-			//TODO account 에서 fleta city coin이 있는지 검사
+				gd.Coins[tx.Index] = &FletaCityCoin{
+					X:      x,
+					Y:      y,
+					Index:  tx.Index,
+					Height: ctx.TargetHeight() + TimeCoinGenTime,
+				}
+				gd.CoinCount++
 
-			return ErrTypeMissMatch
+				var buffer bytes.Buffer
+				if _, err := gd.WriteTo(&buffer); err != nil {
+					return err
+				}
+				ctx.SetAccountData(tx.Address, []byte("game"), buffer.Bytes())
+
+				ctx.Commit(sn)
+				return nil
+			}
+			return ErrTimeCoinNotExist
 		}()
 
-		for i := 0; i < GameAccountChannelSize; i++ {
+		for i := 0; i < GameCommandChannelSize; i++ {
 			did := []byte("utxo" + strconv.Itoa(i))
 			oldid := util.BytesToUint64(ctx.AccountData(tx.Address, did))
 			if oldid == tx.Vin[0].ID() {
@@ -189,12 +132,10 @@ func init() {
 // GetCoinTx is a fleta.GetCoinTx
 type GetCoinTx struct {
 	utxo_tx.Base
-	Address      common.Address
-	X            uint8
-	Y            uint8
-	TargetHeight uint32
-	TargetHash   hash.Hash256
-	CoinType     CoinType
+	Address common.Address
+	X       uint8
+	Y       uint8
+	Index   uint8
 }
 
 // Hash returns the hash value of it
@@ -225,17 +166,7 @@ func (tx *GetCoinTx) WriteTo(w io.Writer) (int64, error) {
 	} else {
 		wrote += n
 	}
-	if n, err := util.WriteUint32(w, tx.TargetHeight); err != nil {
-		return wrote, err
-	} else {
-		wrote += n
-	}
-	if n, err := tx.TargetHash.WriteTo(w); err != nil {
-		return wrote, err
-	} else {
-		wrote += n
-	}
-	if n, err := util.WriteUint8(w, uint8(tx.CoinType)); err != nil {
+	if n, err := util.WriteUint8(w, tx.Index); err != nil {
 		return wrote, err
 	} else {
 		wrote += n
@@ -268,22 +199,11 @@ func (tx *GetCoinTx) ReadFrom(r io.Reader) (int64, error) {
 		read += n
 		tx.Y = v
 	}
-	if v, n, err := util.ReadUint32(r); err != nil {
-		return read, err
-	} else {
-		read += n
-		tx.TargetHeight = v
-	}
-	if n, err := tx.TargetHash.ReadFrom(r); err != nil {
-		return read, err
-	} else {
-		read += n
-	}
 	if v, n, err := util.ReadUint8(r); err != nil {
 		return read, err
 	} else {
 		read += n
-		tx.CoinType = CoinType(v)
+		tx.Index = v
 	}
 	return read, nil
 }
@@ -327,7 +247,6 @@ func (tx *GetCoinTx) MarshalJSON() ([]byte, error) {
 		buffer.Write(bs)
 	}
 	buffer.WriteString(`,`)
-
 	buffer.WriteString(`"x":`)
 	if bs, err := json.Marshal(tx.X); err != nil {
 		return nil, err
@@ -335,7 +254,6 @@ func (tx *GetCoinTx) MarshalJSON() ([]byte, error) {
 		buffer.Write(bs)
 	}
 	buffer.WriteString(`,`)
-
 	buffer.WriteString(`"y":`)
 	if bs, err := json.Marshal(tx.Y); err != nil {
 		return nil, err
@@ -343,25 +261,8 @@ func (tx *GetCoinTx) MarshalJSON() ([]byte, error) {
 		buffer.Write(bs)
 	}
 	buffer.WriteString(`,`)
-
-	buffer.WriteString(`"target_height":`)
-	if bs, err := json.Marshal(tx.TargetHeight); err != nil {
-		return nil, err
-	} else {
-		buffer.Write(bs)
-	}
-	buffer.WriteString(`,`)
-
-	buffer.WriteString(`"target_hash":`)
-	if bs, err := json.Marshal(tx.TargetHash); err != nil {
-		return nil, err
-	} else {
-		buffer.Write(bs)
-	}
-	buffer.WriteString(`,`)
-
-	buffer.WriteString(`"coin_type":`)
-	if bs, err := json.Marshal(tx.CoinType); err != nil {
+	buffer.WriteString(`"index":`)
+	if bs, err := json.Marshal(tx.Index); err != nil {
 		return nil, err
 	} else {
 		buffer.Write(bs)
