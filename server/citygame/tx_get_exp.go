@@ -77,7 +77,7 @@ func init() {
 				return err
 			}
 			for i, e := range gd.Exps {
-				if e.X == tx.X && e.Y == tx.Y {
+				if e.X == tx.X && e.Y == tx.Y && e.AreaType == tx.AreaType && e.Level == tx.Level {
 					bds, has := GBuildingDefine[e.AreaType]
 					if !has {
 						return ErrInvalidAreaType
@@ -109,7 +109,7 @@ func init() {
 					return nil
 				}
 			}
-			return ErrTimeCoinNotExist
+			return ErrExpNotExist
 		}()
 
 		for i := 0; i < GameCommandChannelSize; i++ {
@@ -139,9 +139,11 @@ func init() {
 // GetExpTx is a fleta.GetExpTx
 type GetExpTx struct {
 	utxo_tx.Base
-	Address common.Address
-	X       uint8
-	Y       uint8
+	Address  common.Address
+	X        uint8
+	Y        uint8
+	AreaType AreaType
+	Level    uint8
 }
 
 // Hash returns the hash value of it
@@ -168,6 +170,16 @@ func (tx *GetExpTx) WriteTo(w io.Writer) (int64, error) {
 		wrote += n
 	}
 	if n, err := util.WriteUint8(w, tx.Y); err != nil {
+		return wrote, err
+	} else {
+		wrote += n
+	}
+	if n, err := util.WriteUint8(w, uint8(tx.AreaType)); err != nil {
+		return wrote, err
+	} else {
+		wrote += n
+	}
+	if n, err := util.WriteUint8(w, tx.Level); err != nil {
 		return wrote, err
 	} else {
 		wrote += n
@@ -199,6 +211,18 @@ func (tx *GetExpTx) ReadFrom(r io.Reader) (int64, error) {
 	} else {
 		read += n
 		tx.Y = v
+	}
+	if v, n, err := util.ReadUint8(r); err != nil {
+		return read, err
+	} else {
+		read += n
+		tx.AreaType = AreaType(v)
+	}
+	if v, n, err := util.ReadUint8(r); err != nil {
+		return read, err
+	} else {
+		read += n
+		tx.Level = v
 	}
 	return read, nil
 }
@@ -251,6 +275,20 @@ func (tx *GetExpTx) MarshalJSON() ([]byte, error) {
 	buffer.WriteString(`,`)
 	buffer.WriteString(`"y":`)
 	if bs, err := json.Marshal(tx.Y); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`,`)
+	buffer.WriteString(`"area_type":`)
+	if bs, err := json.Marshal(tx.AreaType); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`,`)
+	buffer.WriteString(`"level":`)
+	if bs, err := json.Marshal(tx.Level); err != nil {
 		return nil, err
 	} else {
 		buffer.Write(bs)

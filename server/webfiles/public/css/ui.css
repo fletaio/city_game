@@ -1,0 +1,591 @@
+#logTool {
+    width: 20%;
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 20px;
+    overflow: auto;
+}
+#log {
+    width: 20%;
+    position: fixed;
+    right: 0;
+    top: 20px;
+    bottom:0;
+    overflow: auto;
+    color: #fff;
+}
+
+#scoreboard {
+    color: #fff;
+    display: table-cell;
+    margin-left: 0.1vh;
+}
+
+#selectedInfo,
+#scoreboard #fletaCityCoinCount,
+#scoreboard #dollar,
+#scoreboard #power,
+#scoreboard #demographic {
+    width: 11.3vh;
+    height: 4vh;
+    padding-left: 2.5vh;
+    font-size: 2vh;
+    line-height: 3.5vh;
+    text-align: center;
+    background-size: cover;
+    display: inline-block;
+    position: relative;
+    top: 0.1vh;
+    vertical-align: top;
+}
+
+#scoreboard #dollar {background-image: url("/public/images/ui/dollar.png");}
+#scoreboard #power {background-image: url("/public/images/ui/power.png");}
+#scoreboard #demographic {background-image: url("/public/images/ui/demographic.png");}
+#scoreboard #fletaCityCoinCount {background-image: url("/public/images/ui/fletacoinpannel.png");}
+
+#scoreboard #dollar{
+    line-height: 1.3vh;
+    font-size: 1.5vh;
+    padding-top: 0.5vh;
+}
+
+#scoreboard #power {
+}
+#scoreboard #demographic {
+}
+
+#selectedInfo {
+    width: 21.5vh;
+    height: 3.5vh;
+    margin-right: 50vh;
+    margin-top: 0.16vh;
+    padding-left: 0;
+}
+#selectedInfo.Commercial {
+    background-image: url("/public/images/ui/Ingame-Info-Building_Stat_Window-B.png");
+}
+#selectedInfo.Industrial {
+    background-image: url("/public/images/ui/Ingame-Info-Building_Stat_Window-I.png");
+}
+#selectedInfo.Residential {
+    background-image: url("/public/images/ui/Ingame-Info-Building_Stat_Window-R.png");
+}
+
+#selectedInfo .building_info {
+    float: left;
+    line-height: 1.7vh;
+    font-size: 1.4vh;
+    padding-top: 0.2vh;
+    width: 12vh;
+}
+#selectedInfo .building_type,
+#selectedInfo .building_level {
+    display: block;
+}
+#selectedInfo .resource {
+    float: left;
+    width: 9.3vh;
+    padding-left: 1.2vh;
+    font-size: 2vh;
+    line-height: 3.4vh;
+}
+
+#info {
+    color: #fff;
+    position: absolute;
+    top: 4.5vh;
+    width: 10vw;
+}
+
+.menu {
+    position: absolute;
+    top:0;
+    left:0;
+    display: none;
+	z-index: 1000;
+}
+
+.menu .button {
+    pointer-events: fill;
+}
+
+.menu .demolition,
+.menu .industrial {
+    left: -1.5rem;
+    top: -0.32rem;
+}
+.menu .residential{
+    left: -0.15rem;
+    top: 0.53rem;
+}
+.menu .upgrade,
+.menu .commercial{
+    left: 1.17rem;
+    top: -0.32rem;
+}
+
+.menu .industrial,
+.menu .residential,
+.menu .commercial,
+.menu .demolition,
+.menu .upgrade {
+    position: absolute;
+    font-size: 0.2rem;
+    width: 1.3rem;
+    height: 1.2rem;
+    background-image: url(/public/images/ui/Ingame-buttons-build-button-textbox.png);
+    text-align: center;
+    background-color: transparent;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: bottom;
+    padding-top: 0.8rem;
+    border: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.menu .button.disabled {
+    -webkit-filter: grayscale(100%);
+    filter: grayscale(100%);
+    opacity: 0.5;
+}
+.menu .button::before.disabled {
+    -webkit-filter: grayscale(100%);
+    filter: grayscale(100%);
+    opacity: 0.5;
+}
+
+.menu .industrial::before,
+.menu .residential::before,
+.menu .commercial::before,
+.menu .demolition::before,
+.menu .upgrade::before {
+    content: " ";
+    width: 1rem;
+    height: 0.803rem;
+    background-size: cover;
+    display: block;
+    left: 0.162rem;
+    position: absolute;
+    top: 0;
+}
+
+.menu .industrial::before {background-image: url("/public/images/ui/Ingame-buttons-build-button-basic-ID.png");}
+.menu .residential::before {background-image: url("/public/images/ui/Ingame-buttons-build-button-basic-RS.png");}
+.menu .commercial::before {background-image: url("/public/images/ui/Ingame-buttons-build-button-basic-BZ.png");}
+.menu .demolition::before {background-image: url("/public/images/ui/Ingame-buttons-build-button-basic-DM.png");}
+.menu .upgrade::before {background-image: url("/public/images/ui/Ingame-buttons-build-button-basic-UG.png");}
+
+.menu .industrial:hover::before {background-image: url("/public/images/ui/Ingame-buttons-build-button-basic-ID-select.png");}
+.menu .residential:hover::before {background-image: url("/public/images/ui/Ingame-buttons-build-button-basic-RS-select.png");}
+.menu .commercial:hover::before {background-image: url("/public/images/ui/Ingame-buttons-build-button-basic-BZ-select.png");}
+.menu .demolition:hover::before {background-image: url("/public/images/ui/Ingame-buttons-build-button-basic-DM-select.png");}
+.menu .upgrade:hover::before {background-image: url("/public/images/ui/Ingame-buttons-build-button-basic-UG-select.png");}
+
+.menu .industrial.disable:hover::before {background-image: url("/public/images/ui/Ingame-buttons-build-button-basic-ID.png");}
+.menu .residential.disable:hover::before {background-image: url("/public/images/ui/Ingame-buttons-build-button-basic-RS.png");}
+.menu .commercial.disable:hover::before {background-image: url("/public/images/ui/Ingame-buttons-build-button-basic-BZ.png");}
+.menu .demolition.disable:hover::before {background-image: url("/public/images/ui/Ingame-buttons-build-button-basic-DM.png");}
+.menu .upgrade.disable:hover::before {background-image: url("/public/images/ui/Ingame-buttons-build-button-basic-UG.png");}
+
+#hideBuilding {
+    width: 15vh;
+    height: 6vh;
+    position: absolute;
+    left: 3vh;
+    bottom: 3vh;
+    background-color: transparent;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: bottom;
+    border: none;
+    cursor: pointer;
+    transition: background-image .2s ease-in;
+    background-image: url(/public/images/ui/Ingame-button-view_toggle-glass.png);
+}
+#hideBuilding:focus {outline:0;}
+
+
+#hideBuilding.hideBuilding {
+    background-image: url(/public/images/ui/Ingame-button-hide_toggle-sunglass.png);
+}
+#hideBuilding::before {
+    content: " ";
+    width: 5.7vh;
+    height: 5.7vh;
+    margin: 0;
+    display: block;
+    position: absolute;
+    right: 0vh;
+    bottom: 0.11vh;
+    transition: background-image .2s ease-in, right .2s ease-in, transform .2s ease-in, -moz-transform .2s ease-in, -webkit-transform .2s ease-in;
+    background-image: url(/public/images/ui/Ingame-button-view_toggle.png);
+    background-size: 100%;
+    background-repeat: no-repeat;
+}
+#hideBuilding.hideBuilding::before {
+    background-image: url(/public/images/ui/Ingame-button-hide_toggle.png);
+    right: 9.3vh;
+    -moz-transform: rotate(-360deg);
+    -webkit-transform: rotate(-360deg);
+    transform:rotate(-360deg);
+}
+
+.buildEffect.lv1 {
+    top: 0.02rem;
+    left: 0.12rem;
+}
+.buildEffect.lv2 {
+    top: 0.14rem;
+    left: 0.38rem;
+}
+.buildEffect.lv3 {
+    top: 0.27rem;
+    left: 0.13rem;
+}
+.buildEffect.lv4 {
+    top: 0.15rem;
+    left: -0.12rem;
+}
+.buildEffect.lv5 {
+    width: 1.25rem;
+    height: 0.5rem;
+    top: 0.07rem;
+    left: -0.125rem;
+}
+.buildEffect.lv6 {
+    width: 2.5rem;
+    height: 1rem;
+    top: -0.37rem;
+    left: -0.75rem;
+}
+
+.buildEffect {
+    width: 0.75rem;
+    height: 0.25rem;
+    display: block;
+    margin:0 auto;
+    position: absolute;
+}
+
+.constructEffect {
+    background: url(/public/images/animate/Construction_Effect.png) 0 0 no-repeat;
+    background-size: 1400%;
+    animation: like-gif steps(13) 1.5s both;
+}
+
+.distructionEffect {
+    background: url(/public/images/animate/Distruction_Effect.png) 0 0 no-repeat;
+    background-size: 900%;
+    animation: like-gif steps(8) 1.5s infinite both;
+}
+
+@keyframes like-gif {
+    0% {
+        background-position: 0%;
+    }
+    100% {
+        background-position: 100%;
+    }
+}
+
+.completAnimation,
+.FLETAAnimation {
+    margin:0 auto;
+    background-size: 100%;
+    background-repeat: no-repeat;
+    position: absolute;
+    width: 0.5rem;
+    height: 0.16rem;
+    top: 0.1rem;
+    left:0.25rem;
+    display: block;
+}
+.completAnimation.lv6,
+.FLETAAnimation.lv6 {
+    width: 1rem;
+    height: 0.32rem;
+    top: -0.3rem;
+    left:0;
+}
+
+.completAnimation{
+    background-image: url(/public/images/animate/completed.gif);
+}
+.FLETAAnimation {
+    background-image: url(/public/images/animate/FLETA_Animation.gif);
+}
+
+
+#alertUI {
+    width: 3rem;
+    height: 1.5rem;
+    position: absolute;
+    top:0;
+    left: 3vh;
+    bottom: 51vh;
+    background-image: url(/public/images/ui/Ingame-buttons-RUSure-cautionBox.png);
+    background-color: transparent;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: bottom;
+    border: none;
+    display: none;
+}
+
+#alertUI .alertUI_ok,
+#alertUI .alertUI_cancel {
+    position: absolute;
+    font-size: 0.2rem;
+    width: 0.72rem;
+    height: 0.72rem;
+    top: 0.65rem;
+    text-align: center;
+    background-color: transparent;
+    background-size: 50%;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+#alertUI .alertUI_ok {
+    left: 0.16rem;
+    background-image: url(/public/images/ui/Ingame-buttons-buttonO.png);
+}
+#alertUI .alertUI_cancel{
+    right: 0.16rem;
+    background-image: url(/public/images/ui/Ingame-buttons-buttonX.png);
+}
+
+#alertUI .alertUI_ok:hover {background-image: url(/public/images/ui/Ingame-buttons-buttonO_select.png);}
+#alertUI .alertUI_cancel:hover {background-image: url(/public/images/ui/Ingame-buttons-buttonX_select.png);}
+
+
+#alertUI.Demolition,
+#alertUI.Industrial {
+    left: -2.34rem;
+    top: -2rem;
+}
+#alertUI.Residential {
+    left: -1.0rem;
+    top: -1.2rem;
+}
+#alertUI.Upgrade,
+#alertUI.Commercial {
+    left: 0.35rem;
+    top: -2rem;
+}
+
+#screen .selected {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 1rem;
+	height: 0.5rem;
+    background-image: url(/public/images/ui/tile_select.png);
+    background-size: 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.tooltip {
+    position: absolute;
+    top:0.8rem;
+	left:0;
+}
+.tooltip .resource,
+.tooltip .needDemographic,
+.tooltip .needDollar,
+.tooltip .needPower,
+.tooltip .needTime {
+    position: absolute;
+    left: 0;
+    height: 0.24rem;
+    width: 0.65rem;
+    background-repeat: no-repeat;
+    background-size: 100%;
+    line-height: 0.2rem;
+    color: #fff;
+    font-size: 0.15rem;
+    padding-left: 0.1rem;
+    text-align: center;
+}
+
+.tooltip .needDemographic {
+    background-image: url("/public/images/ui/demographic-2.png");
+    top:0rem;
+}
+.tooltip .needDollar {
+    background-image: url("/public/images/ui/dollar-2.png");
+    top: 0;
+    left: 0.65rem;
+}
+.tooltip .needPower {
+    background-image: url("/public/images/ui/power-2.png");
+    top: 0.23rem;
+}
+.tooltip .needTime {
+    background-image: url("/public/images/ui/Time.png");
+    top: 0.23rem;
+    left: 0.65rem;
+}
+.tooltip .needTime.hour {
+    font-size: 0.16rem;
+}
+
+.tooltip.Demolition .resource,
+.tooltip.Demolition .needDemographic,
+.tooltip.Demolition .needDollar,
+.tooltip.Demolition .needPower,
+.tooltip.Demolition .needTime {
+    color: #f00;
+}
+
+.tooltip .resource {
+    top: 0.46rem;
+    width: 1.3rem;
+    top: 0.46rem;
+    width: 1.3rem;
+    height: 0.23rem;
+    line-height: 0.22rem;
+}
+
+.tooltip .resource.Residential {background-image: url("/public/images/ui/demographic-long.png");}
+.tooltip .resource.Commercial {background-image: url("/public/images/ui/dollar-long.png");}
+.tooltip .resource.Industrial {background-image: url("/public/images/ui/power-long.png");}
+
+.underconstruction {
+	position: absolute;
+    background-image: url(/public/images/animate/Underconstruction.gif);
+    background-size: 100%;
+    width: 0.7rem;
+    height: 0.191rem;
+    margin: 0.15rem 0.15rem;
+    text-align: center;
+    font-size: 0.17rem;
+}
+.underconstruction.fleta {
+    position: relative;
+    top: -0.5rem;
+    left: -0.5rem;
+    width: 1.4rem;
+    height: 0.382rem;
+    margin: 0.3rem 0.3rem;
+    font-size: 0.34rem;
+}
+
+#txLog {
+    position: absolute;
+    right: 0;
+    height: 20vh;
+    width: 25vw;
+    overflow-y: auto;
+    color: #fff;
+}
+#txLog span,
+#txLog a {
+    display: inline-block;
+}
+#txLog a {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 22vw;
+    display: inline-block;
+    color: #5867dd;
+    overflow: hidden;
+    text-decoration: none; 
+    text-decoration-line:none;
+    text-decoration-style:solid;
+    text-decoration: none;
+    background-color: transparent;
+    -webkit-text-decoration-skip: objects;
+}
+#txLog .descript {
+    color: #fff;
+}
+
+.fletaCoin {
+    /* background-image: url(/public/images/ui/fletacoin.png); */
+    background-image: url(/public/images/animate/fleta_coin.gif);
+    background-size: 100%;
+    position: absolute;
+    width: 0.7rem;
+    height: 0.7rem;
+    z-index: 10000000;
+    background-color: transparent;
+    border: none;
+    left: 0.15rem;
+    top: -0.15rem;
+    -webkit-transition:width .2s, height .2s, left .2s, top .2s;
+    transition:width .2s, height .2s, left .2s, top .2s;
+    cursor: pointer;
+}
+.fletaCoin:active {
+    outline: none;
+    border: none;
+}
+
+.fletaExp {
+	filter: grayscale(100%);
+    /* background-image: url(/public/images/ui/fletacoin.png); */
+    background-image: url(/public/images/animate/fleta_coin.gif);
+    background-size: 100%;
+    position: absolute;
+    width: 0.7rem;
+    height: 0.7rem;
+    z-index: 10000000;
+    background-color: transparent;
+    border: none;
+    left: 0.15rem;
+    top: -0.15rem;
+    -webkit-transition:width .2s, height .2s, left .2s, top .2s;
+    transition:width .2s, height .2s, left .2s, top .2s;
+    cursor: pointer;
+}
+.fletaExp:active {
+    outline: none;
+    border: none;
+}
+
+#AlertBackground {
+    position: absolute;
+    top:0;
+    left:0;
+    bottom:0;
+    right: 0;
+    width:100%;
+    height:100%;
+    background-color: #000a;
+    text-align: center;
+    display: inline-block;
+}
+.AlertCase {
+    padding: 3vh 5vh 3vh 5vh;
+    background-image: url(/public/images/ui/alertwindow.png);
+    background-size: 100% 100%;
+    margin: 10vh 0 0 -19vh;
+    position: absolute;
+    display: inline-block;
+    width: 38vh;
+}
+.alertText{
+    padding: 2vh 0 6vh 0;
+    color: #fff;
+    font-size: 2vh;
+    word-break:break-all;
+}
+.okBtn{
+    width: 9vh;
+    height: 3vh;
+    background-image: url(/public/images/ui/alertbutton.png);
+    background-size: 100% 100%;
+    position: absolute;
+    bottom: 3.2vh;
+    left: 14.5vh;
+}
+.okBtn:hover{background-image: url("/public/images/ui/alertbutton_press.png");}

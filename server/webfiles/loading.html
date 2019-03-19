@@ -1,0 +1,23 @@
+<loading>
+	<div class="loading">
+		<div class="loading-middle">
+			<div class="lds-default"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+		</div>
+		<div class="loading-background"></div>
+	</div>
+	<script type="vue">
+	data: function() {
+		var obj = {};
+		return obj;
+	},
+	mounted: function() {
+		$(window).on("load", function() {
+			setTimeout(function () {
+				$(".loading").css("display", "none")
+				$(".after-loading-content").css("opacity", "initial")
+				nextStep("init");
+			}, 500)
+		});
+	}
+	</script>
+</loading>

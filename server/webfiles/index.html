@@ -1,0 +1,268 @@
+<% template "_top.html" . %>
+
+<% template "loading.html" . %>
+<div class="after-loading-content">
+	<section id="login">
+		<div class="loginPage">
+			<div class="login-choose-view" step="init" >
+				<button class="login-login" onclick="nextStep('login')"></button>
+				<button class="login-join" onclick="nextStep('policy')"></button>
+			</div>
+			<login>
+				<div class="login-login-view" step="login" >
+					<span class="id-field"><input type="text" id="loginId" class="focus" v-model="userid" onkeydown="event.which==13?$('#loginBtn').click():{}"/></span>
+					<span class="pw-field"><input type="password" id="loginPw" v-model="password" onkeydown="event.which==13?$('#loginBtn').click():{}"/></span>
+					<button class="login-login" id="loginBtn" v-on:click="do_login"></button>
+					<button class="login-join" onclick="nextStep('policy')"></button>
+				</div>
+				<script type="vue">
+				data: function() {
+					var obj = {
+						userid: "",
+						password: ""
+					};
+					return obj;
+				},
+				methods: {
+					do_login: function() {
+						if(this.userid.length < 4) {
+							Alert(language["check id"]);
+							return;
+						}
+						if(this.password.length < 4) {
+							Alert(language["check pw"]);
+							return;
+						}
+						
+						var key = this.getKeyPair(this.userid, this.password);
+						var pk = key.getPublic().encodeCompressed("hex");
+						this.$http.get("/api/accounts?pubkey="+pk).then(function(res) {
+							window.Login = {
+							    key: key,
+								address: res.body.address
+							};
+							Alert(language["login Success"])
+							$("#login").hide();
+							$("#game").show();
+
+							window.gGame = new Game();
+							window.gNetwork = new Network(res.body.utxos);
+							gGame.Run();
+						}, function(err) {
+							Alert(language["Duplicate id or ether addr"]);
+						});
+					},
+					getKeyPair: function(userid, userpw) {
+						userid = SHA2(userid);
+						userpw = SHA2(userpw);
+						var salt = SHA2("this is fleta city game");
+						var keyHex = SHA2(userid+"#"+userpw+"#"+salt);
+						var key = ec.keyPair({
+							priv: keyHex,
+							privEnc: "hex",
+						});
+						return key
+					}
+				}
+				</script>
+			</login>
+			<div class="login-policy-view" step="policy" >
+				<p>Privacy Policy</p>
+				<textarea readonly="readonly" class="PrivacyPolicy">
+					<% template "privacy_policy.html" . %>
+				</textarea>
+				<input type="checkbox" id="PrivacyPolicy" name="PrivacyPolicy" />
+				<p>Terms and Conditions of Use</p>
+				<textarea readonly="readonly" class="termsOfUse">
+					<% template "terms_use.html" . %>
+				</textarea>
+				<input type="checkbox" id="termsOfUse" name="termsOfUse" />
+				<button class="login-check" onclick="($('#PrivacyPolicy').prop('checked') && $('#termsOfUse').prop('checked'))?nextStep('join'):Alert(language['Available after agreeing'])"></button>
+			</div>
+			<join>
+				<div class="login-join-view" step="join" >
+					<span class="eth-addr-field"><input type="text" id="ethAddr" class="focus" v-model="reward" /></span>
+					<span class="id-field"><input type="text" id="joinId" v-model="userid "/></span>
+					<span class="pw-field"><input type="password" id="joinPw" v-model="password" onkeydown="event.which==13?$('#joinBtn').click():{}"/></span>
+					<button class="login-join" id="joinBtn" v-on:click="do_join"></button>
+					<button class="login-login" onclick="nextStep('login')"></button>
+				</div>
+				<script type="vue">
+				data: function() {
+					var obj = {
+						reward: "",
+						userid: "",
+						password: ""
+					};
+					return obj;
+				},
+				methods: {
+					do_join: function() {
+						if(this.reward.length < 4) {
+							Alert(language["check ethAddr"]);
+							return;
+						}
+						if(this.userid.length < 4) {
+							Alert(language["check id"]);
+							return;
+						}
+						if(this.password.length < 4) {
+							Alert(language["check pw"]);
+							return;
+						}
+						
+						var key = this.getKeyPair(this.userid, this.password);
+						var pk = key.getPublic().encodeCompressed("hex");
+						this.$http.post("/api/accounts", {
+							"public_key" : pk,
+							"user_id" : this.userid,
+							"reward": this.reward,
+						}).then(function(res) {
+							Alert(language["Address Issue Success : "]+ res.body.address + language[", go to login"]);
+							nextStep("login");
+						}, function(err) {
+							Alert(language["Duplicate id or ether addr"]);
+						});
+					},
+					getKeyPair: function(userid, userpw) {
+						userid = SHA2(userid);
+						userpw = SHA2(userpw);
+						var salt = SHA2("this is fleta city game");
+						var keyHex = SHA2(userid+"#"+userpw+"#"+salt);
+						var key = ec.keyPair({
+							priv: keyHex,
+							privEnc: "hex",
+						});
+						return key
+					}
+				}
+				</script>
+			</join>
+		</div>
+	</section>
+	<panel>
+		<section id="game">
+			<div>
+				<div class="islandCase">
+					<div class="islandMiddle">
+						<div class="skyBackground"></div>
+					</div>
+				</div>
+				<div id="starField"></div>
+				<div class="islandCase">
+					<div class="islandMiddle">
+						<div class="islandCenterDot">
+							<div class="island" style="top:0; left:0;">
+								<div id="tileCase">
+									<div id="touchpad"></div>
+									<div id="screen"></div>
+									<div id="build_menu" class="menu">
+										<div class="button commercial">
+											<div class="tooltip">
+												<div class="tooltip needDemographic"></div>
+												<div class="tooltip needDollar"></div>
+												<div class="tooltip needPower"></div>
+												<div class="tooltip needTime"></div>
+												<div class="tooltip resource Commercial"></div>
+											</div>
+										</div>
+										<div class="button industrial">
+											<div class="tooltip">
+												<div class="tooltip needDemographic"></div>
+												<div class="tooltip needDollar"></div>
+												<div class="tooltip needPower"></div>
+												<div class="tooltip needTime"></div>
+												<div class="tooltip resource Industrial"></div>
+											</div>
+										</div>
+										<div class="button residential">
+											<div class="tooltip">
+												<div class="tooltip needDemographic"></div>
+												<div class="tooltip needDollar"></div>
+												<div class="tooltip needPower"></div>
+												<div class="tooltip needTime"></div>
+												<div class="tooltip resource Residential"></div>
+											</div>
+										</div>
+									</div>
+									<div id="upgrade_menu" class="menu">
+										<div class="button demolition">
+											<div class="tooltip Demolition">
+												<div class="tooltip needDemographic"></div>
+												<div class="tooltip needDollar"></div>
+												<div class="tooltip needPower"></div>
+												<div class="tooltip needTime"></div>
+												<div class="tooltip resource"></div>
+											</div>
+										</div>
+										<div class="button upgrade">
+											<div class="tooltip">
+												<div class="tooltip needDemographic"></div>
+												<div class="tooltip needDollar"></div>
+												<div class="tooltip needPower"></div>
+												<div class="tooltip needTime"></div>
+												<div class="tooltip resource"></div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="tileBackground"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="ui_layout">
+					<div id="scoreboard">
+						<span id="dollar"><span class="balance"></span><br/><span class="add_balance"></span></span>
+						<span id="power"><span class="power_remained"></span></span></span>
+						<span id="demographic"><span class="man_remained"></span></span></span>
+						<span id="fletaCityCoinCount"><span class="coin_count"></span></span></span>
+						<div id="selectedInfo">
+							<div class="building_info">
+								<span class="building_type"></span>
+								<span class="building_level"></span>
+							</div>
+							<div class="resource"></div>
+						</div>
+					</div>
+					<div id="info" class="ui_element"></div>
+				</div>
+				<button id="hideBuilding" onclick="event.stopPropagation();ViewChanger()"></button>
+				<div id="txLog"></div>
+				<div id="alertUI"><button class="alertUI_ok" onclick="event.stopPropagation();UIAlert.okOnclick()"></button><button class="alertUI_cancel" onclick="event.stopPropagation();UIAlert.cancelOnclick()"></button></div>
+				<div id="fletaCoinTemplet" style="display: none;">
+					<button class="fletaCoin"></button>
+				</div>
+			</div>
+		</section>
+		<script type="vue">
+		data: function() {
+			var obj = {};
+			return obj;
+		},
+		mounted: function() {
+			$(".islandCase:last")
+				.on('mousedown touchstart', mousedown)
+				.on('mouseup touchend touchcancel', mouseup)
+				.on('mousemove touchmove', mousemove)
+				.on('mousewheel', mousewheel)
+				.on('touchstart', touchstart)
+				.on('touchend', touchend)
+				.on('touchcancel', touchend)
+				.on('touchmove', touchmove)
+			;
+		}
+		</script>
+	</panel>
+</div>
+<div id="PreLoadLayer" style="width:1px;height:1px;opacity: 0.01;position: absolute;top:0;right:0;">
+	<% template "preload_resource.html" . %>
+</div>
+<div id="AlertBackground" style="display: none;">
+	<div class="AlertCase">
+		<p class="alertText"></p>
+		<button class="okBtn" onclick="AlertClose()"></button>
+	</div>
+</div>
+
+<% template "_bottom.html" . %>

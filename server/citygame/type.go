@@ -424,6 +424,7 @@ func init() {
 }
 
 // GBuildingDefine is ingame construction data
+/*
 var GBuildingDefine = map[AreaType][]*BuildingDefine{
 	CommercialAreaType: []*BuildingDefine{
 		&BuildingDefine{
@@ -558,6 +559,148 @@ var GBuildingDefine = map[AreaType][]*BuildingDefine{
 		&BuildingDefine{
 			CostUsage:  7200000,
 			BuildTime:  72000,
+			Output:     101000,
+			Exp:        6,
+			PowerUsage: 1800,
+		},
+	},
+}
+*/
+
+var GBuildingDefine = map[AreaType][]*BuildingDefine{
+	CommercialAreaType: []*BuildingDefine{
+		&BuildingDefine{
+			CostUsage:  1,
+			BuildTime:  1,
+			Output:     4,
+			Exp:        1,
+			ManUsage:   2,
+			PowerUsage: 3,
+		},
+		&BuildingDefine{
+			CostUsage:  2,
+			BuildTime:  1,
+			Output:     10,
+			Exp:        2,
+			ManUsage:   3,
+			PowerUsage: 4,
+		},
+		&BuildingDefine{
+			CostUsage:  3,
+			BuildTime:  1,
+			Output:     24,
+			Exp:        3,
+			ManUsage:   8,
+			PowerUsage: 12,
+		},
+		&BuildingDefine{
+			CostUsage:  4,
+			BuildTime:  1,
+			Output:     64,
+			Exp:        4,
+			ManUsage:   40,
+			PowerUsage: 30,
+		},
+		&BuildingDefine{
+			CostUsage:  5,
+			BuildTime:  1,
+			Output:     160,
+			Exp:        5,
+			ManUsage:   200,
+			PowerUsage: 80,
+		},
+		&BuildingDefine{
+			CostUsage:  6,
+			BuildTime:  1,
+			Output:     1600,
+			Exp:        6,
+			ManUsage:   4000,
+			PowerUsage: 1500,
+		},
+	},
+	IndustrialAreaType: []*BuildingDefine{
+		&BuildingDefine{
+			CostUsage: 1,
+			BuildTime: 1,
+			Output:    5,
+			Exp:       1,
+			ManUsage:  1,
+		},
+		&BuildingDefine{
+			CostUsage: 2,
+			BuildTime: 1,
+			Output:    14,
+			Exp:       2,
+			ManUsage:  2,
+		},
+		&BuildingDefine{
+			CostUsage: 3,
+			BuildTime: 1,
+			Output:    96,
+			Exp:       3,
+			ManUsage:  8,
+		},
+		&BuildingDefine{
+			CostUsage: 4,
+			BuildTime: 1,
+			Output:    390,
+			Exp:       4,
+			ManUsage:  54,
+		},
+		&BuildingDefine{
+			CostUsage: 5,
+			BuildTime: 1,
+			Output:    1440,
+			Exp:       5,
+			ManUsage:  300,
+		},
+		&BuildingDefine{
+			CostUsage: 6,
+			BuildTime: 1,
+			Output:    33000,
+			Exp:       6,
+			ManUsage:  6100,
+		},
+	},
+	ResidentialAreaType: []*BuildingDefine{
+		&BuildingDefine{
+			CostUsage:  1,
+			BuildTime:  1,
+			Output:     3,
+			Exp:        1,
+			PowerUsage: 2,
+		},
+		&BuildingDefine{
+			CostUsage:  2,
+			BuildTime:  1,
+			Output:     10,
+			Exp:        2,
+			PowerUsage: 3,
+		},
+		&BuildingDefine{
+			CostUsage:  3,
+			BuildTime:  1,
+			Output:     64,
+			Exp:        3,
+			PowerUsage: 12,
+		},
+		&BuildingDefine{
+			CostUsage:  4,
+			BuildTime:  1,
+			Output:     564,
+			Exp:        4,
+			PowerUsage: 35,
+		},
+		&BuildingDefine{
+			CostUsage:  5,
+			BuildTime:  1,
+			Output:     4000,
+			Exp:        5,
+			PowerUsage: 100,
+		},
+		&BuildingDefine{
+			CostUsage:  6,
+			BuildTime:  1,
 			Output:     101000,
 			Exp:        6,
 			PowerUsage: 1800,

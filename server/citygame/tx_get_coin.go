@@ -102,7 +102,7 @@ func init() {
 				ctx.Commit(sn)
 				return nil
 			}
-			return ErrTimeCoinNotExist
+			return ErrCoinNotExist
 		}()
 
 		for i := 0; i < GameCommandChannelSize; i++ {

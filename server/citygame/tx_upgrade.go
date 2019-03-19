@@ -144,9 +144,10 @@ func init() {
 			MaxLevel := gd.MaxLevels[tx.X+tx.Y*GTileSize]
 			if MaxLevel < tx.TargetLevel {
 				gd.Exps = append(gd.Exps, &FletaCityExp{
-					X:     tx.X,
-					Y:     tx.Y,
-					Level: tx.TargetLevel,
+					X:        tx.X,
+					Y:        tx.Y,
+					AreaType: tx.AreaType,
+					Level:    tx.TargetLevel,
 				})
 				gd.MaxLevels[tx.X+tx.Y*GTileSize] = tx.TargetLevel
 			}

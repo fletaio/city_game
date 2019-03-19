@@ -2,62 +2,38 @@ package main
 
 import (
 	"bytes"
+	crand "crypto/rand"
 	"encoding/hex"
-	"fmt"
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
-	"os"
-	"os/signal"
-	"runtime"
 	"strconv"
-	"strings"
 	"sync"
-	"syscall"
-
-	"github.com/dgraph-io/badger"
-	"github.com/fletaio/cmd/closer"
-	"github.com/fletaio/framework/config"
-	"github.com/fletaio/framework/router/evilnode"
-	"github.com/fletaio/framework/rpc"
+	"sync/atomic"
+	"time"
 
 	"github.com/fletaio/citygame/server/citygame"
 	"github.com/fletaio/common"
+	"github.com/fletaio/common/hash"
 	"github.com/fletaio/common/util"
 	"github.com/fletaio/core/block"
 	"github.com/fletaio/core/data"
+	"github.com/fletaio/core/formulator"
 	"github.com/fletaio/core/kernel"
 	"github.com/fletaio/core/key"
 	"github.com/fletaio/core/message_def"
-	"github.com/fletaio/core/node"
-	"github.com/fletaio/core/reward"
+	"github.com/fletaio/core/observer"
 	"github.com/fletaio/core/transaction"
 	"github.com/fletaio/framework/peer"
 	"github.com/fletaio/framework/router"
-	"github.com/fletaio/framework/template"
-
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo"
 )
 
-var (
-	libPath string
+// consts
+const (
+	CreateAccountChannelSize = 100
 )
-
-func init() {
-	var pwd string
-	{
-		pc := make([]uintptr, 10) // at least 1 entry needed
-		runtime.Callers(1, pc)
-		f := runtime.FuncForPC(pc[0])
-		pwd, _ = f.FileLine(pc[0])
-
-		path := strings.Split(pwd, "/")
-		pwd = strings.Join(path[:len(path)-1], "/")
-	}
-
-	libPath = pwd + "/"
-}
-
-var t *template.Template
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
@@ -65,222 +41,202 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-// Config is a configuration for the cmd
-type Config struct {
-	SeedNodes    []string
-	ObserverKeys []string
-	Port         int
-	APIPort      int
-	ServerPort   int
-	KeyHex       string
-	StoreRoot    string
-	ForceRecover bool
-}
-
 func main() {
-	var cfg Config
-	if err := config.LoadFile("./config.toml", &cfg); err != nil {
+	var Key key.Key
+	if bs, err := hex.DecodeString("fb4d410401e2cb9eb4d9ae497b9f7c585eb0bfb88f6e0b4adfe54e9451d809ea"); err != nil {
 		panic(err)
-	}
-	if len(cfg.StoreRoot) == 0 {
-		cfg.StoreRoot = "./data"
-	}
-
-	ObserverKeyMap := map[common.PublicHash]bool{}
-	for _, k := range cfg.ObserverKeys {
-		pubhash, err := common.ParsePublicHash(k)
+	} else {
+		k, err := key.NewMemoryKeyFromBytes(bs)
 		if err != nil {
 			panic(err)
 		}
+		Key = k
+	}
+
+	obstrs := []string{
+		"cca49818f6c49cf57b6c420cdcd98fcae08850f56d2ff5b8d287fddc7f9ede08",
+		"39f1a02bed5eff3f6247bb25564cdaef20d410d77ef7fc2c0181b1d5b31ce877",
+		"2b97bc8f21215b7ed085cbbaa2ea020ded95463deef6cbf31bb1eadf826d4694",
+		"3b43d728deaa62d7c8790636bdabbe7148a6641e291fd1f94b157673c0172425",
+		"e6cf2724019000a3f703db92829ecbd646501c0fd6a5e97ad6774d4ad621f949",
+	}
+	obkeys := make([]key.Key, 0, len(obstrs))
+	ObserverKeys := make([]common.PublicHash, 0, len(obstrs))
+
+	NetAddressMap := map[common.PublicHash]string{}
+	NetAddressMapForFr := map[common.PublicHash]string{}
+	for i, v := range obstrs {
+		if bs, err := hex.DecodeString(v); err != nil {
+			panic(err)
+		} else if Key, err := key.NewMemoryKeyFromBytes(bs); err != nil {
+			panic(err)
+		} else {
+			obkeys = append(obkeys, Key)
+			Num := strconv.Itoa(i + 1)
+			pubhash := common.NewPublicHash(Key.PublicKey())
+			NetAddressMap[pubhash] = "127.0.0.1:300" + Num
+			NetAddressMapForFr[pubhash] = "127.0.0.1:500" + Num
+			ObserverKeys = append(ObserverKeys, pubhash)
+		}
+	}
+	ObserverKeyMap := map[common.PublicHash]bool{}
+	for _, pubhash := range ObserverKeys {
 		ObserverKeyMap[pubhash] = true
 	}
 
-	GenCoord := common.NewCoordinate(0, 0)
-	act := data.NewAccounter(GenCoord)
-	tran := data.NewTransactor(GenCoord)
-	if err := initChainComponent(act, tran); err != nil {
-		panic(err)
+	frstrs := []string{
+		"ad94f99f1d1bd267fc4b432cd573ab4b20e6fb306f53954f87ad4077d01d0a11",
 	}
 
-	GenesisContextData, err := initGenesisContextData(act, tran)
-	if err != nil {
-		panic(err)
-	}
-
-	cm := closer.NewManager()
-	sigc := make(chan os.Signal, 1)
-	signal.Notify(sigc,
-		syscall.SIGHUP,
-		syscall.SIGINT,
-		syscall.SIGTERM,
-		syscall.SIGQUIT)
-	go func() {
-		<-sigc
-		cm.CloseAll()
-	}()
-	defer cm.CloseAll()
-
-	var ks *kernel.Store
-	if s, err := kernel.NewStore(cfg.StoreRoot+"/kernel", BlockchainVersion, act, tran, cfg.ForceRecover); err != nil {
-		if cfg.ForceRecover || err != badger.ErrTruncateNeeded {
+	frkeys := make([]key.Key, 0, len(frstrs))
+	for _, v := range frstrs {
+		if bs, err := hex.DecodeString(v); err != nil {
+			panic(err)
+		} else if Key, err := key.NewMemoryKeyFromBytes(bs); err != nil {
 			panic(err)
 		} else {
-			fmt.Println(err)
-			fmt.Println("Do you want to recover database(it can be failed)? [y/n]")
-			var answer string
-			fmt.Scanf("%s", &answer)
-			if strings.ToLower(answer) == "y" {
-				if s, err := kernel.NewStore(cfg.StoreRoot+"/kernel", BlockchainVersion, act, tran, true); err != nil {
-					panic(err)
-				} else {
-					ks = s
-				}
-			} else {
-				os.Exit(1)
-			}
+			frkeys = append(frkeys, Key)
 		}
-	} else {
-		ks = s
 	}
-	cm.Add("kernel.Store", ks)
 
-	rd := &reward.TestNetRewarder{}
-	kn, err := kernel.NewKernel(&kernel.Config{
-		ChainCoord:              GenCoord,
-		ObserverKeyMap:          ObserverKeyMap,
-		MaxBlocksPerFormulator:  8,
-		MaxTransactionsPerBlock: 5000,
-	}, ks, rd, GenesisContextData)
-	if err != nil {
-		panic(err)
-	}
-	cm.RemoveAll()
-	cm.Add("kernel.Kernel", kn)
+	ObserverHeights := []uint32{}
 
-	ndcfg := &node.Config{
-		ChainCoord: GenCoord,
-		SeedNodes:  cfg.SeedNodes,
-		Router: router.Config{
-			Network: "tcp",
-			Port:    cfg.Port,
-			EvilNodeConfig: evilnode.Config{
-				StorePath: cfg.StoreRoot + "/router",
-			},
-		},
-		Peer: peer.Config{
-			StorePath: cfg.StoreRoot + "/peers",
-		},
-	}
-	nd, err := node.NewNode(ndcfg, kn)
-	if err != nil {
-		panic(err)
-	}
-	cm.RemoveAll()
-	cm.Add("cmd.Node", nd)
-
-	go nd.Run()
-
-	rm := rpc.NewManager()
-	cm.RemoveAll()
-	cm.Add("rpc.Manager", rm)
-	cm.Add("cmd.Node", nd)
-	kn.AddEventHandler(rm)
-
-	defer func() {
-		cm.CloseAll()
-		if err := recover(); err != nil {
-			kn.DebugLog("Panic", err)
+	obs := []*observer.Observer{}
+	for _, obkey := range obkeys {
+		GenCoord := common.NewCoordinate(0, 0)
+		act := data.NewAccounter(GenCoord)
+		tran := data.NewTransactor(GenCoord)
+		if err := initChainComponent(act, tran); err != nil {
 			panic(err)
 		}
-	}()
 
-	// Chain
-	rm.Add("Version", func(kn *kernel.Kernel, ID interface{}, arg *rpc.Argument) (interface{}, error) {
-		return kn.Provider().Version(), nil
-	})
-	rm.Add("Height", func(kn *kernel.Kernel, ID interface{}, arg *rpc.Argument) (interface{}, error) {
-		return kn.Provider().Height(), nil
-	})
-	rm.Add("LastHash", func(kn *kernel.Kernel, ID interface{}, arg *rpc.Argument) (interface{}, error) {
-		return kn.Provider().LastHash(), nil
-	})
-	rm.Add("Hash", func(kn *kernel.Kernel, ID interface{}, arg *rpc.Argument) (interface{}, error) {
-		if arg.Len() < 1 {
-			return nil, rpc.ErrInvalidArgument
-		}
-		height, err := arg.Uint32(0)
+		GenesisContextData, err := initGenesisContextData(act, tran)
 		if err != nil {
-			return nil, err
+			panic(err)
 		}
-		h, err := kn.Provider().Hash(height)
-		if err != nil {
-			return nil, err
-		}
-		return h, nil
-	})
-	rm.Add("Header", func(kn *kernel.Kernel, ID interface{}, arg *rpc.Argument) (interface{}, error) {
-		if arg.Len() < 1 {
-			return nil, rpc.ErrInvalidArgument
-		}
-		height, err := arg.Uint32(0)
-		if err != nil {
-			return nil, err
-		}
-		h, err := kn.Provider().Header(height)
-		if err != nil {
-			return nil, err
-		}
-		return h, nil
-	})
-	rm.Add("Block", func(kn *kernel.Kernel, ID interface{}, arg *rpc.Argument) (interface{}, error) {
-		if arg.Len() < 1 {
-			return nil, rpc.ErrInvalidArgument
-		}
-		height, err := arg.Uint32(0)
-		if err != nil {
-			return nil, err
-		}
-		cd, err := kn.Provider().Data(height)
-		if err != nil {
-			return nil, err
-		}
-		b := &block.Block{
-			Header: cd.Header.(*block.Header),
-			Body:   cd.Body.(*block.Body),
-		}
-		return b, nil
-	})
 
-	t = template.NewTemplate(&template.TemplateConfig{
-		TemplatePath: libPath + "html/pages/",
-		LayoutPath:   libPath + "html/layout/",
-	})
+		StoreRoot := "./observer/" + common.NewPublicHash(obkey.PublicKey()).String()
 
-	GameKernel := kn
+		ks, err := kernel.NewStore(StoreRoot+"/kernel", 1, act, tran, true)
+		if err != nil {
+			panic(err)
+		}
 
-	var GameKey key.Key
-	if bs, err := hex.DecodeString(cfg.KeyHex); err != nil {
-		panic(err)
-	} else if Key, err := key.NewMemoryKeyFromBytes(bs); err != nil {
-		panic(err)
-	} else {
-		GameKey = Key
+		rd := &mockRewarder{}
+		kn, err := kernel.NewKernel(&kernel.Config{
+			ChainCoord:              GenCoord,
+			ObserverKeyMap:          ObserverKeyMap,
+			MaxBlocksPerFormulator:  8,
+			MaxTransactionsPerBlock: 5000,
+		}, ks, rd, GenesisContextData)
+		if err != nil {
+			panic(err)
+		}
+
+		cfg := &observer.Config{
+			ChainCoord:     GenCoord,
+			Key:            obkey,
+			ObserverKeyMap: NetAddressMap,
+		}
+		ob, err := observer.NewObserver(cfg, kn)
+		if err != nil {
+			panic(err)
+		}
+		obs = append(obs, ob)
+
+		ObserverHeights = append(ObserverHeights, kn.Provider().Height())
 	}
+
+	Formulators := []string{}
+	FormulatorHeights := []uint32{}
+
+	var GameKernel *kernel.Kernel
+	frs := []*formulator.Formulator{}
+	for _, frkey := range frkeys {
+		GenCoord := common.NewCoordinate(0, 0)
+		act := data.NewAccounter(GenCoord)
+		tran := data.NewTransactor(GenCoord)
+		if err := initChainComponent(act, tran); err != nil {
+			panic(err)
+		}
+
+		GenesisContextData, err := initGenesisContextData(act, tran)
+		if err != nil {
+			panic(err)
+		}
+
+		StoreRoot := "./formulator/" + common.NewPublicHash(frkey.PublicKey()).String()
+
+		//os.RemoveAll(StoreRoot)
+
+		ks, err := kernel.NewStore(StoreRoot+"/kernel", 1, act, tran, true)
+		if err != nil {
+			panic(err)
+		}
+
+		rd := &mockRewarder{}
+		kn, err := kernel.NewKernel(&kernel.Config{
+			ChainCoord:              GenCoord,
+			ObserverKeyMap:          ObserverKeyMap,
+			MaxBlocksPerFormulator:  8,
+			MaxTransactionsPerBlock: 5000,
+		}, ks, rd, GenesisContextData)
+		if err != nil {
+			panic(err)
+		}
+
+		cfg := &formulator.Config{
+			Key:            frkey,
+			ObserverKeyMap: NetAddressMapForFr,
+			Formulator:     common.MustParseAddress("3CUsUpvEK"),
+			Router: router.Config{
+				Network: "tcp",
+				Port:    7000,
+			},
+			Peer: peer.Config{
+				StorePath: StoreRoot + "/peers",
+			},
+		}
+		fr, err := formulator.NewFormulator(cfg, kn)
+		if err != nil {
+			panic(err)
+		}
+		frs = append(frs, fr)
+
+		Formulators = append(Formulators, cfg.Formulator.String())
+		FormulatorHeights = append(FormulatorHeights, kn.Provider().Height())
+
+		GameKernel = kn
+	}
+
+	for i, ob := range obs {
+		go func(BindOb string, BindFr string, ob *observer.Observer) {
+			ob.Run(BindOb, BindFr)
+		}(":300"+strconv.Itoa(i+1), ":500"+strconv.Itoa(i+1), ob)
+	}
+
+	for _, fr := range frs {
+		go func(fr *formulator.Formulator) {
+			fr.Run()
+		}(fr)
+	}
+
+	var CreateAccountChannelID uint64
+	var UsingChannelCount int64
 
 	ew := NewEventWatcher()
 	GameKernel.AddEventHandler(ew)
 
-	cg := &cityGameCommand{
-		GameKernel: GameKernel,
-		Node:       nd,
-		Key:        GameKey,
-		ew:         ew,
-	}
-
 	e := echo.New()
-	e.Static("/js", libPath+"html/resource/js")
-	e.Static("/css", libPath+"html/resource/css")
-	e.Static("/images", libPath+"html/resource/images")
+	web := NewWebServer(e, "./webfiles")
+	e.Renderer = web
+	web.SetupStatic(e, "/public", "./webfiles/public")
+	webChecker := func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) (err error) {
+			web.CheckWatch()
+			return next(c)
+		}
+	}
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
 		code := http.StatusInternalServerError
 		if he, ok := err.(*echo.HTTPError); ok {
@@ -290,32 +246,616 @@ func main() {
 		c.HTML(code, err.Error())
 	}
 
-	e.GET("/", cg.index)
-	e.GET("/websocket/:address", cg.websocketAddress)
+	e.GET("/websocket/:address", func(c echo.Context) error {
+		conn, err := upgrader.Upgrade(c.Response().Writer, c.Request(), nil)
+		if err != nil {
+			return err
+		}
+		defer conn.Close()
 
-	gAPI := e.Group("/api")
-	gAPI.GET("/chain/height", cg.chainHeight)
-	gAPI.GET("/accounts", cg.accountsGet)
-	gAPI.POST("/accounts", cg.accountsPost)
-	gAPI.GET("/reports/:address", cg.reportsAddress)
-	gAPI.GET("/games/:address", cg.gamesAddress)
-	gAPI.POST("/games/:address/commands/demolition", cg.gamesAddressDemolition)
-	gAPI.POST("/games/:address/commands/upgrade", cg.gamesAddressUpgrade)
-	gAPI.POST("/games/:address/commands/getcoin", cg.gamesAddressGetcoin)
-	gAPI.POST("/games/:address/commands/commit", cg.gamesAddressCommit)
+		bs := make([]byte, 32)
+		crand.Read(bs)
+		h := hash.Hash(bs)
+		if err := conn.WriteMessage(websocket.TextMessage, []byte(h.String())); err != nil {
+			return err
+		}
+		_, msg, err := conn.ReadMessage()
+		if err != nil {
+			return err
+		}
+		sig, err := common.ParseSignature(string(msg))
+		if err != nil {
+			return err
+		}
 
-	go ew.Run()
-	go e.Start(":" + strconv.Itoa(cfg.ServerPort))
+		var pubhash common.PublicHash
+		if pubkey, err := common.RecoverPubkey(h, sig); err != nil {
+			return err
+		} else {
+			pubhash = common.NewPublicHash(pubkey)
+		}
 
-	go func() {
-		if err := rm.Run(kn, ":"+strconv.Itoa(cfg.APIPort)); err != nil {
-			if http.ErrServerClosed != err {
-				panic(err)
+		addrStr := c.Param("address")
+		addr, err := common.ParseAddress(addrStr)
+		if err != nil {
+			return err
+		}
+		a, err := GameKernel.Loader().Account(addr)
+		if err != nil {
+			return err
+		}
+		acc := a.(*citygame.Account)
+		if !acc.KeyHash.Equal(pubhash) {
+			return citygame.ErrInvalidAddress
+		}
+
+		ew.AddWriter(addr, conn)
+		defer ew.RemoveWriter(addr, conn)
+
+		for {
+			_, _, err := conn.ReadMessage()
+			if err != nil {
+				return nil
 			}
 		}
-	}()
+	})
 
-	cm.Wait()
+	e.GET("/", func(c echo.Context) error {
+		args := make(map[string]interface{})
+		return c.Render(http.StatusOK, "index.html", args)
+	}, webChecker)
+
+	gAPI := e.Group("/api")
+	gAPI.GET("/chain/height", func(c echo.Context) error {
+		res := &WebHeightRes{
+			Height: int(GameKernel.Provider().Height()),
+		}
+		return c.JSON(http.StatusOK, res)
+	})
+	gAPI.GET("/accounts", func(c echo.Context) error {
+		pubkeyStr := c.QueryParam("pubkey")
+		if len(pubkeyStr) == 0 {
+			return citygame.ErrInvalidPublicKey
+		}
+
+		pubkey, err := common.ParsePublicKey(pubkeyStr)
+		if err != nil {
+			return err
+		}
+
+		pubhash := common.NewPublicHash(pubkey)
+		KeyHashID := append(citygame.PrefixKeyHash, pubhash[:]...)
+
+		loader := GameKernel.Loader()
+		var rootAddress common.Address
+		if bs := loader.AccountData(rootAddress, KeyHashID); len(bs) > 0 {
+			var addr common.Address
+			copy(addr[:], bs)
+			utxos := []uint64{}
+			for i := 0; i < citygame.GameCommandChannelSize; i++ {
+				utxos = append(utxos, util.BytesToUint64(loader.AccountData(addr, []byte("utxo"+strconv.Itoa(i)))))
+			}
+			res := &WebAccountRes{
+				Address: addr.String(),
+				UTXOs:   utxos,
+			}
+			return c.JSON(http.StatusOK, res)
+		} else {
+			return citygame.ErrNotExistAccount
+		}
+	})
+	gAPI.POST("/accounts", func(c echo.Context) error {
+		body, err := ioutil.ReadAll(c.Request().Body)
+		if err != nil {
+			return err
+		}
+		defer c.Request().Body.Close()
+
+		var req WebAccountReq
+		if err := json.Unmarshal(body, &req); err != nil {
+			return err
+		}
+
+		if len(req.UserID) < 4 {
+			return citygame.ErrShortUserID
+		}
+		if len(req.Reward) < 1 {
+			return citygame.ErrInvalidReward
+		}
+
+		pubkey, err := common.ParsePublicKey(req.PublicKey)
+		if err != nil {
+			return err
+		}
+
+		pubhash := common.NewPublicHash(pubkey)
+		KeyHashID := append(citygame.PrefixKeyHash, pubhash[:]...)
+		UserIDHashID := append(citygame.PrefixUserID, []byte(req.UserID)...)
+		RewardHashID := append(citygame.PrefixReward, []byte(req.Reward)...)
+
+		var TxHash hash.Hash256
+		loader := GameKernel.Loader()
+		var rootAddress common.Address
+		if bs := loader.AccountData(rootAddress, KeyHashID); len(bs) > 0 {
+			var addr common.Address
+			copy(addr[:], bs)
+			utxos := []uint64{}
+			for i := 0; i < citygame.GameCommandChannelSize; i++ {
+				utxos = append(utxos, util.BytesToUint64(loader.AccountData(addr, []byte("utxo"+strconv.Itoa(i)))))
+			}
+			res := &WebAccountRes{
+				Address: addr.String(),
+				UTXOs:   utxos,
+			}
+			return c.JSON(http.StatusOK, res)
+		}
+		if bs := loader.AccountData(rootAddress, UserIDHashID); len(bs) > 0 {
+			return citygame.ErrExistUserID
+		}
+		if bs := loader.AccountData(rootAddress, RewardHashID); len(bs) > 0 {
+			return citygame.ErrExistReward
+		}
+
+		t, err := loader.Transactor().NewByType(CreateAccountTransctionType)
+		if err != nil {
+			return err
+		}
+
+		defer atomic.AddInt64(&UsingChannelCount, -1)
+		if atomic.AddInt64(&UsingChannelCount, 1) >= citygame.CreateAccountChannelSize {
+			return citygame.ErrQueueFull
+		}
+
+		cnid := atomic.AddUint64(&CreateAccountChannelID, 1) % citygame.CreateAccountChannelSize
+
+		utxoid := util.BytesToUint64(loader.AccountData(rootAddress, []byte("utxo"+strconv.FormatUint(cnid, 10))))
+
+		tx := t.(*citygame.CreateAccountTx)
+		tx.Timestamp_ = uint64(time.Now().UnixNano())
+		tx.Vin = []*transaction.TxIn{transaction.NewTxIn(utxoid)}
+		tx.KeyHash = pubhash
+		tx.UserID = req.UserID
+		tx.Reward = req.Reward
+
+		TxHash = tx.Hash()
+
+		if sig, err := Key.Sign(TxHash); err != nil {
+			return err
+		} else if err := GameKernel.AddTransaction(tx, []common.Signature{sig}); err != nil { //TEMP
+			return err
+		}
+
+		timer := time.NewTimer(10 * time.Second)
+
+		cp := GameKernel.Provider()
+		SentHeight := cp.Height()
+		for {
+			select {
+			case <-timer.C:
+				return c.NoContent(http.StatusRequestTimeout)
+			default:
+				height := cp.Height()
+				if SentHeight < height {
+					SentHeight = height
+
+					var rootAddress common.Address
+					if bs := loader.AccountData(rootAddress, KeyHashID); len(bs) > 0 {
+						var addr common.Address
+						copy(addr[:], bs)
+						utxos := []uint64{}
+						for i := 0; i < citygame.GameCommandChannelSize; i++ {
+							utxos = append(utxos, util.BytesToUint64(loader.AccountData(addr, []byte("utxo"+strconv.Itoa(i)))))
+						}
+						res := &WebAccountRes{
+							Address: addr.String(),
+							UTXOs:   utxos,
+						}
+						return c.JSON(http.StatusOK, res)
+					}
+				}
+				time.Sleep(250 * time.Millisecond)
+			}
+		}
+	})
+	gAPI.GET("/games/:address", func(c echo.Context) error {
+		addrStr := c.Param("address")
+		addr, err := common.ParseAddress(addrStr)
+		if err != nil {
+			return err
+		}
+
+		var bs []byte
+		var Height uint32
+		var loader data.Loader
+		if e := ew.LastBlockEvent(); e != nil {
+			bs = e.ctx.AccountData(addr, []byte("game"))
+			Height = e.b.Header.Height()
+			loader = e.ctx
+		} else {
+			loader = GameKernel.Loader()
+			GameKernel.Lock()
+			bs = loader.AccountData(addr, []byte("game"))
+			Height = GameKernel.Provider().Height()
+			GameKernel.Unlock()
+		}
+
+		if len(bs) == 0 {
+			return citygame.ErrNotExistAccount
+		}
+
+		gd := citygame.NewGameData(Height)
+
+		if _, err := gd.ReadFrom(bytes.NewReader(bs)); err != nil {
+			return err
+		}
+
+		res := &WebGameRes{
+			Height:       int(Height),
+			PointHeight:  int(gd.PointHeight),
+			PointBalance: int(gd.PointBalance),
+			CoinCount:    int(gd.CoinCount),
+			TotalExp:     int(gd.TotalExp),
+			Coins:        gd.Coins,
+			Exps:         gd.Exps,
+			Tiles:        make([]*WebTile, len(gd.Tiles)),
+			Txs:          []*UTXO{},
+			DefineMap:    citygame.GBuildingDefine,
+		}
+
+		for i, tile := range gd.Tiles {
+			if tile != nil {
+				res.Tiles[i] = &WebTile{
+					AreaType:    int(tile.AreaType),
+					Level:       int(tile.Level),
+					BuildHeight: int(tile.BuildHeight),
+				}
+			}
+		}
+
+		return c.JSON(http.StatusOK, res)
+	})
+	gAPI.POST("/games/:address/commands/demolition", func(c echo.Context) error {
+		addrStr := c.Param("address")
+		addr, err := common.ParseAddress(addrStr)
+		if err != nil {
+			return err
+		}
+
+		body, err := ioutil.ReadAll(c.Request().Body)
+		if err != nil {
+			return err
+		}
+		defer c.Request().Body.Close()
+
+		var req WebDemolitionReq
+		if err := json.Unmarshal(body, &req); err != nil {
+			return err
+		}
+		if req.UTXO == 0 {
+			return citygame.ErrInvalidUTXO
+		}
+		if req.X > citygame.GTileSize {
+			return citygame.ErrInvalidPosition
+		}
+		if req.Y > citygame.GTileSize {
+			return citygame.ErrInvalidPosition
+		}
+
+		loader := GameKernel.Loader()
+
+		t, err := loader.Transactor().NewByType(DemolitionTransactionType)
+		if err != nil {
+			return err
+		}
+
+		if is, err := loader.IsExistAccount(addr); err != nil {
+			return err
+		} else if !is {
+			return citygame.ErrNotExistAccount
+		}
+
+		tx := t.(*citygame.DemolitionTx)
+		tx.Timestamp_ = uint64(time.Now().UnixNano())
+		tx.Vin = []*transaction.TxIn{transaction.NewTxIn(req.UTXO)}
+		tx.Address = addr
+		tx.X = uint8(req.X)
+		tx.Y = uint8(req.Y)
+
+		var buffer bytes.Buffer
+		if _, err := tx.WriteTo(&buffer); err != nil {
+			return err
+		}
+
+		return c.JSON(http.StatusOK, &WebTxRes{
+			Type:    int(DemolitionTransactionType),
+			TxHex:   hex.EncodeToString(buffer.Bytes()),
+			HashHex: tx.Hash().String(),
+		})
+	})
+	gAPI.POST("/games/:address/commands/construction", func(c echo.Context) error {
+		addrStr := c.Param("address")
+		addr, err := common.ParseAddress(addrStr)
+		if err != nil {
+			return err
+		}
+
+		body, err := ioutil.ReadAll(c.Request().Body)
+		if err != nil {
+			return err
+		}
+		defer c.Request().Body.Close()
+
+		var req WebConstructionReq
+		if err := json.Unmarshal(body, &req); err != nil {
+			return err
+		}
+		if req.UTXO == 0 {
+			return citygame.ErrInvalidUTXO
+		}
+		if req.X > citygame.GTileSize {
+			return citygame.ErrInvalidPosition
+		}
+		if req.Y > citygame.GTileSize {
+			return citygame.ErrInvalidPosition
+		}
+		if req.AreaType <= int(citygame.EmptyAreaType) || req.AreaType >= int(citygame.EndOfAreaType) {
+			return citygame.ErrInvalidAreaType
+		}
+
+		loader := GameKernel.Loader()
+		if is, err := loader.IsExistAccount(addr); err != nil {
+			return err
+		} else if !is {
+			return citygame.ErrNotExistAccount
+		}
+
+		t, err := loader.Transactor().NewByType(ConstructionTransactionType)
+		if err != nil {
+			return err
+		}
+		tx := t.(*citygame.ConstructionTx)
+		tx.Timestamp_ = uint64(time.Now().UnixNano())
+		tx.Vin = []*transaction.TxIn{transaction.NewTxIn(req.UTXO)}
+		tx.Address = addr
+		tx.X = uint8(req.X)
+		tx.Y = uint8(req.Y)
+		tx.AreaType = citygame.AreaType(req.AreaType)
+
+		var buffer bytes.Buffer
+		if _, err := tx.WriteTo(&buffer); err != nil {
+			return err
+		}
+
+		return c.JSON(http.StatusOK, &WebTxRes{
+			Type:    int(ConstructionTransactionType),
+			TxHex:   hex.EncodeToString(buffer.Bytes()),
+			HashHex: tx.Hash().String(),
+		})
+	})
+	gAPI.POST("/games/:address/commands/upgrade", func(c echo.Context) error {
+		addrStr := c.Param("address")
+		addr, err := common.ParseAddress(addrStr)
+		if err != nil {
+			return err
+		}
+
+		body, err := ioutil.ReadAll(c.Request().Body)
+		if err != nil {
+			return err
+		}
+		defer c.Request().Body.Close()
+
+		var req WebUpgradeReq
+		if err := json.Unmarshal(body, &req); err != nil {
+			return err
+		}
+		if req.UTXO == 0 {
+			return citygame.ErrInvalidUTXO
+		}
+		if req.X > citygame.GTileSize {
+			return citygame.ErrInvalidPosition
+		}
+		if req.Y > citygame.GTileSize {
+			return citygame.ErrInvalidPosition
+		}
+		if req.AreaType <= int(citygame.EmptyAreaType) || req.AreaType >= int(citygame.EndOfAreaType) {
+			return citygame.ErrInvalidAreaType
+		}
+		if req.TargetLevel < 2 || req.TargetLevel > len(citygame.GBuildingDefine[citygame.AreaType(req.AreaType)]) {
+			return citygame.ErrInvalidLevel
+		}
+
+		loader := GameKernel.Loader()
+		if is, err := loader.IsExistAccount(addr); err != nil {
+			return err
+		} else if !is {
+			return citygame.ErrNotExistAccount
+		}
+
+		t, err := loader.Transactor().NewByType(UpgradeTransactionType)
+		if err != nil {
+			return err
+		}
+		tx := t.(*citygame.UpgradeTx)
+		tx.Timestamp_ = uint64(time.Now().UnixNano())
+		tx.Vin = []*transaction.TxIn{transaction.NewTxIn(req.UTXO)}
+		tx.Address = addr
+		tx.X = uint8(req.X)
+		tx.Y = uint8(req.Y)
+		tx.AreaType = citygame.AreaType(req.AreaType)
+		tx.TargetLevel = uint8(req.TargetLevel)
+
+		var buffer bytes.Buffer
+		if _, err := tx.WriteTo(&buffer); err != nil {
+			return err
+		}
+
+		return c.JSON(http.StatusOK, &WebTxRes{
+			Type:    int(UpgradeTransactionType),
+			TxHex:   hex.EncodeToString(buffer.Bytes()),
+			HashHex: tx.Hash().String(),
+		})
+	})
+	gAPI.POST("/games/:address/commands/getcoin", func(c echo.Context) error {
+		addrStr := c.Param("address")
+		addr, err := common.ParseAddress(addrStr)
+		if err != nil {
+			return err
+		}
+
+		body, err := ioutil.ReadAll(c.Request().Body)
+		if err != nil {
+			return err
+		}
+		defer c.Request().Body.Close()
+
+		var req WebGetCoinReq
+		if err := json.Unmarshal(body, &req); err != nil {
+			return err
+		}
+		if req.UTXO == 0 {
+			return citygame.ErrInvalidUTXO
+		}
+		if req.X > citygame.GTileSize {
+			return citygame.ErrInvalidPosition
+		}
+		if req.Y > citygame.GTileSize {
+			return citygame.ErrInvalidPosition
+		}
+
+		loader := GameKernel.Loader()
+		if is, err := loader.IsExistAccount(addr); err != nil {
+			return err
+		} else if !is {
+			return citygame.ErrNotExistAccount
+		}
+
+		t, err := loader.Transactor().NewByType(GetCoinTransactionType)
+		if err != nil {
+			return err
+		}
+		tx := t.(*citygame.GetCoinTx)
+		tx.Timestamp_ = uint64(time.Now().UnixNano())
+		tx.Vin = []*transaction.TxIn{transaction.NewTxIn(req.UTXO)}
+		tx.Address = addr
+		tx.X = uint8(req.X)
+		tx.Y = uint8(req.Y)
+		tx.Index = uint8(req.Index)
+
+		var buffer bytes.Buffer
+		if _, err := tx.WriteTo(&buffer); err != nil {
+			return err
+		}
+
+		return c.JSON(http.StatusOK, &WebTxRes{
+			Type:    int(GetCoinTransactionType),
+			TxHex:   hex.EncodeToString(buffer.Bytes()),
+			HashHex: tx.Hash().String(),
+		})
+	})
+	gAPI.POST("/games/:address/commands/getexp", func(c echo.Context) error {
+		addrStr := c.Param("address")
+		addr, err := common.ParseAddress(addrStr)
+		if err != nil {
+			return err
+		}
+
+		body, err := ioutil.ReadAll(c.Request().Body)
+		if err != nil {
+			return err
+		}
+		defer c.Request().Body.Close()
+
+		var req WebGetExpReq
+		if err := json.Unmarshal(body, &req); err != nil {
+			return err
+		}
+		if req.UTXO == 0 {
+			return citygame.ErrInvalidUTXO
+		}
+		if req.X > citygame.GTileSize {
+			return citygame.ErrInvalidPosition
+		}
+		if req.Y > citygame.GTileSize {
+			return citygame.ErrInvalidPosition
+		}
+
+		loader := GameKernel.Loader()
+		if is, err := loader.IsExistAccount(addr); err != nil {
+			return err
+		} else if !is {
+			return citygame.ErrNotExistAccount
+		}
+
+		t, err := loader.Transactor().NewByType(GetExpTransactionType)
+		if err != nil {
+			return err
+		}
+		tx := t.(*citygame.GetExpTx)
+		tx.Timestamp_ = uint64(time.Now().UnixNano())
+		tx.Vin = []*transaction.TxIn{transaction.NewTxIn(req.UTXO)}
+		tx.Address = addr
+		tx.X = uint8(req.X)
+		tx.Y = uint8(req.Y)
+		tx.AreaType = citygame.AreaType(req.AreaType)
+		tx.Level = uint8(req.Level)
+
+		var buffer bytes.Buffer
+		if _, err := tx.WriteTo(&buffer); err != nil {
+			return err
+		}
+
+		return c.JSON(http.StatusOK, &WebTxRes{
+			Type:    int(GetExpTransactionType),
+			TxHex:   hex.EncodeToString(buffer.Bytes()),
+			HashHex: tx.Hash().String(),
+		})
+	})
+	gAPI.POST("/games/:address/commands/commit", func(c echo.Context) error {
+		body, err := ioutil.ReadAll(c.Request().Body)
+		if err != nil {
+			return err
+		}
+		defer c.Request().Body.Close()
+
+		var req WebCommitReq
+		if err := json.Unmarshal(body, &req); err != nil {
+			return err
+		}
+
+		txBytes, err := hex.DecodeString(req.TxHex)
+		if err != nil {
+			return err
+		}
+
+		sigBytes, err := hex.DecodeString(req.SigHex)
+		if err != nil {
+			return err
+		}
+
+		loader := GameKernel.Loader()
+
+		tx, err := loader.Transactor().NewByType(transaction.Type(req.Type))
+		if err != nil {
+			return err
+		}
+		if _, err := tx.ReadFrom(bytes.NewReader(txBytes)); err != nil {
+			return err
+		}
+
+		var sig common.Signature
+		if _, err := sig.ReadFrom(bytes.NewReader(sigBytes)); err != nil {
+			return err
+		}
+
+		if err := GameKernel.AddTransaction(tx, []common.Signature{sig}); err != nil { //TEMP
+			return err
+		}
+		return c.NoContent(http.StatusOK)
+	})
+
+	go ew.Run()
+	e.Start(":8080")
 }
 
 type BlockEvent struct {
@@ -390,7 +930,7 @@ func (ew *EventWatcher) processBlock(b *block.Block, ctx *data.Context) {
 			if err != nil {
 				continue
 			}
-			wtn.Type = 0
+			wtn.Type = int(DemolitionTransactionType)
 			wtn.X = int(tx.X)
 			wtn.Y = int(tx.Y)
 			wtn.AreaType = int(0)
@@ -401,50 +941,64 @@ func (ew *EventWatcher) processBlock(b *block.Block, ctx *data.Context) {
 			wtn.Tx.Hash = t.Hash().String()
 			wtn.Tx.Height = b.Header.Height()
 			wtn.Tx.Type = int(t.Type())
-			clbs := ctx.AccountData(tx.Address, []byte("CoinList"))
-			bf := bytes.NewBuffer(clbs)
-			if cl, err := citygame.CLReadFrom(bf); err == nil {
-				wtn.CoinList = cl
-			}
-
 			ew.Notify(tx.Address, wtn)
-		case *citygame.UpgradeTx, *citygame.ConstructionTx:
-			var utx *citygame.UpgradeTx
-			switch _tx := tx.(type) {
-			case *citygame.UpgradeTx:
-				utx = _tx
-			case *citygame.ConstructionTx:
-				utx = _tx.UpgradeTx
-			}
-			wtn, _, err := getWebTileNotify(ctx, utx.Address, b.Header.Height(), uint16(i))
+		case *citygame.ConstructionTx:
+			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), uint16(i))
 			if err != nil {
 				continue
 			}
 
-			wtn.Type = 1
-			wtn.X = int(utx.X)
-			wtn.Y = int(utx.Y)
-			wtn.AreaType = int(utx.AreaType)
-			wtn.Level = int(utx.TargetLevel)
+			wtn.Type = int(ConstructionTransactionType)
+			wtn.X = int(tx.X)
+			wtn.Y = int(tx.Y)
+			wtn.AreaType = int(tx.AreaType)
 
-			wtn.Tx.X = int(utx.X)
-			wtn.Tx.Y = int(utx.Y)
+			wtn.Tx.X = int(tx.X)
+			wtn.Tx.Y = int(tx.Y)
 			wtn.Tx.Hash = t.Hash().String()
 			wtn.Tx.Height = b.Header.Height()
 			wtn.Tx.Type = int(t.Type())
-
-			clbs := ctx.AccountData(utx.Address, []byte("CoinList"))
-			bf := bytes.NewBuffer(clbs)
-			if cl, err := citygame.CLReadFrom(bf); err == nil {
-				wtn.CoinList = cl
+			if len(wtn.Error) == 0 {
+				for _, e := range gd.Exps {
+					if e.X == tx.X && e.Y == tx.Y && e.AreaType == tx.AreaType && e.Level == 1 {
+						wtn.Exp = e
+						break
+					}
+				}
 			}
-			ew.Notify(utx.Address, wtn)
-		case *citygame.GetCoinTx:
-			wtn, _, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), uint16(i))
+			ew.Notify(tx.Address, wtn)
+		case *citygame.UpgradeTx:
+			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), uint16(i))
 			if err != nil {
 				continue
 			}
-			wtn.Type = 2
+
+			wtn.Type = int(UpgradeTransactionType)
+			wtn.X = int(tx.X)
+			wtn.Y = int(tx.Y)
+			wtn.AreaType = int(tx.AreaType)
+			wtn.Level = int(tx.TargetLevel)
+
+			wtn.Tx.X = int(tx.X)
+			wtn.Tx.Y = int(tx.Y)
+			wtn.Tx.Hash = t.Hash().String()
+			wtn.Tx.Height = b.Header.Height()
+			wtn.Tx.Type = int(t.Type())
+			if len(wtn.Error) == 0 {
+				for _, e := range gd.Exps {
+					if e.X == tx.X && e.Y == tx.Y && e.AreaType == tx.AreaType && e.Level == tx.TargetLevel {
+						wtn.Exp = e
+						break
+					}
+				}
+			}
+			ew.Notify(tx.Address, wtn)
+		case *citygame.GetCoinTx:
+			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), uint16(i))
+			if err != nil {
+				continue
+			}
+			wtn.Type = int(GetCoinTransactionType)
 			wtn.X = int(tx.X)
 			wtn.Y = int(tx.Y)
 
@@ -453,13 +1007,29 @@ func (ew *EventWatcher) processBlock(b *block.Block, ctx *data.Context) {
 			wtn.Tx.Hash = t.Hash().String()
 			wtn.Tx.Height = b.Header.Height()
 			wtn.Tx.Type = int(t.Type())
-
-			clbs := ctx.AccountData(tx.Address, []byte("CoinList"))
-			bf := bytes.NewBuffer(clbs)
-			if cl, err := citygame.CLReadFrom(bf); err == nil {
-				wtn.CoinList = cl
-				ew.Notify(tx.Address, wtn)
+			wtn.Coin = gd.Coins[tx.Index]
+			ew.Notify(tx.Address, wtn)
+		case *citygame.GetExpTx:
+			wtn, _, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), uint16(i))
+			if err != nil {
+				continue
 			}
+			wtn.Type = int(GetExpTransactionType)
+			wtn.X = int(tx.X)
+			wtn.Y = int(tx.Y)
+
+			wtn.Tx.X = int(tx.X)
+			wtn.Tx.Y = int(tx.Y)
+			wtn.Tx.Hash = t.Hash().String()
+			wtn.Tx.Height = b.Header.Height()
+			wtn.Tx.Type = int(t.Type())
+			wtn.Exp = &citygame.FletaCityExp{
+				X:        tx.X,
+				Y:        tx.Y,
+				AreaType: tx.AreaType,
+				Level:    tx.Level,
+			}
+			ew.Notify(tx.Address, wtn)
 		}
 	}
 }
@@ -524,14 +1094,12 @@ func getWebTileNotify(ctx *data.Context, addr common.Address, height uint32, ind
 		}
 	}
 
-	ccbs := ctx.AccountData(addr, []byte("GetCoinCount"))
-	coinCount := util.BytesToUint32(ccbs)
-
 	return &WebTileNotify{
 		Height:       int(height),
 		PointHeight:  int(gd.PointHeight),
 		PointBalance: int(gd.PointBalance),
-		CoinCount:    int(coinCount),
+		CoinCount:    int(gd.CoinCount),
+		TotalExp:     int(gd.TotalExp),
 		UTXO:         int(id),
 		Tx: &UTXO{
 			ID: id,
@@ -576,9 +1144,11 @@ type WebGameRes struct {
 	PointHeight  int                                              `json:"point_height"`
 	PointBalance int                                              `json:"point_balance"`
 	CoinCount    int                                              `json:"coin_count"`
+	TotalExp     int                                              `json:"total_exp"`
+	Coins        []*citygame.FletaCityCoin                        `json:"coins"`
+	Exps         []*citygame.FletaCityExp                         `json:"exps"`
 	Tiles        []*WebTile                                       `json:"tiles"`
 	Txs          []*UTXO                                          `json:"txs"`
-	CoinList     map[string]*citygame.FletaCityCoin               `json:"fleta_city_coins"`
 	DefineMap    map[citygame.AreaType][]*citygame.BuildingDefine `json:"define_map"`
 }
 
@@ -592,6 +1162,13 @@ type WebDemolitionReq struct {
 	Y    int    `json:"y"`
 }
 
+type WebConstructionReq struct {
+	UTXO     uint64 `json:"utxo"`
+	X        int    `json:"x"`
+	Y        int    `json:"y"`
+	AreaType int    `json:"area_type"`
+}
+
 type WebUpgradeReq struct {
 	UTXO        uint64 `json:"utxo"`
 	X           int    `json:"x"`
@@ -601,12 +1178,18 @@ type WebUpgradeReq struct {
 }
 
 type WebGetCoinReq struct {
+	UTXO  uint64 `json:"utxo"`
+	X     int    `json:"x"`
+	Y     int    `json:"y"`
+	Index int    `json:"index"`
+}
+
+type WebGetExpReq struct {
 	UTXO     uint64 `json:"utxo"`
 	X        int    `json:"x"`
 	Y        int    `json:"y"`
-	Hash     string `json:"hash"`
-	Height   uint32 `json:"height"`
-	CoinType int    `json:"coin_type"`
+	AreaType int    `json:"area_type"`
+	Level    int    `json:"level"`
 }
 
 type WebTxRes struct {
@@ -622,19 +1205,21 @@ type WebCommitReq struct {
 }
 
 type WebTileNotify struct {
-	Type         int                                `json:"type"`
-	X            int                                `json:"x"`
-	Y            int                                `json:"y"`
-	AreaType     int                                `json:"area_type"`
-	Level        int                                `json:"level"`
-	Height       int                                `json:"height"`
-	PointHeight  int                                `json:"point_height"`
-	PointBalance int                                `json:"point_balance"`
-	CoinCount    int                                `json:"coin_count"`
-	UTXO         int                                `json:"utxo"`
-	Tx           *UTXO                              `json:"tx"`
-	CoinList     map[string]*citygame.FletaCityCoin `json:"fleta_city_coins"`
-	Error        string                             `json:"error"`
+	Type         int                     `json:"type"`
+	X            int                     `json:"x"`
+	Y            int                     `json:"y"`
+	AreaType     int                     `json:"area_type"`
+	Level        int                     `json:"level"`
+	Height       int                     `json:"height"`
+	PointHeight  int                     `json:"point_height"`
+	PointBalance int                     `json:"point_balance"`
+	CoinCount    int                     `json:"coin_count"`
+	TotalExp     int                     `json:"total_exp"`
+	UTXO         int                     `json:"utxo"`
+	Tx           *UTXO                   `json:"tx"`
+	Coin         *citygame.FletaCityCoin `json:"coin"`
+	Exp          *citygame.FletaCityExp  `json:"exp"`
+	Error        string                  `json:"error"`
 }
 
 type WebTile struct {
