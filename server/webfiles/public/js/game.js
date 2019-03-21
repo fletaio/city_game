@@ -27,6 +27,25 @@ function Game(config) {
 
 	var _this = this;
 	this.touchpad.click(function(e) {
+		if (!islandMoved) {
+			var posX = e.pageX - $(this).offset().left;
+			var posY = e.pageY - $(this).offset().top;
+			var width = parseInt($(this).width());
+			var height = parseInt($(this).height());
+	
+			var rem = width/16;
+			var a = posX/rem*2 - 16;
+			var b = posY/rem*2*2;
+			var x = Math.floor((a + b)/2);
+			var y = Math.floor((-a + b)/2);
+			if(0 <= x && x < gConfig.Size) {
+				if(0 <= y && y < gConfig.Size) {
+					_this.OnTileClicked(x, y);
+				}
+			}
+		}
+	});
+	this.touchpad.mousemove(function(e) {
 		var posX = e.pageX - $(this).offset().left;
 		var posY = e.pageY - $(this).offset().top;
 		var width = parseInt($(this).width());
@@ -39,9 +58,24 @@ function Game(config) {
 		var y = Math.floor((-a + b)/2);
 		if(0 <= x && x < gConfig.Size) {
 			if(0 <= y && y < gConfig.Size) {
-				_this.OnTileClicked(x, y);
+				for(var i=0; i<_this.coins.length; i++) {
+					var c = _this.coins[i];
+					if(c != null && c.x == x && c.y == y && c.height <= _this.height) {
+						_this.touchpad.css("cursor", "pointer")
+						return;
+					}
+				}
+				for(var i=0; i<_this.exps.length; i++) {
+					var e = _this.exps[i];
+					if(e.x == x && e.y == y) {
+						_this.touchpad.css("cursor", "pointer")
+						return;
+					}
+				}
+			
 			}
 		}
+		_this.touchpad.css("cursor", "inherit")
 	});
 }
 
@@ -176,7 +210,7 @@ Game.prototype.AddCoin = function(c) {
 		obj.css("width", (16/gConfig.Size) + "rem");
 		obj.css("height", (8/gConfig.Size) + "rem");
 		obj.css("z-index", 10000);
-		var $img = $("<img class='fletaCoin' src='/public/images/animate/fleta_coin.gif'>").appendTo(obj);
+		var $img = $("<div class='fletaCoin'>").appendTo(obj);
 		this.coin_map[c.index] = obj;
 	}
 }
@@ -198,8 +232,7 @@ Game.prototype.AddExp = function(e) {
 		obj.css("width", (16/gConfig.Size) + "rem");
 		obj.css("height", (8/gConfig.Size) + "rem");
 		obj.css("z-index", 10000);
-		var $img = $("<img class='fletaExp' src='/public/images/animate/fleta_coin.gif'>").appendTo(obj);
-		$img.css("filter", "grayscale(100%)");
+		var $img = $("<div class='fletaExp'>").appendTo(obj);
 		this.exp_map[e.x + e.y*gConfig.Size] = obj;
 	}
 }
@@ -221,6 +254,7 @@ Game.prototype.UnselectTile = function() {
 	if(this.selected_tile != null) {
 		this.selected_tile = null;
 		this.obj.find(".selected_shown").removeClass("selected_shown").hide();
+		hideInfo(this);
 	}
 }
 
@@ -360,7 +394,7 @@ Game.prototype.OnExpClicked = function(e) {
 Game.prototype.OnTileClicked = function(x, y) {
 	for(var i=0; i<this.coins.length; i++) {
 		var c = this.coins[i];
-		if(c != null && c.x == x && c.y == y) {
+		if(c != null && c.x == x && c.y == y && c.height <= this.height) {
 			this.OnCoinClicked(c);
 			return;
 		}
@@ -594,6 +628,21 @@ Tile.prototype.SetPending = function(target_area_type, target_level, is_fletasub
 		} else {
 			if(this.target_level == 0) { // Destruction
 				this.renderPending(this.level);
+				if(this.level < 5) {
+					for(var i=1; i<=this.level; i++) {
+						var zindex = (this.x+this.y)*10+1+(3-Math.abs(3-i))
+						this.buildEffect("distructionEffect", zindex, i)
+					}
+					this.obj.css("z-index", (this.x+this.y)*10+1);
+				} else if(this.level == 5) {
+					var zindex = (this.x+this.y)*10+1+this.level
+					this.buildEffect("distructionEffect", zindex)
+					this.obj.css("z-index", (this.x+this.y)*10+1);
+				} else {
+					var zindex = (this.x+this.y)*10+1+this.level
+					this.buildEffect("distructionEffect", zindex)
+					this.obj.css("z-index", (this.x+this.y)*10-1);
+				}
 			} else { // Construction
 				this.removeAllImages();
 				this.renderConstruction(this.target_level);
@@ -630,28 +679,76 @@ Tile.prototype.Update = function(height, force) {
 					for(var i=1; i<=this.level; i++) {
 						if(this.obj.find(".lv"+i).length == 0) {
 							var $img = $("<img class='building lv"+i+"' src='/public/images/building/"+getAreaTypeName(this.area_type)+"_Lv1.png'/>").appendTo(this.obj);
-							$img.css("z-index", (this.x+this.y)*10+1+(3-Math.abs(3-i)));
+							var zindex = (this.x+this.y)*10+1+(3-Math.abs(3-i))
+							$img.css("z-index", zindex);
+							this.buildEffect("constructEffect", zindex)
 						}
 					}
 					this.obj.css("z-index", (this.x+this.y)*10);
 				} else if(this.level == 5) {
 					var $img = $("<img class='building lv"+this.level+"' src='/public/images/building/"+getAreaTypeName(this.area_type)+"_Lv5.png'/>").appendTo(this.obj);
-					$img.css("z-index", (this.x+this.y)*10+1+this.level);
+					var zindex = (this.x+this.y)*10+1+this.level
+					$img.css("z-index", zindex);
 					this.obj.css("z-index", (this.x+this.y)*10);
+					this.buildEffect("constructEffect", zindex)
 				} else {
 					var $img = $("<img class='building lv"+this.level+"' src='/public/images/tile/"+getAreaTypeName(this.area_type)+"_LvFLETA-Tile.png' style='opacity:1'/>").appendTo(this.obj);
 					$img.css("z-index", (this.x+this.y)*10+this.level);
 					var $img = $("<img class='building lv"+this.level+"' src='/public/images/building/"+getAreaTypeName(this.area_type)+"_LvFLETA.png'/>").appendTo(this.obj);
-					$img.css("z-index", (this.x+this.y)*10+1+this.level);
+					var zindex = (this.x+this.y)*10+1+this.level
+					$img.css("z-index", zindex);
 					this.obj.css("z-index", (this.x+this.y)*10-1);
+					this.buildEffect("constructEffect", zindex)
 				}
 			}
 		}
 	}
 }
 
+Tile.prototype.buildEffect = function(type, zindex, lv) {
+	lv = lv || this.level
+	var effect = $("<div class='lv"+(lv)+" buildEffect "+type+"'/>")
+	effect.css("z-index", zindex);
+	this.obj.append(effect);
+	(function (effect) {
+		setTimeout(function () {
+			effect.remove()
+		}, 1500)
+	})(effect)
+
+	if (type == "constructEffect") {
+		this.completEffect(zindex)
+	}
+}
+
+Tile.prototype.fletaEffect = function(zindex) {
+	var effect = $("<div class='FLETAAnimation lv"+(this.level)+"'/>")
+	effect.css("z-index", zindex);
+	this.obj.append(effect);
+	(function (effect) {
+		setTimeout(function () {
+			effect.remove()
+		}, 3000)
+	})(effect)
+}
+
+Tile.prototype.completEffect = function(zindex) {
+	var effect = $("<div class='completAnimation lv"+(this.level)+"'/>")
+	effect.css("z-index", zindex);
+	this.obj.append(effect);
+	(function (effect, tileUI) {
+		setTimeout(function () {
+			effect.remove()
+			if (tileUI.level == 6) {
+				tileUI.fletaEffect(zindex)
+			}
+		}, 3000)
+	})(effect, this)
+}
+
 Tile.prototype.OnSelected = function() {
 	this.obj.find(".selected").addClass("selected_shown").css("filter", "").show();
+	printInfo(this);
 }
 
 Tile.prototype.OnAllocated = function() {
@@ -758,8 +855,25 @@ GameStatusUI.prototype.OnResourceUpdated = function(resource) {
 }
 
 GameStatusUI.prototype.OnTotalExpUpdated = function(exp) {
-	console.log("GameStatusUI", "OnTotalExpUpdated", exp);
-	// TODO
+	var t = expIndexOf(exp)
+	console.log("GameStatusUI", "OnTotalExpUpdated", exp, t);
+	
+
+	var eh = $("#expHeader");
+	var ei = $("#expUI");
+	var c = ei.attr("class")
+	if (c != t["class"] && c != "" && typeof c != "undefined") {
+		eh.addClass("do_effect")
+	}
+	eh.attr("lvstep", t["class"])
+	ei.attr("class", t["class"])
+
+	var lvEXp = exp-(t.acc_exp-t.exp);
+
+	$("#expGauge").css("width", (lvEXp/t.exp*100)+"%")
+	$("#currentLevel").html(t.lv-1)
+	$("#currentExp").html(lvEXp)
+	$("#currentMaxExp").html(t.exp)
 }
 
 GameStatusUI.prototype.OnCoinCountUpdated = function(coin) {

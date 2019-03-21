@@ -14,7 +14,7 @@ body {
 }
 
 .ui_layout {
-    position: absolute;
+    /* position: absolute; */
 }
 .ui_element {
     position: relative;

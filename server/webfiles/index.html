@@ -158,6 +158,7 @@
 									<div id="screen"></div>
 									<div id="build_menu" class="menu">
 										<div class="button commercial">
+											<span>Commercial</span>
 											<div class="tooltip">
 												<div class="tooltip needDemographic"></div>
 												<div class="tooltip needDollar"></div>
@@ -167,6 +168,7 @@
 											</div>
 										</div>
 										<div class="button industrial">
+											<span>Industrial</span>
 											<div class="tooltip">
 												<div class="tooltip needDemographic"></div>
 												<div class="tooltip needDollar"></div>
@@ -176,6 +178,8 @@
 											</div>
 										</div>
 										<div class="button residential">
+											<span>Residential</span>
+												
 											<div class="tooltip">
 												<div class="tooltip needDemographic"></div>
 												<div class="tooltip needDollar"></div>
@@ -187,6 +191,7 @@
 									</div>
 									<div id="upgrade_menu" class="menu">
 										<div class="button demolition">
+											<span>Demolition</span>
 											<div class="tooltip Demolition">
 												<div class="tooltip needDemographic"></div>
 												<div class="tooltip needDollar"></div>
@@ -196,6 +201,7 @@
 											</div>
 										</div>
 										<div class="button upgrade">
+											<span>Upgrade</span>
 											<div class="tooltip">
 												<div class="tooltip needDemographic"></div>
 												<div class="tooltip needDollar"></div>
@@ -226,13 +232,21 @@
 						</div>
 					</div>
 					<div id="info" class="ui_element"></div>
+					<div class="bottom_ui_layout">
+						<div class="hide_building_case"><button id="hideBuilding" onclick="event.stopPropagation();ViewChanger()"></button></div>
+						<div id="expUI" class=""><!-- lv_bronze, lv_silver lv_gold lv_fleta -->
+							<div id="expHeader" class="">
+								<div id="expEffect" class=""></div>
+								<div class="exp_header"></div>
+								<p class="exp_lv" id="currentLevel">99</p>
+							</div>
+							<div class="exp_var"><div class="exp_gauge" id="expGauge" style="width:100%"></div></div>
+							<p class="exp_figure"><span id="currentExp">9999</span>/<span id="currentMaxExp">9999</span></p>
+						</div>
+					</div>
 				</div>
-				<button id="hideBuilding" onclick="event.stopPropagation();ViewChanger()"></button>
 				<div id="txLog"></div>
 				<div id="alertUI"><button class="alertUI_ok" onclick="event.stopPropagation();UIAlert.okOnclick()"></button><button class="alertUI_cancel" onclick="event.stopPropagation();UIAlert.cancelOnclick()"></button></div>
-				<div id="fletaCoinTemplet" style="display: none;">
-					<button class="fletaCoin"></button>
-				</div>
 			</div>
 		</section>
 		<script type="vue">

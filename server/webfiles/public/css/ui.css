@@ -95,7 +95,8 @@
 #info {
     color: #fff;
     position: absolute;
-    top: 4.5vh;
+    top: 6vh;
+    left: 1vh;
     width: 10vw;
 }
 
@@ -157,6 +158,10 @@
     filter: grayscale(100%);
     opacity: 0.5;
 }
+.menu .button span{
+    padding-top: 0.08rem;
+    display: inline-block;
+}
 
 .menu .industrial::before,
 .menu .residential::before,
@@ -190,49 +195,6 @@
 .menu .commercial.disable:hover::before {background-image: url("/public/images/ui/Ingame-buttons-build-button-basic-BZ.png");}
 .menu .demolition.disable:hover::before {background-image: url("/public/images/ui/Ingame-buttons-build-button-basic-DM.png");}
 .menu .upgrade.disable:hover::before {background-image: url("/public/images/ui/Ingame-buttons-build-button-basic-UG.png");}
-
-#hideBuilding {
-    width: 15vh;
-    height: 6vh;
-    position: absolute;
-    left: 3vh;
-    bottom: 3vh;
-    background-color: transparent;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: bottom;
-    border: none;
-    cursor: pointer;
-    transition: background-image .2s ease-in;
-    background-image: url(/public/images/ui/Ingame-button-view_toggle-glass.png);
-}
-#hideBuilding:focus {outline:0;}
-
-
-#hideBuilding.hideBuilding {
-    background-image: url(/public/images/ui/Ingame-button-hide_toggle-sunglass.png);
-}
-#hideBuilding::before {
-    content: " ";
-    width: 5.7vh;
-    height: 5.7vh;
-    margin: 0;
-    display: block;
-    position: absolute;
-    right: 0vh;
-    bottom: 0.11vh;
-    transition: background-image .2s ease-in, right .2s ease-in, transform .2s ease-in, -moz-transform .2s ease-in, -webkit-transform .2s ease-in;
-    background-image: url(/public/images/ui/Ingame-button-view_toggle.png);
-    background-size: 100%;
-    background-repeat: no-repeat;
-}
-#hideBuilding.hideBuilding::before {
-    background-image: url(/public/images/ui/Ingame-button-hide_toggle.png);
-    right: 9.3vh;
-    -moz-transform: rotate(-360deg);
-    -webkit-transform: rotate(-360deg);
-    transform:rotate(-360deg);
-}
 
 .buildEffect.lv1 {
     top: 0.02rem;
@@ -395,7 +357,7 @@
 
 .tooltip {
     position: absolute;
-    top:0.8rem;
+    top:1.2016rem;
 	left:0;
 }
 .tooltip .resource,
@@ -477,6 +439,7 @@
     height: 0.382rem;
     margin: 0.3rem 0.3rem;
     font-size: 0.34rem;
+    display: inline-block;
 }
 
 #txLog {
@@ -533,8 +496,10 @@
 .fletaExp {
 	filter: grayscale(100%);
     /* background-image: url(/public/images/ui/fletacoin.png); */
-    background-image: url(/public/images/animate/fleta_coin.gif);
-    background-size: 100%;
+    background-image: url(/public/images/animate/EXP_Animation.gif);
+    background-size: 70%;
+    background-position: center;
+    background-repeat: no-repeat;
     position: absolute;
     width: 0.7rem;
     height: 0.7rem;
@@ -589,3 +554,229 @@
     left: 14.5vh;
 }
 .okBtn:hover{background-image: url("/public/images/ui/alertbutton_press.png");}
+
+.hide_building_case {
+    width: 0.00001vh;
+    height: 6vh;
+    display: inline-block;
+}
+#hideBuilding {
+    width: 15vh;
+    height: 6vh;
+    position: relative;
+    left: 3vh;
+    background-color: transparent;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: bottom;
+    border: none;
+    cursor: pointer;
+    transition: background-image .2s ease-in;
+    background-image: url(/public/images/ui/Ingame-button-view_toggle-glass.png);
+}
+#hideBuilding:focus {outline:0;}
+
+
+#hideBuilding.hideBuilding {
+    background-image: url(/public/images/ui/Ingame-button-hide_toggle-sunglass.png);
+}
+#hideBuilding::before {
+    content: " ";
+    width: 5.7vh;
+    height: 5.7vh;
+    margin: 0;
+    display: block;
+    position: absolute;
+    right: 0vh;
+    bottom: 0.11vh;
+    transition: background-image .2s ease-in, right .2s ease-in, transform .2s ease-in, -moz-transform .2s ease-in, -webkit-transform .2s ease-in;
+    background-image: url(/public/images/ui/Ingame-button-view_toggle.png);
+    background-size: 100%;
+    background-repeat: no-repeat;
+}
+#hideBuilding.hideBuilding::before {
+    background-image: url(/public/images/ui/Ingame-button-hide_toggle.png);
+    right: 9.3vh;
+    -moz-transform: rotate(-360deg);
+    -webkit-transform: rotate(-360deg);
+    transform:rotate(-360deg);
+}
+
+.bottom_ui_layout {
+    position: absolute;
+    bottom:3vh;
+    left:0;
+    right:0;
+    position: absolute;
+}
+.bottom_ui_layout #expUI {
+    background-size: 100% 100%;
+    width: 47.1vh;
+    margin: 0 18vh;
+    height: 9vh;
+    display: inline-block;
+    position: relative;
+    text-align: center;
+    left: -webkit-calc(50% - 41.55vh);
+    left: -moz-calc(50% - 41.55vh);
+    left: calc(50% - 41.55vh);
+    background-image: url("/public/images/ui/EXP_BAR.png");
+}
+#expUI .exp_lv,
+#expUI .exp_figure {
+    color: #fff;
+    position: absolute;
+    text-align: center;
+}
+
+#expUI .exp_var,
+#expUI .exp_var .exp_gauge {
+    position: absolute;
+    top: 5.2vh;
+    left: 1.9vh;
+}
+#expUI .exp_var {
+    width: 43.23vh;
+    height: 0.7vh;
+    background-image: url(/public/images/ui/EXP_bg.png);
+}
+#expUI .exp_var .exp_gauge {
+    top: 0;
+    left: 0;
+    height: 0.7vh;
+    background-image: url(/public/images/ui/EXP.png);
+}
+
+#expUI .exp_lv {
+    width: 3vh;
+    top: 1.9vh;
+    left: 11.05vh;
+    font-size: 1.5vh;
+    background-color: #000;
+}
+#expUI .exp_figure {
+    width: 7.3vh;
+    top: 7.2vh;
+    left: 21.3vh;
+    font-size: 1.4vh;
+}
+
+#expHeader {
+    position: absolute;
+    width: 22.6vh;
+    height: 4.5vh;
+    top: 0.14vh;
+    left: -moz-calc(50% - 4.5vh);
+    left: calc(50% - 11.3vh);
+}
+#expHeader .exp_header {
+    width: 22.6vh;
+    height: 4.5vh;
+    background-size: 100% 100%;
+    transition: background-image 0.5s ease-in 0.5s;
+    position: relative;
+}
+
+#expHeader[lvstep="lv_bronze"] .exp_header {
+    background-image: url(/public/images/ui/EXP_1_Bronze_head.png);
+}
+#expHeader[lvstep="lv_silver"] .exp_header {
+    background-image: url(/public/images/ui/EXP_2_Silver_head.png);
+}
+#expHeader[lvstep="lv_gold"] .exp_header {
+    background-image: url(/public/images/ui/EXP_3_Gold_head.png);
+}
+#expHeader[lvstep="lv_fleta"] .exp_header {
+    background-image: url(/public/images/ui/EXP_4_FLETA_head.png);
+}
+
+#expHeader.do_effect[lvstep="lv_silver"] {
+    -webkit-animation: headerPosition1 2s ease-in-out, shake1 0.25s 0.75s 2 ease-in-out;
+    -moz-animation: headerPosition1 2s ease-in-out, shake1 0.25s 0.75s 2 ease-in-out;
+    animation: headerPosition1 2s ease-in-out, shake1 0.25s 0.75s 2 ease-in-out;
+}
+#expHeader.do_effect[lvstep="lv_gold"] {
+    -webkit-animation: headerPosition2 2s ease-in-out, shake2 0.25s 0.75s 2 ease-in-out;
+    -moz-animation: headerPosition2 2s ease-in-out, shake2 0.25s 0.75s 2 ease-in-out;
+    animation: headerPosition2 2s ease-in-out, shake2 0.25s 0.75s 2 ease-in-out;
+}
+#expHeader.do_effect[lvstep="lv_fleta"] {
+    -webkit-animation: headerPosition3 2s ease-in-out, shake3 0.25s 0.75s 2 ease-in-out;
+    -moz-animation: headerPosition3 2s ease-in-out, shake3 0.25s 0.75s 2 ease-in-out;
+    animation: headerPosition3 2s ease-in-out, shake3 0.25s 0.75s 2 ease-in-out;
+}
+#expEffect {
+    width: 7vh;
+    height: 2.3vh;
+    margin-top: 1.4vh;
+    margin-left: 7.8vh;
+    position: absolute;
+    -webkit-border-bottom-right-radius: 10vh;
+    -webkit-border-bottom-left-radius: 10vh;
+    -moz-border-radius-bottomright: 10vh;
+    -moz-border-radius-bottomleft: 10vh;
+    border-bottom-right-radius: 10vh;
+    border-bottom-left-radius: 10vh;
+}
+#expHeader.do_effect[lvstep="lv_silver"] #expEffect {
+    -webkit-animation: silverGlow 2s ease-in-out ;
+    -moz-animation: silverGlow 2s ease-in-out ;
+    animation: silverGlow 2s ease-in-out ;
+}
+#expHeader.do_effect[lvstep="lv_gold"] #expEffect {
+    -webkit-animation: goldGlow 2s ease-in-out ;
+    -moz-animation: goldGlow 2s ease-in-out  ;
+    animation: goldGlow 2s ease-in-out ;
+}
+#expHeader.do_effect[lvstep="lv_fleta"] #expEffect {
+    -webkit-animation: fletaGlow 2s ease-in-out ;
+    -moz-animation: fletaGlow 2s ease-in-out ;
+    animation: fletaGlow 2s ease-in-out ;
+}
+@keyframes headerPosition1 {25% {top: -39.1vh;}50%{top: -40.1vh;}75% {top: -40.1vh;}}
+@-moz-keyframes headerPosition1 {25% {top: -39.1vh;}50%{top: -40.1vh;}75% {top: -40.1vh;}}
+@-webkit-keyframes headerPosition1 {25% {top: -39.1vh;}50%{top: -40.1vh;}75% {top: -40.1vh;}}
+@keyframes headerPosition2 {25% {top: -39.1vh;}50%{top: -40.1vh;}75% {top: -40.1vh;}}
+@-moz-keyframes headerPosition2 {25% {top: -39.1vh;}50%{top: -40.1vh;}75% {top: -40.1vh;}}
+@-webkit-keyframes headerPosition2 {25% {top: -39.1vh;}50%{top: -40.1vh;}75% {top: -40.1vh;}}
+@keyframes headerPosition3 {25% {top: -39.1vh;}50%{top: -40.1vh;}75% {top: -40.1vh;}}
+@-moz-keyframes headerPosition3 {25% {top: -39.1vh;}50%{top: -40.1vh;}75% {top: -40.1vh;}}
+@-webkit-keyframes headerPosition3 {25% {top: -39.1vh;}50%{top: -40.1vh;}75% {top: -40.1vh;}}
+
+@keyframes silverGlow {
+    40% {box-shadow: 0 0 6vh 3vh #fff, 0 0 10vh 9vh #fcce87}
+    45% {box-shadow: 0 0 6vh 3vh #fff, 0 0 10vh 9vh #d8d8d8}
+    47% {box-shadow: 0 0 6vh 3vh #fff, 0 0 10vh 9vh #fcce87}
+    50% {box-shadow: 0 0 6vh 3vh #fff, 0 0 10vh 9vh #d8d8d8}
+    60% {}
+}
+@-moz-keyframes silverGlow {}
+@-webkit-keyframes silverGlow {}
+@keyframes goldGlow {
+    40% {box-shadow: 0 0 6vh 3vh #fff, 0 0 10vh 9vh #d8d8d8}
+    45% {box-shadow: 0 0 6vh 3vh #fff, 0 0 10vh 9vh #fdcc16}
+    47% {box-shadow: 0 0 6vh 3vh #fff, 0 0 10vh 9vh #d8d8d8}
+    50% {box-shadow: 0 0 6vh 3vh #fff, 0 0 10vh 9vh #fdcc16}
+    60% {}
+}
+@-moz-keyframes goldGlow {}
+@-webkit-keyframes goldGlow {}
+@keyframes fletaGlow {
+    40% {box-shadow: 0 0 6vh 3vh #fff, 0 0 10vh 9vh #fdcc16}
+    45% {box-shadow: 0 0 6vh 3vh #fff, 0 0 10vh 9vh #59c7ff}
+    47% {box-shadow: 0 0 6vh 3vh #fff, 0 0 10vh 9vh #fdcc16}
+    50% {box-shadow: 0 0 6vh 3vh #fff, 0 0 10vh 9vh #59c7ff}
+    60% {}
+}
+@-moz-keyframes fletaGlow {}
+@-webkit-keyframes fletaGlow {}
+
+@-moz-keyframes shake1 {0% { transform: translate(1px, 1px) rotate(0deg); }10% { transform: translate(-1px, -2px) rotate(-1deg); }20% { transform: translate(-3px, 0px) rotate(1deg); }30% { transform: translate(3px, 2px) rotate(0deg); }40% { transform: translate(1px, -1px) rotate(1deg); }50% { transform: translate(-1px, 2px) rotate(-1deg); }60% { transform: translate(-3px, 1px) rotate(0deg); }70% { transform: translate(3px, 1px) rotate(-1deg); }80% { transform: translate(-1px, -1px) rotate(1deg); }90% { transform: translate(1px, 2px) rotate(0deg); }100% { transform: translate(1px, -2px) rotate(-1deg); }}
+@-webkit-keyframes shake1 {0% { transform: translate(1px, 1px) rotate(0deg); }10% { transform: translate(-1px, -2px) rotate(-1deg); }20% { transform: translate(-3px, 0px) rotate(1deg); }30% { transform: translate(3px, 2px) rotate(0deg); }40% { transform: translate(1px, -1px) rotate(1deg); }50% { transform: translate(-1px, 2px) rotate(-1deg); }60% { transform: translate(-3px, 1px) rotate(0deg); }70% { transform: translate(3px, 1px) rotate(-1deg); }80% { transform: translate(-1px, -1px) rotate(1deg); }90% { transform: translate(1px, 2px) rotate(0deg); }100% { transform: translate(1px, -2px) rotate(-1deg); }}
+@keyframes shake1 {0% { transform: translate(1px, 1px) rotate(0deg); }10% { transform: translate(-1px, -2px) rotate(-1deg); }20% { transform: translate(-3px, 0px) rotate(1deg); }30% { transform: translate(3px, 2px) rotate(0deg); }40% { transform: translate(1px, -1px) rotate(1deg); }50% { transform: translate(-1px, 2px) rotate(-1deg); }60% { transform: translate(-3px, 1px) rotate(0deg); }70% { transform: translate(3px, 1px) rotate(-1deg); }80% { transform: translate(-1px, -1px) rotate(1deg); }90% { transform: translate(1px, 2px) rotate(0deg); }100% { transform: translate(1px, -2px) rotate(-1deg); }}
+@-moz-keyframes shake2 {0% { transform: translate(1px, 1px) rotate(0deg); }10% { transform: translate(-1px, -2px) rotate(-1deg); }20% { transform: translate(-3px, 0px) rotate(1deg); }30% { transform: translate(3px, 2px) rotate(0deg); }40% { transform: translate(1px, -1px) rotate(1deg); }50% { transform: translate(-1px, 2px) rotate(-1deg); }60% { transform: translate(-3px, 1px) rotate(0deg); }70% { transform: translate(3px, 1px) rotate(-1deg); }80% { transform: translate(-1px, -1px) rotate(1deg); }90% { transform: translate(1px, 2px) rotate(0deg); }100% { transform: translate(1px, -2px) rotate(-1deg); }}
+@-webkit-keyframes shake2 {0% { transform: translate(1px, 1px) rotate(0deg); }10% { transform: translate(-1px, -2px) rotate(-1deg); }20% { transform: translate(-3px, 0px) rotate(1deg); }30% { transform: translate(3px, 2px) rotate(0deg); }40% { transform: translate(1px, -1px) rotate(1deg); }50% { transform: translate(-1px, 2px) rotate(-1deg); }60% { transform: translate(-3px, 1px) rotate(0deg); }70% { transform: translate(3px, 1px) rotate(-1deg); }80% { transform: translate(-1px, -1px) rotate(1deg); }90% { transform: translate(1px, 2px) rotate(0deg); }100% { transform: translate(1px, -2px) rotate(-1deg); }}
+@keyframes shake2 {0% { transform: translate(1px, 1px) rotate(0deg); }10% { transform: translate(-1px, -2px) rotate(-1deg); }20% { transform: translate(-3px, 0px) rotate(1deg); }30% { transform: translate(3px, 2px) rotate(0deg); }40% { transform: translate(1px, -1px) rotate(1deg); }50% { transform: translate(-1px, 2px) rotate(-1deg); }60% { transform: translate(-3px, 1px) rotate(0deg); }70% { transform: translate(3px, 1px) rotate(-1deg); }80% { transform: translate(-1px, -1px) rotate(1deg); }90% { transform: translate(1px, 2px) rotate(0deg); }100% { transform: translate(1px, -2px) rotate(-1deg); }}
+@-moz-keyframes shake3 {0% { transform: translate(1px, 1px) rotate(0deg); }10% { transform: translate(-1px, -2px) rotate(-1deg); }20% { transform: translate(-3px, 0px) rotate(1deg); }30% { transform: translate(3px, 2px) rotate(0deg); }40% { transform: translate(1px, -1px) rotate(1deg); }50% { transform: translate(-1px, 2px) rotate(-1deg); }60% { transform: translate(-3px, 1px) rotate(0deg); }70% { transform: translate(3px, 1px) rotate(-1deg); }80% { transform: translate(-1px, -1px) rotate(1deg); }90% { transform: translate(1px, 2px) rotate(0deg); }100% { transform: translate(1px, -2px) rotate(-1deg); }}
+@-webkit-keyframes shake3 {0% { transform: translate(1px, 1px) rotate(0deg); }10% { transform: translate(-1px, -2px) rotate(-1deg); }20% { transform: translate(-3px, 0px) rotate(1deg); }30% { transform: translate(3px, 2px) rotate(0deg); }40% { transform: translate(1px, -1px) rotate(1deg); }50% { transform: translate(-1px, 2px) rotate(-1deg); }60% { transform: translate(-3px, 1px) rotate(0deg); }70% { transform: translate(3px, 1px) rotate(-1deg); }80% { transform: translate(-1px, -1px) rotate(1deg); }90% { transform: translate(1px, 2px) rotate(0deg); }100% { transform: translate(1px, -2px) rotate(-1deg); }}
+@keyframes shake3 {0% { transform: translate(1px, 1px) rotate(0deg); }10% { transform: translate(-1px, -2px) rotate(-1deg); }20% { transform: translate(-3px, 0px) rotate(1deg); }30% { transform: translate(3px, 2px) rotate(0deg); }40% { transform: translate(1px, -1px) rotate(1deg); }50% { transform: translate(-1px, 2px) rotate(-1deg); }60% { transform: translate(-3px, 1px) rotate(0deg); }70% { transform: translate(3px, 1px) rotate(-1deg); }80% { transform: translate(-1px, -1px) rotate(1deg); }90% { transform: translate(1px, 2px) rotate(0deg); }100% { transform: translate(1px, -2px) rotate(-1deg); }}
