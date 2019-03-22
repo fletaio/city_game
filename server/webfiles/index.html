@@ -121,7 +121,7 @@
 							Alert(language["Address Issue Success : "]+ res.body.address + language[", go to login"]);
 							nextStep("login");
 						}, function(err) {
-							Alert(language["Duplicate id or ether addr"]);
+							Alert(language["Duplicate id"]);
 						});
 					},
 					getKeyPair: function(userid, userpw) {

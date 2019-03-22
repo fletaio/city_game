@@ -21,7 +21,6 @@ import (
 var (
 	PrefixKeyHash = []byte("k:")
 	PrefixUserID  = []byte("i:")
-	PrefixReward  = []byte("r:")
 )
 
 var allowedPublicHashMap = map[uint64]common.PublicHash{}
@@ -96,7 +95,6 @@ func init() {
 
 			KeyHashID := append(PrefixKeyHash, tx.KeyHash[:]...)
 			UserIDHashID := append(PrefixUserID, []byte(tx.UserID)...)
-			RewardHashID := append(PrefixReward, []byte(tx.Reward)...)
 
 			var rootAddress common.Address
 			if bs := ctx.AccountData(rootAddress, KeyHashID); len(bs) > 0 {
@@ -104,10 +102,6 @@ func init() {
 				return
 			}
 			if bs := ctx.AccountData(rootAddress, UserIDHashID); len(bs) > 0 {
-				//log.Println(ErrExistKeyHash)
-				return
-			}
-			if bs := ctx.AccountData(rootAddress, RewardHashID); len(bs) > 0 {
 				//log.Println(ErrExistKeyHash)
 				return
 			}
@@ -144,7 +138,6 @@ func init() {
 
 			ctx.SetAccountData(rootAddress, KeyHashID, addr[:])
 			ctx.SetAccountData(rootAddress, UserIDHashID, addr[:])
-			ctx.SetAccountData(rootAddress, RewardHashID, addr[:])
 
 			for i := 0; i < GameCommandChannelSize; i++ {
 				id := transaction.MarshalID(coord.Height, coord.Index, uint16(i+1))
