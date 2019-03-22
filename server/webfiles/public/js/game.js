@@ -304,32 +304,41 @@ Game.prototype.UpdateResource = function(target_height) {
 			used.man_remained += bd.acc_man_usage;
 			used.power_remained += bd.acc_power_usage;
 			var construction_height = build_height + bd.build_time*2
-			if(level == 6 && target_height > construction_height) {
-				var bd2 = this.define_map[area_type][level-2];
-				used.man_remained += bd2.acc_man_usage * 3;
-				used.power_remained += bd2.acc_power_usage * 3;
-			}
 			if(target_height < construction_height) {
 				if(level == 1) {
 					continue;
+				} else if(level == 6) {
+					var bd2 = this.define_map[area_type][level-2];
+					used.power_remained += bd2.acc_power_usage * 3;
+					used.man_remained += bd2.acc_man_usage * 3;
+					switch(area_type) {
+					case CommercialAreaType:
+						provide.add_balance += Math.floor(bd2.output/2) * 3;
+						provide.balance += Math.floor(bd2.output/2) * forward_height * 3;
+						break;
+					case IndustrialAreaType:
+						provide.power_remained += bd2.output * 3;
+						break;
+					case ResidentialAreaType:
+						provide.man_remained += bd2.output * 3;
+						break;
+					}
 				}
 				bd = this.define_map[area_type][level-2];
 			}
 			switch(area_type) {
 			case CommercialAreaType:
-				if(target_height > construction_height) {
-					provide.add_balance += Math.floor(bd.output/2);
-					if(construction_height <= this.point_height) {
-						provide.balance += Math.floor(bd.output/2) * forward_height;
+				provide.add_balance += Math.floor(bd.output/2);
+				if(construction_height <= this.point_height) {
+					provide.balance += Math.floor(bd.output/2) * forward_height;
+				} else {
+					if(build_height <= this.point_height) {
+						provide.balance += Math.floor(bd.output/2) * (forward_height-(construction_height-this.point_height));
 					} else {
-						if(build_height <= this.point_height) {
-							provide.balance += Math.floor(bd.output/2) * (forward_height-(construction_height-this.point_height));
-						} else {
-							provide.balance += Math.floor(bd.output/2) * (target_height-construction_height);
-							if(level > 1) {
-								var prevbd = this.define_map[tile.area_type][level-2];
-								provide.balance += Math.floor(prevbd.output/2) * (build_height-this.point_height);
-							}
+						provide.balance += Math.floor(bd.output/2) * (target_height-construction_height);
+						if(level > 1) {
+							var prevbd = this.define_map[tile.area_type][level-2];
+							provide.balance += Math.floor(prevbd.output/2) * (build_height-this.point_height);
 						}
 					}
 				}
@@ -420,7 +429,7 @@ Game.prototype.OnTileClicked = function(x, y) {
 			}
 		}
 	}
-	if(!tile.is_pending) {
+	if(!tile.is_pending && !tile.is_building) {
 		if(this.selected_tile != tile) {
 			this.UnselectTile();
 			this.selected_tile = tile;
@@ -453,6 +462,7 @@ Game.prototype.OnTileClicked = function(x, y) {
 							subtiles[i].OnAllocated();
 						}
 					}
+					this.selected_tile = subtiles[0];
 					this.upgrade_menu_ui.Open(subtiles[0]);
 				} else {
 					this.upgrade_menu_ui.Open(tile);
@@ -480,76 +490,80 @@ Game.prototype.OnNotified = function(noti) {
 	switch(noti.type) {
 	case DemolitionTransactionType:
 		var tile = this.tiles[noti.x + noti.y*gConfig.Size];
-		if(noti.error.length > 0) {
-			tile.SetData(noti.height, {
-				build_height: tile.build_height,
-				area_type: tile.area_type,
-				level: tile.level
-			});
-		} else {
-			tile.SetData(noti.height, {
-				build_height: 0,
-				area_type: 0,
-				level: 0
-			});
+		if(tile.is_pending) {
+			if(noti.error.length > 0) {
+				tile.CancelPending(noti.height);
+			} else {
+				tile.SetData(noti.height, {
+					build_height: 0,
+					area_type: 0,
+					level: 0
+				});
+			}
 		}
 		break;
 	case ConstructionTransactionType:
 		var tile = this.tiles[noti.x + noti.y*gConfig.Size];
-		if(noti.error.length > 0) {
-			tile.SetData(noti.height, {
-				build_height: tile.build_height,
-				area_type: tile.area_type,
-				level: tile.level
-			});
-		} else {
-			tile.SetData(noti.height, {
-				build_height: noti.height,
-				area_type: noti.area_type,
-				level: 1
-			});
-			if(noti.exp != null) {
-				this.exps.push(noti.exp);
-				this.AddExp(noti.exp);
+		if(tile.is_pending) {
+			if(noti.error.length > 0) {
+				tile.CancelPending(noti.height);
+			} else {
+				tile.SetData(noti.height, {
+					build_height: noti.height,
+					area_type: noti.area_type,
+					level: 1
+				});
+				if(noti.exp != null) {
+					this.exps.push(noti.exp);
+					this.AddExp(noti.exp);
+				}
 			}
 		}
 		break;
 	case UpgradeTransactionType:
 		var tile = this.tiles[noti.x + noti.y*gConfig.Size];
-		if(noti.error.length > 0) {
-			tile.SetData(noti.height, {
-				build_height: tile.build_height,
-				area_type: tile.area_type,
-				level: tile.level
-			});
-		} else {
-			if(noti.level == 6) {
-				for(var i=0; i<3; i++) {
-					var dx = i%2-1;
-					var dy = Math.floor(i/2)-1;
-					if(0 <= tile.x + dx && tile.x + dx < gConfig.Size && 0 <= tile.y + dy && tile.y + dy < gConfig.Size) {
-						var subtile = this.tiles[tile.x + dx + (tile.y + dy)*gConfig.Size];
-						subtile.SetData(noti.height, {
-							build_height: 0,
-							area_type: 0,
-							level: 0
-						});
+		if(tile.is_pending) {
+			if(noti.error.length > 0) {
+				if(noti.level == 6) {
+					for(var i=0; i<3; i++) {
+						var dx = i%2-1;
+						var dy = Math.floor(i/2)-1;
+						if(0 <= tile.x + dx && tile.x + dx < gConfig.Size && 0 <= tile.y + dy && tile.y + dy < gConfig.Size) {
+							var subtile = this.tiles[tile.x + dx + (tile.y + dy)*gConfig.Size];
+							subtile.CancelPending(noti.height);
+						}
 					}
+				}
+				tile.CancelPending(noti.height);
+			} else {
+				if(noti.level == 6) {
+					for(var i=0; i<3; i++) {
+						var dx = i%2-1;
+						var dy = Math.floor(i/2)-1;
+						if(0 <= tile.x + dx && tile.x + dx < gConfig.Size && 0 <= tile.y + dy && tile.y + dy < gConfig.Size) {
+							var subtile = this.tiles[tile.x + dx + (tile.y + dy)*gConfig.Size];
+							subtile.SetData(noti.height, {
+								build_height: 0,
+								area_type: 0,
+								level: 0
+							});
+						}
+					}
+					tile.SetData(noti.height, {
+						build_height: noti.height,
+						area_type: noti.area_type,
+						level: noti.level
+					});
 				}
 				tile.SetData(noti.height, {
 					build_height: noti.height,
 					area_type: noti.area_type,
 					level: noti.level
 				});
-			}
-			tile.SetData(noti.height, {
-				build_height: noti.height,
-				area_type: noti.area_type,
-				level: noti.level
-			});
-			if(noti.exp != null) {
-				this.exps.push(noti.exp);
-				this.AddExp(noti.exp);
+				if(noti.exp != null) {
+					this.exps.push(noti.exp);
+					this.AddExp(noti.exp);
+				}
 			}
 		}
 		break;
@@ -618,6 +632,16 @@ Tile.prototype.SetData = function(height, data) {
 	this.Update(height, true);
 }
 
+Tile.prototype.CancelPending = function(height) {
+	if(this.is_pending) {
+		this.target_area_type = 0;
+		this.target_level = 0;
+		this.is_pending = false;
+		this.removeAllImages();
+		this.renderBuilding(this.level, true);
+	}
+}
+
 Tile.prototype.SetPending = function(target_area_type, target_level, is_fletasub) {
 	if(this.is_pending != true) {
 		this.is_pending = true;
@@ -665,8 +689,7 @@ Tile.prototype.Update = function(height, force) {
 			if(this.is_building) {
 				var bd = gGame.define_map[this.area_type][this.level-1];
 				if(this.build_height + bd.build_time*2 <= height) {
-					this.obj.find(".construction").detach();
-					this.obj.find(".underconstruction").detach();
+					this.removeConstruction();
 					this.is_building = false;
 					is_renderable = true;
 				} else {
@@ -675,31 +698,7 @@ Tile.prototype.Update = function(height, force) {
 			}
 			
 			if(is_renderable || is_begin) {
-				if(this.level < 5) {
-					for(var i=1; i<=this.level; i++) {
-						if(this.obj.find(".lv"+i).length == 0) {
-							var $img = $("<img class='building lv"+i+"' src='/public/images/building/"+getAreaTypeName(this.area_type)+"_Lv1.png'/>").appendTo(this.obj);
-							var zindex = (this.x+this.y)*10+1+(3-Math.abs(3-i))
-							$img.css("z-index", zindex);
-							this.buildEffect("constructEffect", zindex)
-						}
-					}
-					this.obj.css("z-index", (this.x+this.y)*10);
-				} else if(this.level == 5) {
-					var $img = $("<img class='building lv"+this.level+"' src='/public/images/building/"+getAreaTypeName(this.area_type)+"_Lv5.png'/>").appendTo(this.obj);
-					var zindex = (this.x+this.y)*10+1+this.level
-					$img.css("z-index", zindex);
-					this.obj.css("z-index", (this.x+this.y)*10);
-					this.buildEffect("constructEffect", zindex)
-				} else {
-					var $img = $("<img class='building lv"+this.level+"' src='/public/images/tile/"+getAreaTypeName(this.area_type)+"_LvFLETA-Tile.png' style='opacity:1'/>").appendTo(this.obj);
-					$img.css("z-index", (this.x+this.y)*10+this.level);
-					var $img = $("<img class='building lv"+this.level+"' src='/public/images/building/"+getAreaTypeName(this.area_type)+"_LvFLETA.png'/>").appendTo(this.obj);
-					var zindex = (this.x+this.y)*10+1+this.level
-					$img.css("z-index", zindex);
-					this.obj.css("z-index", (this.x+this.y)*10-1);
-					this.buildEffect("constructEffect", zindex)
-				}
+				this.renderBuilding(this.level, is_begin);
 			}
 		}
 	}
@@ -757,6 +756,11 @@ Tile.prototype.OnAllocated = function() {
 
 Tile.prototype.removeAllImages = function() {
 	this.obj.find(".building").detach();
+	this.obj.find(".underconstruction").detach();
+}
+
+Tile.prototype.removeConstruction = function() {
+	this.obj.find(".construction").detach();
 	this.obj.find(".underconstruction").detach();
 }
 
@@ -828,12 +832,38 @@ Tile.prototype.renderPending = function(level) {
 	}
 }
 
-Tile.prototype.renderExp = function(level) {
-	// TODO
-}
-
-Tile.prototype.renderCoin = function(level) {
-	// TODO
+Tile.prototype.renderBuilding = function(level, no_effect) {
+		if(level < 5) {
+			for(var i=1; i<=level; i++) {
+				if(this.obj.find(".lv"+i).length == 0) {
+					var $img = $("<img class='building lv"+i+"' src='/public/images/building/"+getAreaTypeName(this.area_type)+"_Lv1.png'/>").appendTo(this.obj);
+					var zindex = (this.x+this.y)*10+1+(3-Math.abs(3-i))
+					$img.css("z-index", zindex);
+					if(!no_effect) {
+						this.buildEffect("constructEffect", zindex)
+					}
+				}
+			}
+			this.obj.css("z-index", (this.x+this.y)*10);
+		} else if(level == 5) {
+			var $img = $("<img class='building lv"+level+"' src='/public/images/building/"+getAreaTypeName(this.area_type)+"_Lv5.png'/>").appendTo(this.obj);
+			var zindex = (this.x+this.y)*10+1+level
+			$img.css("z-index", zindex);
+			this.obj.css("z-index", (this.x+this.y)*10);
+			if(!no_effect) {
+				this.buildEffect("constructEffect", zindex)
+			}
+		} else {
+			var $img = $("<img class='building lv"+level+"' src='/public/images/tile/"+getAreaTypeName(this.area_type)+"_LvFLETA-Tile.png' style='opacity:1'/>").appendTo(this.obj);
+			$img.css("z-index", (this.x+this.y)*10+level);
+			var $img = $("<img class='building lv"+level+"' src='/public/images/building/"+getAreaTypeName(this.area_type)+"_LvFLETA.png'/>").appendTo(this.obj);
+			var zindex = (this.x+this.y)*10+1+level
+			$img.css("z-index", zindex);
+			this.obj.css("z-index", (this.x+this.y)*10-1);
+			if(!no_effect) {
+				this.buildEffect("constructEffect", zindex)
+			}
+		}
 }
 
 function GameStatusUI(obj) {
@@ -900,6 +930,9 @@ BuildMenuUI.prototype.Init = function(define_map) {
 	$commercial.find(".resource").text(bd.output+"/s");
 	$commercial.click(function(e) {
 		e.stopPropagation();
+		if($(this).hasClass("disabled")) {
+			return;
+		}
 		var err = getBuildError(_this.resource, _this.define_map[CommercialAreaType][0]);
 		if(err != null) {
 			Alert(err);
@@ -923,6 +956,9 @@ BuildMenuUI.prototype.Init = function(define_map) {
 	$industrial.find(".resource").text(bd.output);
 	$industrial.click(function(e) {
 		e.stopPropagation();
+		if($(this).hasClass("disabled")) {
+			return;
+		}
 		var err = getBuildError(_this.resource, _this.define_map[IndustrialAreaType][0]);
 		if(err != null) {
 			Alert(err);
@@ -946,6 +982,9 @@ BuildMenuUI.prototype.Init = function(define_map) {
 	$residential.find(".resource").text(bd.output);
 	$residential.click(function(e) {
 		e.stopPropagation();
+		if($(this).hasClass("disabled")) {
+			return;
+		}
 		var err = getBuildError(_this.resource, _this.define_map[ResidentialAreaType][0]);
 		if(err != null) {
 			Alert(err);
@@ -1011,12 +1050,17 @@ function UpgradeMenuUI() {
 	this.obj = $("#upgrade_menu");
 	this.resource = null;
 	this.is_opened = false;
+	this.is_demolition_disabled = false;
 	this.is_upgrade_disabled = false;
+	this.fleta_subtiles = null;
 
 	var _this = this;
 	var $demolition = this.obj.find(".demolition");
 	$demolition.click(function(e) {
 		e.stopPropagation();
+		if($(this).hasClass("disabled")) {
+			return;
+		}
 		gGame.selected_tile.SetPending(0, 0, false);
 		gNetwork.SendTX("demolition", {
 			x: gGame.selected_tile.x,
@@ -1028,6 +1072,9 @@ function UpgradeMenuUI() {
 	var $upgrade = this.obj.find(".upgrade");
 	$upgrade.click(function(e) {
 		e.stopPropagation();
+		if($(this).hasClass("disabled")) {
+			return;
+		}
 		if(gGame.selected_tile.level < 6) {
 			var err = getBuildError(_this.resource, gGame.define_map[gGame.selected_tile.area_type][gGame.selected_tile.level]);
 			if(err != null) {
@@ -1037,10 +1084,12 @@ function UpgradeMenuUI() {
 			var target_tile = gGame.selected_tile;
 			if(gGame.selected_tile.level == 5) {
 				var subtiles = gGame.GetFletaTiles(gGame.selected_tile);
-				for(var i=1; i<subtiles.length; i++) {
-					subtiles[i].SetPending(0, 0, true);
+				if(subtiles != null) {
+					for(var i=1; i<subtiles.length; i++) {
+						subtiles[i].SetPending(0, 0, true);
+					}
+					target_tile = subtiles[0];
 				}
-				target_tile = subtiles[0];
 			}
 			target_tile.SetPending(target_tile.area_type, target_tile.level+1, false);
 			gNetwork.SendTX("upgrade", {
@@ -1077,6 +1126,11 @@ UpgradeMenuUI.prototype.Open = function(tile) {
 	$demolition.find(".needTime").text("1s");
 	$demolition.find(".resource").text("-" + bd.output+suffix).attr("class", "resource").addClass(getAreaTypeName(gGame.selected_tile.area_type));
 
+	this.fleta_subtiles = null;
+	if(gGame.selected_tile.level == 5) {
+		this.fleta_subtiles = gGame.GetFletaTiles(gGame.selected_tile);
+	}
+
 	var $upgrade = this.obj.find(".upgrade");
 	if(gGame.selected_tile.level < 6) {
 		$upgrade.show();
@@ -1104,23 +1158,56 @@ UpgradeMenuUI.prototype.Close = function() {
 UpgradeMenuUI.prototype.OnResourceUpdated = function(resource) {
 	this.resource = resource;
 	if(this.is_opened) {
-		var $upgrade = this.obj.find(".upgrade");
-		if(gGame.selected_tile.level < 6) {
-			if(getBuildError(this.resource, gGame.define_map[gGame.selected_tile.area_type][gGame.selected_tile.level]) != null) {
-				if(!this.is_upgrade_disabled) {
-					this.is_upgrade_disabled = true;
-					$upgrade.addClass("disabled");
-				}
-			} else {
-				if(this.is_upgrade_disabled) {
-					this.is_upgrade_disabled = false;
-					$upgrade.removeClass("disabled");
-				}
+		var bd = gGame.define_map[gGame.selected_tile.area_type][gGame.selected_tile.level-1];
+		var $demolition = this.obj.find(".demolition");
+		var has_demolition_disable = true;
+		switch(gGame.selected_tile.area_type) {
+		case CommercialAreaType:
+			has_demolition_disable = false;
+			break;
+		case IndustrialAreaType:
+			if(resource.power_remained - bd.output >= 0) {
+				has_demolition_disable = false;
+			}
+			break;
+		case ResidentialAreaType:
+			if(resource.man_remained - bd.output >= 0) {
+				has_demolition_disable = false;
+			}
+			break;
+		}
+		if(has_demolition_disable) {
+			if(!this.is_demolition_disabled) {
+				this.is_demolition_disabled = true;
+				$demolition.addClass("disabled");
 			}
 		} else {
+			if(this.is_demolition_disabled) {
+				this.is_demolition_disabled = false;
+				$demolition.removeClass("disabled");
+			}
+		}
+
+		var $upgrade = this.obj.find(".upgrade");
+		var has_upgrade_disable = true;
+		if(gGame.selected_tile.level < 6) {
+			if(gGame.selected_tile.level == 5 && this.fleta_subtiles == null) {
+				// ignore
+			} else if(getBuildError(this.resource, gGame.define_map[gGame.selected_tile.area_type][gGame.selected_tile.level]) != null) {
+				// ignore
+			} else {
+				has_upgrade_disable = false;
+			}
+		}
+		if(has_upgrade_disable) {
 			if(!this.is_upgrade_disabled) {
 				this.is_upgrade_disabled = true;
 				$upgrade.addClass("disabled");
+			}
+		} else {
+			if(this.is_upgrade_disabled) {
+				this.is_upgrade_disabled = false;
+				$upgrade.removeClass("disabled");
 			}
 		}
 	}

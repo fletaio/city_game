@@ -159,32 +159,37 @@ func (gd *GameData) Resource(TargetHeight uint32) *Resource {
 			used.ManRemained += bd.AccManUsage
 			used.PowerRemained += bd.AccPowerUsage
 			ConstructionHeight := tile.BuildHeight + bd.BuildTime*2
-			if tile.Level == 6 && TargetHeight > ConstructionHeight {
-				bd2 := GBuildingDefine[tile.AreaType][tile.Level-2]
-				used.ManRemained += bd2.AccManUsage * 3
-				used.PowerRemained += bd2.AccPowerUsage * 3
-			}
 
 			if TargetHeight < ConstructionHeight {
 				if tile.Level == 1 {
 					continue
+				} else if tile.Level == 6 {
+					bd2 := GBuildingDefine[tile.AreaType][tile.Level-2]
+					used.ManRemained += bd2.AccManUsage * 3
+					used.PowerRemained += bd2.AccPowerUsage * 3
+					switch tile.AreaType {
+					case CommercialAreaType:
+						provide.Balance += uint64(bd2.Output/2) * uint64(ForwardHeight) * 3
+					case IndustrialAreaType:
+						provide.PowerRemained += bd2.Output * 3
+					case ResidentialAreaType:
+						provide.ManRemained += bd2.Output * 3
+					}
 				}
 				bd = GBuildingDefine[tile.AreaType][tile.Level-2]
 			}
 			switch tile.AreaType {
 			case CommercialAreaType:
-				if TargetHeight > ConstructionHeight {
-					if ConstructionHeight <= gd.PointHeight {
-						provide.Balance += uint64(bd.Output/2) * uint64(ForwardHeight)
+				if ConstructionHeight <= gd.PointHeight {
+					provide.Balance += uint64(bd.Output/2) * uint64(ForwardHeight)
+				} else {
+					if tile.BuildHeight <= gd.PointHeight {
+						provide.Balance += uint64(bd.Output/2) * uint64(ForwardHeight-(ConstructionHeight-gd.PointHeight))
 					} else {
-						if tile.BuildHeight <= gd.PointHeight {
-							provide.Balance += uint64(bd.Output/2) * uint64(ForwardHeight-(ConstructionHeight-gd.PointHeight))
-						} else {
-							provide.Balance += uint64(bd.Output/2) * uint64(TargetHeight-ConstructionHeight)
-							if tile.Level > 1 {
-								prevbd := GBuildingDefine[tile.AreaType][tile.Level-2]
-								provide.Balance += uint64(prevbd.Output/2) * uint64(tile.BuildHeight-gd.PointHeight)
-							}
+						provide.Balance += uint64(bd.Output/2) * uint64(TargetHeight-ConstructionHeight)
+						if tile.Level > 1 {
+							prevbd := GBuildingDefine[tile.AreaType][tile.Level-2]
+							provide.Balance += uint64(prevbd.Output/2) * uint64(tile.BuildHeight-gd.PointHeight)
 						}
 					}
 				}
@@ -611,7 +616,7 @@ var GBuildingDefine = map[AreaType][]*BuildingDefine{
 		},
 		&BuildingDefine{
 			CostUsage:  6,
-			BuildTime:  1,
+			BuildTime:  30,
 			Output:     1600,
 			Exp:        6,
 			ManUsage:   4000,
@@ -656,7 +661,7 @@ var GBuildingDefine = map[AreaType][]*BuildingDefine{
 		},
 		&BuildingDefine{
 			CostUsage: 6,
-			BuildTime: 1,
+			BuildTime: 30,
 			Output:    33000,
 			Exp:       6,
 			ManUsage:  6100,
@@ -700,7 +705,7 @@ var GBuildingDefine = map[AreaType][]*BuildingDefine{
 		},
 		&BuildingDefine{
 			CostUsage:  6,
-			BuildTime:  1,
+			BuildTime:  30,
 			Output:     101000,
 			Exp:        6,
 			PowerUsage: 1800,
