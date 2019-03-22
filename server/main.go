@@ -435,7 +435,7 @@ func main() {
 
 		if sig, err := GameKey.Sign(TxHash); err != nil {
 			return err
-		} else if err := GameKernel.AddTransaction(tx, []common.Signature{sig}); err != nil { //TEMP
+		} else if err := nd.CommitTransaction(tx, []common.Signature{sig}); err != nil { //TEMP
 			return err
 		}
 
@@ -862,7 +862,7 @@ func main() {
 			return err
 		}
 
-		if err := GameKernel.AddTransaction(tx, []common.Signature{sig}); err != nil { //TEMP
+		if err := nd.CommitTransaction(tx, []common.Signature{sig}); err != nil { //TEMP
 			return err
 		}
 		return c.NoContent(http.StatusOK)
