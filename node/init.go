@@ -87,9 +87,9 @@ func initGenesisContextData(act *data.Accounter, tran *data.Transactor) (*data.C
 	ctd := data.NewContextData(loader, nil)
 
 	acg := &accCoordGenerator{}
-	adminPubHash := common.MustParsePublicHash("3Zmc4bGPP7TuMYxZZdUhA9kVjukdsE2S8Xpbj4Laovv")
+	adminPubHash := common.MustParsePublicHash("Xy8u3LBXwKZ2F61UuzEcyBs11avYjkJQCGah2LvKNe")
 	addUTXO(loader, ctd, adminPubHash, acg.Generate(), citygame.CreateAccountChannelSize)
-	addFormulator(loader, ctd, common.MustParsePublicHash("gDGAcf9V9i8oWLTeayoKC8bdAooNVaFnAeQKy4CsUB"), common.MustParseAddress("3CUsUpvEK"), "citygame.fr00001")
+	addFormulator(loader, ctd, common.MustParsePublicHash("2saGsDpsdZX6gNH5Zi3fWVBAWDuhNo4MuLbop1QeF2u"), common.MustParseAddress("3CUsUpvEK"), "citygame.fr00001")
 	addFormulator(loader, ctd, common.MustParsePublicHash("4m6XsJbq6EFb5bqhZuKFc99SmF86ymcLcRPwrWyToHQ"), common.MustParseAddress("5PxjxeqTd"), "citygame.fr00002")
 	addFormulator(loader, ctd, common.MustParsePublicHash("o1rVoXHFuz5EtwLwCLcrmHpqPdugAnWHEVVMtnCb32"), common.MustParseAddress("7bScSUkgw"), "citygame.fr00003")
 	addFormulator(loader, ctd, common.MustParsePublicHash("47NZ8oadY4dCAM3ZrGFrENPn99L1SLSqzpR4DFPUpk5"), common.MustParseAddress("9nvUvJfvF"), "citygame.fr00004")
