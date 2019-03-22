@@ -33,8 +33,8 @@ function Game(config) {
 			var width = parseInt($(this).width());
 			var height = parseInt($(this).height());
 	
-			var rem = width/16;
-			var a = posX/rem*2 - 16;
+			var rem = width/gConfig.Size;
+			var a = posX/rem*2 - gConfig.Size;
 			var b = posY/rem*2*2;
 			var x = Math.floor((a + b)/2);
 			var y = Math.floor((-a + b)/2);
@@ -51,8 +51,8 @@ function Game(config) {
 		var width = parseInt($(this).width());
 		var height = parseInt($(this).height());
 
-		var rem = width/16;
-		var a = posX/rem*2 - 16;
+		var rem = width/gConfig.Size;
+		var a = posX/rem*2 - gConfig.Size;
 		var b = posY/rem*2*2;
 		var x = Math.floor((a + b)/2);
 		var y = Math.floor((-a + b)/2);
@@ -205,10 +205,10 @@ Game.prototype.AddCoin = function(c) {
 	if(this.coin_map[c.index] == null) {
 		var obj = $("<div></div>").appendTo(this.obj);
 		obj.css("position", "absolute");
-		obj.css("left", (16 - 1 + c.x - c.y)/2 + "rem");
+		obj.css("left", (gConfig.Size - 1 + c.x - c.y)/2 + "rem");
 		obj.css("top", (c.x/2 + c.y/2)/2 + "rem");
-		obj.css("width", (16/gConfig.Size) + "rem");
-		obj.css("height", (8/gConfig.Size) + "rem");
+		obj.css("width", (gConfig.Size/gConfig.Size) + "rem");
+		obj.css("height", (gConfig.Size/2/gConfig.Size) + "rem");
 		obj.css("z-index", 10000);
 		var $img = $("<div class='fletaCoin'>").appendTo(obj);
 		this.coin_map[c.index] = obj;
@@ -227,10 +227,10 @@ Game.prototype.AddExp = function(e) {
 	if(this.exp_map[e.x + e.y*gConfig.Size] == null) {
 		var obj = $("<div></div>").appendTo(this.obj);
 		obj.css("position", "absolute");
-		obj.css("left", (16 - 1 + e.x - e.y)/2 + "rem");
+		obj.css("left", (gConfig.Size - 1 + e.x - e.y)/2 + "rem");
 		obj.css("top", (e.x/2 + e.y/2)/2 + "rem");
-		obj.css("width", (16/gConfig.Size) + "rem");
-		obj.css("height", (8/gConfig.Size) + "rem");
+		obj.css("width", (gConfig.Size/gConfig.Size) + "rem");
+		obj.css("height", (gConfig.Size/2/gConfig.Size) + "rem");
 		obj.css("z-index", 10000);
 		var $img = $("<div class='fletaExp'>").appendTo(obj);
 		this.exp_map[e.x + e.y*gConfig.Size] = obj;
@@ -588,10 +588,10 @@ function Tile(obj, x, y, tileData) {
 	this.is_building = false;
 	this.is_pending = false;
 	this.obj.css("position", "absolute");
-	this.obj.css("left", (16 - 1 + this.x - this.y)/2 + "rem");
+	this.obj.css("left", (gConfig.Size - 1 + this.x - this.y)/2 + "rem");
 	this.obj.css("top", (this.x/2 + this.y/2)/2 + "rem");
-	this.obj.css("width", (16/gConfig.Size) + "rem");
-	this.obj.css("height", (8/gConfig.Size) + "rem");
+	this.obj.css("width", (gConfig.Size/gConfig.Size) + "rem");
+	this.obj.css("height", (gConfig.Size/2/gConfig.Size) + "rem");
 	this.obj.css("z-index", (this.x+this.y)*10);
 	var $img = $("<img class='floor' src='/public/images/tile/base_floor/groundtiles_tile"+getNum(this.x, this.y)+".png'>").appendTo(this.obj);
 	$img.css("z-index", (this.x+this.y)*10);
@@ -969,7 +969,7 @@ BuildMenuUI.prototype.Open = function(tile) {
 		this.obj.show();
 	}
 	message("menu open x : " + tile.x + " y : " + tile.y );
-	this.obj.css("left", (16 - 1 + tile.x - tile.y)/2 + "rem");
+	this.obj.css("left", (gConfig.Size - 1 + tile.x - tile.y)/2 + "rem");
 	this.obj.css("top", (tile.x/2 + tile.y/2)/2 + "rem");
 	if(this.resource != null) {
 		this.OnResourceUpdated(this.resource);
@@ -1062,7 +1062,7 @@ UpgradeMenuUI.prototype.Open = function(tile) {
 		this.obj.show();
 	}
 	message("menu open x : " + tile.x + " y : " + tile.y );
-	this.obj.css("left", (16 - 1 + tile.x - tile.y)/2 + "rem");
+	this.obj.css("left", (gConfig.Size - 1 + tile.x - tile.y)/2 + "rem");
 	this.obj.css("top", (tile.x/2 + tile.y/2)/2 + "rem");
 
 	var suffix = "";
@@ -1215,8 +1215,8 @@ function ChangeUnit(unit) {
 		gConfig.Unit = unit;
 
 		var h = [], i =0
-		h[i++] = ".island{width:"+(gConfig.Size*1.12625)+"rem;height:"+(gConfig.Size*0.84875)+"rem}"
-		h[i++] = "#tileCase{top:"+(gConfig.Size*0.251875)+"rem;left:"+(gConfig.Size*0.0625)+"rem}"
+		h[i++] = ".island{width:"+(gConfig.Size*1.12625)+"rem;height:"+(gConfig.Size*0.84875)+"rem;margin-left: -"+(gConfig.Size*1.12625)/2+"rem;margin-top: -"+(gConfig.Size*0.84875)/2+"rem;}"
+		h[i++] = "#tileCase{top:"+(gConfig.Size*0.251875)+"rem;left:"+(gConfig.Size*0.0625)+"rem;width:"+(gConfig.Size)+"rem;height:"+(gConfig.Size/2)+"rem}"
 
 		$("#cssControll").html(h.join("\n"));
 		$("html").css("font-size", gConfig.Unit+"px");
