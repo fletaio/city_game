@@ -676,7 +676,9 @@
     transition: background-image 0.5s ease-in 0.5s;
     position: relative;
 }
-
+#expHeader[lvstep="lv_fleta"] .exp_header {
+    transition: background-image 0.5s ease-in 1s;
+}
 #expHeader[lvstep="lv_bronze"] .exp_header {
     background-image: url(/public/images/ui/EXP_1_Bronze_head.png);
 }
@@ -701,15 +703,15 @@
     animation: headerPosition2 2s ease-in-out, shake2 0.25s 0.75s 2 ease-in-out;
 }
 #expHeader.do_effect[lvstep="lv_fleta"] {
-    -webkit-animation: headerPosition3 2s ease-in-out, shake3 0.25s 0.75s 2 ease-in-out;
-    -moz-animation: headerPosition3 2s ease-in-out, shake3 0.25s 0.75s 2 ease-in-out;
-    animation: headerPosition3 2s ease-in-out, shake3 0.25s 0.75s 2 ease-in-out;
+    -webkit-animation: headerPosition3 4s ease-in-out, shake3 0.25s 0.75s 4 ease-in-out;
+    -moz-animation: headerPosition3 4s ease-in-out, shake3 0.25s 0.75s 4 ease-in-out;
+    animation: headerPosition3 4s ease-in-out, shake3 0.25s 0.75s 4 ease-in-out;
 }
 #expEffect {
-    width: 7vh;
+    width: 2.3vh;
     height: 2.3vh;
     margin-top: 1.4vh;
-    margin-left: 7.8vh;
+    margin-left: 10.2vh;
     position: absolute;
     -webkit-border-bottom-right-radius: 10vh;
     -webkit-border-bottom-left-radius: 10vh;
@@ -729,9 +731,9 @@
     animation: goldGlow 2s ease-in-out ;
 }
 #expHeader.do_effect[lvstep="lv_fleta"] #expEffect {
-    -webkit-animation: fletaGlow 2s ease-in-out ;
-    -moz-animation: fletaGlow 2s ease-in-out ;
-    animation: fletaGlow 2s ease-in-out ;
+    -webkit-animation: fletaGlow 4s ease-in-out ;
+    -moz-animation: fletaGlow 4s ease-in-out ;
+    animation: fletaGlow 4s ease-in-out ;
 }
 @keyframes headerPosition1 {25% {top: -39.1vh;}50%{top: -40.1vh;}75% {top: -40.1vh;}}
 @-moz-keyframes headerPosition1 {25% {top: -39.1vh;}50%{top: -40.1vh;}75% {top: -40.1vh;}}
@@ -739,9 +741,9 @@
 @keyframes headerPosition2 {25% {top: -39.1vh;}50%{top: -40.1vh;}75% {top: -40.1vh;}}
 @-moz-keyframes headerPosition2 {25% {top: -39.1vh;}50%{top: -40.1vh;}75% {top: -40.1vh;}}
 @-webkit-keyframes headerPosition2 {25% {top: -39.1vh;}50%{top: -40.1vh;}75% {top: -40.1vh;}}
-@keyframes headerPosition3 {25% {top: -39.1vh;}50%{top: -40.1vh;}75% {top: -40.1vh;}}
-@-moz-keyframes headerPosition3 {25% {top: -39.1vh;}50%{top: -40.1vh;}75% {top: -40.1vh;}}
-@-webkit-keyframes headerPosition3 {25% {top: -39.1vh;}50%{top: -40.1vh;}75% {top: -40.1vh;}}
+@keyframes headerPosition3 {12.5% {top: -39.1vh;}50%{top: -40.1vh;}75% {top: -40.1vh;}}
+@-moz-keyframes headerPosition3 {12.5% {top: -39.1vh;}50%{top: -40.1vh;}75% {top: -40.1vh;}}
+@-webkit-keyframes headerPosition3 {12.5% {top: -39.1vh;}50%{top: -40.1vh;}75% {top: -40.1vh;}}
 
 @keyframes silverGlow {
     40% {box-shadow: 0 0 6vh 3vh #fff, 0 0 10vh 9vh #fcce87}
@@ -762,11 +764,16 @@
 @-moz-keyframes goldGlow {}
 @-webkit-keyframes goldGlow {}
 @keyframes fletaGlow {
-    40% {box-shadow: 0 0 6vh 3vh #fff, 0 0 10vh 9vh #fdcc16}
-    45% {box-shadow: 0 0 6vh 3vh #fff, 0 0 10vh 9vh #59c7ff}
+    20% {box-shadow: 0 0 6vh 3vh #fff, 0 0 10vh 9vh #fdcc16}
+    25% {box-shadow: 0 0 6vh 3vh #fff, 0 0 35vh 10vh #59c7ff}
+    30% {box-shadow: 0 0 6vh 3vh #fff, 0 0 10vh 9vh #fdcc16}
+    40% {box-shadow: 0 0 6vh 3vh #fff, 0 0 35vh 12vh #59c7ff}
+    42% {box-shadow: 0 0 6vh 3vh #fff, 0 0 10vh 9vh #fdcc16}
+    45% {box-shadow: 0 0 6vh 3vh #fff, 0 0 35vh 15vh #59c7ff}
     47% {box-shadow: 0 0 6vh 3vh #fff, 0 0 10vh 9vh #fdcc16}
-    50% {box-shadow: 0 0 6vh 3vh #fff, 0 0 10vh 9vh #59c7ff}
-    60% {}
+    50% {box-shadow: 0 0 6vh 3vh #fff, 0 0 35vh 20vh #59c7ff}
+    70% {box-shadow: 0 0 6vh 3vh #fff, 0 0 35vh 20vh #59c7ff}
+    71% {}
 }
 @-moz-keyframes fletaGlow {}
 @-webkit-keyframes fletaGlow {}
