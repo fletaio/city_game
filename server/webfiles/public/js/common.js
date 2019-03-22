@@ -252,29 +252,14 @@ function getAreaTypeName(area_type) {
 }
 
 function expIndexOf(searchAccExp) {
-    var minIndex = 0;
-    var maxIndex = gGame.exp_defines.length - 1;
-    var currentIndex;
-    var currentAccExp;
-
-    while (minIndex <= maxIndex) {
-        currentIndex = (minIndex + maxIndex) / 2 | 0;
-        currentAccExp = gGame.exp_defines[currentIndex].acc_exp;
-
-        if (currentAccExp < searchAccExp) {
-            minIndex = currentIndex + 1;
-        }
-        else if (currentAccExp > searchAccExp) {
-            maxIndex = currentIndex - 1;
-        }
-        else {
-            return gGame.exp_defines[+currentIndex+1];
-        }
-    }
-
-    if ( gGame.exp_defines[currentIndex].acc_exp > searchAccExp ) {
-        return gGame.exp_defines[+currentIndex];
-    } else {
-        return gGame.exp_defines[+currentIndex+1];
-    }
+	var ed = gGame.exp_defines[0];
+	for(var i=0; i<gGame.exp_defines.length; i++) {
+		var v = gGame.exp_defines[i];
+		if(v.acc_exp <= searchAccExp) {
+			ed = v;
+		} else {
+			break;
+		}
+	}
+	return ed;
 }

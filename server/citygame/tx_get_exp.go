@@ -87,9 +87,9 @@ func init() {
 					}
 					gd.TotalExp += uint64(bds[e.Level-1].Exp)
 
-					var ed *ExpDefine
+					ed := GExpDefine[0]
 					for _, v := range GExpDefine {
-						if ed.AccExp <= gd.TotalExp {
+						if v.AccExp <= gd.TotalExp {
 							ed = v
 						} else {
 							break

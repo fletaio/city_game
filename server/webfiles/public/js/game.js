@@ -892,19 +892,19 @@ GameStatusUI.prototype.OnTotalExpUpdated = function(exp) {
 
 	var eh = $("#expHeader");
 	var ei = $("#expUI");
-	var c = ei.attr("class")
+	var c = ei.attr("class");
 	if (c != t["class"] && c != "" && typeof c != "undefined") {
-		eh.addClass("do_effect")
+		eh.addClass("do_effect");
 	}
-	eh.attr("lvstep", t["class"])
-	ei.attr("class", t["class"])
+	eh.attr("lvstep", t["class"]);
+	ei.attr("class", t["class"]);
 
-	var lvEXp = exp-(t.acc_exp-t.exp);
+	var lvEXp = exp - t.acc_exp;
 
-	$("#expGauge").css("width", (lvEXp/t.exp*100)+"%")
-	$("#currentLevel").html(t.level-1)
-	$("#currentExp").html(lvEXp)
-	$("#currentMaxExp").html(t.exp)
+	$("#expGauge").css("width", (lvEXp/t.exp*100)+"%");
+	$("#currentLevel").html(t.level);
+	$("#currentExp").html(lvEXp);
+	$("#currentMaxExp").html(t.exp);
 }
 
 GameStatusUI.prototype.OnCoinCountUpdated = function(coin) {
