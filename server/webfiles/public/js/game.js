@@ -898,7 +898,7 @@ GameStatusUI.prototype.OnTotalExpUpdated = function(exp) {
 	eh.attr("lvstep", t.current["class"]);
 	ei.attr("class", t.current["class"]);
 
-	var lvEXp = exp - t.next.acc_exp;
+	var lvEXp = exp - t.current.acc_exp;
 
 	$("#expGauge").css("width", (lvEXp/t.next.exp*100)+"%");
 	$("#currentLevel").html(t.current.level);

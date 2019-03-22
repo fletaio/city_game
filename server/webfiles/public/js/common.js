@@ -256,7 +256,7 @@ function expIndexOf(searchAccExp) {
 	var next = gGame.exp_defines[1];
 	for(var i=0; i<gGame.exp_defines.length; i++) {
 		var v = gGame.exp_defines[i];
-		if(v.acc_exp > searchAccExp) {
+		if(v.acc_exp <= searchAccExp) {
 			ed = v;
 		} else {
 			next = v;
