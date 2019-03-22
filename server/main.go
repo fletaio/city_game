@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -67,12 +66,6 @@ type Config struct {
 }
 
 func main() {
-	for i := 0; i < 7; i++ {
-		key, _ := key.NewMemoryKey()
-		log.Println(hex.EncodeToString(key.Bytes()), common.NewPublicHash(key.PublicKey()))
-	}
-	return
-
 	var cfg Config
 	if err := config.LoadFile("./config.toml", &cfg); err != nil {
 		panic(err)
