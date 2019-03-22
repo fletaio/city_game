@@ -9,7 +9,7 @@ import (
 
 // consts
 const (
-	GTileSize = 16
+	GTileSize = 32
 )
 
 // AreaType is a area type of the target tile

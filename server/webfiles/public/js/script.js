@@ -1,6 +1,6 @@
 var gConfig = {
 	Unit: 64,
-    Size: 16,
+    Size: 32,
 	Explorer: "//"+window.location.hostname+":9088",
 }
 if (window.location.hostname.indexOf("fleta.io")) {
