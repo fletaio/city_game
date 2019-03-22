@@ -5,12 +5,24 @@ import (
 	crand "crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
+	"syscall"
 	"time"
+
+	"github.com/dgraph-io/badger"
+	"github.com/fletaio/cmd/closer"
+	"github.com/fletaio/framework/config"
+	"github.com/fletaio/framework/router/evilnode"
+	"github.com/fletaio/framework/rpc"
 
 	"github.com/fletaio/citygame/server/citygame"
 	"github.com/fletaio/common"
@@ -18,14 +30,15 @@ import (
 	"github.com/fletaio/common/util"
 	"github.com/fletaio/core/block"
 	"github.com/fletaio/core/data"
-	"github.com/fletaio/core/formulator"
 	"github.com/fletaio/core/kernel"
 	"github.com/fletaio/core/key"
 	"github.com/fletaio/core/message_def"
-	"github.com/fletaio/core/observer"
+	"github.com/fletaio/core/node"
+	"github.com/fletaio/core/reward"
 	"github.com/fletaio/core/transaction"
 	"github.com/fletaio/framework/peer"
 	"github.com/fletaio/framework/router"
+
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo"
 )
@@ -41,184 +54,206 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+// Config is a configuration for the cmd
+type Config struct {
+	SeedNodes    []string
+	ObserverKeys []string
+	Port         int
+	APIPort      int
+	ServerPort   int
+	KeyHex       string
+	StoreRoot    string
+	ForceRecover bool
+}
+
 func main() {
-	var Key key.Key
-	if bs, err := hex.DecodeString("fb4d410401e2cb9eb4d9ae497b9f7c585eb0bfb88f6e0b4adfe54e9451d809ea"); err != nil {
+	for i := 0; i < 7; i++ {
+		key, _ := key.NewMemoryKey()
+		log.Println(hex.EncodeToString(key.Bytes()), common.NewPublicHash(key.PublicKey()))
+	}
+	return
+
+	var cfg Config
+	if err := config.LoadFile("./config.toml", &cfg); err != nil {
 		panic(err)
-	} else {
-		k, err := key.NewMemoryKeyFromBytes(bs)
+	}
+	if len(cfg.StoreRoot) == 0 {
+		cfg.StoreRoot = "./data"
+	}
+
+	ObserverKeyMap := map[common.PublicHash]bool{}
+	for _, k := range cfg.ObserverKeys {
+		pubhash, err := common.ParsePublicHash(k)
 		if err != nil {
 			panic(err)
 		}
-		Key = k
-	}
-
-	obstrs := []string{
-		"cca49818f6c49cf57b6c420cdcd98fcae08850f56d2ff5b8d287fddc7f9ede08",
-		"39f1a02bed5eff3f6247bb25564cdaef20d410d77ef7fc2c0181b1d5b31ce877",
-		"2b97bc8f21215b7ed085cbbaa2ea020ded95463deef6cbf31bb1eadf826d4694",
-		"3b43d728deaa62d7c8790636bdabbe7148a6641e291fd1f94b157673c0172425",
-		"e6cf2724019000a3f703db92829ecbd646501c0fd6a5e97ad6774d4ad621f949",
-	}
-	obkeys := make([]key.Key, 0, len(obstrs))
-	ObserverKeys := make([]common.PublicHash, 0, len(obstrs))
-
-	NetAddressMap := map[common.PublicHash]string{}
-	NetAddressMapForFr := map[common.PublicHash]string{}
-	for i, v := range obstrs {
-		if bs, err := hex.DecodeString(v); err != nil {
-			panic(err)
-		} else if Key, err := key.NewMemoryKeyFromBytes(bs); err != nil {
-			panic(err)
-		} else {
-			obkeys = append(obkeys, Key)
-			Num := strconv.Itoa(i + 1)
-			pubhash := common.NewPublicHash(Key.PublicKey())
-			NetAddressMap[pubhash] = "127.0.0.1:300" + Num
-			NetAddressMapForFr[pubhash] = "127.0.0.1:500" + Num
-			ObserverKeys = append(ObserverKeys, pubhash)
-		}
-	}
-	ObserverKeyMap := map[common.PublicHash]bool{}
-	for _, pubhash := range ObserverKeys {
 		ObserverKeyMap[pubhash] = true
 	}
 
-	frstrs := []string{
-		"ad94f99f1d1bd267fc4b432cd573ab4b20e6fb306f53954f87ad4077d01d0a11",
+	GenCoord := common.NewCoordinate(0, 0)
+	act := data.NewAccounter(GenCoord)
+	tran := data.NewTransactor(GenCoord)
+	if err := initChainComponent(act, tran); err != nil {
+		panic(err)
 	}
 
-	frkeys := make([]key.Key, 0, len(frstrs))
-	for _, v := range frstrs {
-		if bs, err := hex.DecodeString(v); err != nil {
-			panic(err)
-		} else if Key, err := key.NewMemoryKeyFromBytes(bs); err != nil {
+	GenesisContextData, err := initGenesisContextData(act, tran)
+	if err != nil {
+		panic(err)
+	}
+
+	cm := closer.NewManager()
+	sigc := make(chan os.Signal, 1)
+	signal.Notify(sigc,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
+	go func() {
+		<-sigc
+		cm.CloseAll()
+	}()
+	defer cm.CloseAll()
+
+	var ks *kernel.Store
+	if s, err := kernel.NewStore(cfg.StoreRoot+"/kernel", BlockchainVersion, act, tran, cfg.ForceRecover); err != nil {
+		if cfg.ForceRecover || err != badger.ErrTruncateNeeded {
 			panic(err)
 		} else {
-			frkeys = append(frkeys, Key)
+			fmt.Println(err)
+			fmt.Println("Do you want to recover database(it can be failed)? [y/n]")
+			var answer string
+			fmt.Scanf("%s", &answer)
+			if strings.ToLower(answer) == "y" {
+				if s, err := kernel.NewStore(cfg.StoreRoot+"/kernel", BlockchainVersion, act, tran, true); err != nil {
+					panic(err)
+				} else {
+					ks = s
+				}
+			} else {
+				os.Exit(1)
+			}
 		}
+	} else {
+		ks = s
 	}
+	cm.Add("kernel.Store", ks)
 
-	ObserverHeights := []uint32{}
-
-	obs := []*observer.Observer{}
-	for _, obkey := range obkeys {
-		GenCoord := common.NewCoordinate(0, 0)
-		act := data.NewAccounter(GenCoord)
-		tran := data.NewTransactor(GenCoord)
-		if err := initChainComponent(act, tran); err != nil {
-			panic(err)
-		}
-
-		GenesisContextData, err := initGenesisContextData(act, tran)
-		if err != nil {
-			panic(err)
-		}
-
-		StoreRoot := "./observer/" + common.NewPublicHash(obkey.PublicKey()).String()
-
-		ks, err := kernel.NewStore(StoreRoot+"/kernel", 1, act, tran, true)
-		if err != nil {
-			panic(err)
-		}
-
-		rd := &mockRewarder{}
-		kn, err := kernel.NewKernel(&kernel.Config{
-			ChainCoord:              GenCoord,
-			ObserverKeyMap:          ObserverKeyMap,
-			MaxBlocksPerFormulator:  8,
-			MaxTransactionsPerBlock: 5000,
-		}, ks, rd, GenesisContextData)
-		if err != nil {
-			panic(err)
-		}
-
-		cfg := &observer.Config{
-			ChainCoord:     GenCoord,
-			Key:            obkey,
-			ObserverKeyMap: NetAddressMap,
-		}
-		ob, err := observer.NewObserver(cfg, kn)
-		if err != nil {
-			panic(err)
-		}
-		obs = append(obs, ob)
-
-		ObserverHeights = append(ObserverHeights, kn.Provider().Height())
+	rd := &reward.TestNetRewarder{}
+	kn, err := kernel.NewKernel(&kernel.Config{
+		ChainCoord:              GenCoord,
+		ObserverKeyMap:          ObserverKeyMap,
+		MaxBlocksPerFormulator:  8,
+		MaxTransactionsPerBlock: 5000,
+	}, ks, rd, GenesisContextData)
+	if err != nil {
+		panic(err)
 	}
+	cm.RemoveAll()
+	cm.Add("kernel.Kernel", kn)
 
-	Formulators := []string{}
-	FormulatorHeights := []uint32{}
-
-	var GameKernel *kernel.Kernel
-	frs := []*formulator.Formulator{}
-	for _, frkey := range frkeys {
-		GenCoord := common.NewCoordinate(0, 0)
-		act := data.NewAccounter(GenCoord)
-		tran := data.NewTransactor(GenCoord)
-		if err := initChainComponent(act, tran); err != nil {
-			panic(err)
-		}
-
-		GenesisContextData, err := initGenesisContextData(act, tran)
-		if err != nil {
-			panic(err)
-		}
-
-		StoreRoot := "./formulator/" + common.NewPublicHash(frkey.PublicKey()).String()
-
-		//os.RemoveAll(StoreRoot)
-
-		ks, err := kernel.NewStore(StoreRoot+"/kernel", 1, act, tran, true)
-		if err != nil {
-			panic(err)
-		}
-
-		rd := &mockRewarder{}
-		kn, err := kernel.NewKernel(&kernel.Config{
-			ChainCoord:              GenCoord,
-			ObserverKeyMap:          ObserverKeyMap,
-			MaxBlocksPerFormulator:  8,
-			MaxTransactionsPerBlock: 5000,
-		}, ks, rd, GenesisContextData)
-		if err != nil {
-			panic(err)
-		}
-
-		cfg := &formulator.Config{
-			Key:            frkey,
-			ObserverKeyMap: NetAddressMapForFr,
-			Formulator:     common.MustParseAddress("3CUsUpvEK"),
-			Router: router.Config{
-				Network: "tcp",
-				Port:    7000,
+	ndcfg := &node.Config{
+		ChainCoord: GenCoord,
+		SeedNodes:  cfg.SeedNodes,
+		Router: router.Config{
+			Network: "tcp",
+			Port:    cfg.Port,
+			EvilNodeConfig: evilnode.Config{
+				StorePath: cfg.StoreRoot + "/router",
 			},
-			Peer: peer.Config{
-				StorePath: StoreRoot + "/peers",
-			},
-		}
-		fr, err := formulator.NewFormulator(cfg, kn)
-		if err != nil {
+		},
+		Peer: peer.Config{
+			StorePath: cfg.StoreRoot + "/peers",
+		},
+	}
+	nd, err := node.NewNode(ndcfg, kn)
+	if err != nil {
+		panic(err)
+	}
+	cm.RemoveAll()
+	cm.Add("cmd.Node", nd)
+
+	go nd.Run()
+	rm := rpc.NewManager()
+	cm.RemoveAll()
+	cm.Add("rpc.Manager", rm)
+	cm.Add("cmd.Node", nd)
+	kn.AddEventHandler(rm)
+
+	defer func() {
+		cm.CloseAll()
+		if err := recover(); err != nil {
+			kn.DebugLog("Panic", err)
 			panic(err)
 		}
-		frs = append(frs, fr)
+	}()
 
-		Formulators = append(Formulators, cfg.Formulator.String())
-		FormulatorHeights = append(FormulatorHeights, kn.Provider().Height())
+	// Chain
+	rm.Add("Version", func(kn *kernel.Kernel, ID interface{}, arg *rpc.Argument) (interface{}, error) {
+		return kn.Provider().Version(), nil
+	})
+	rm.Add("Height", func(kn *kernel.Kernel, ID interface{}, arg *rpc.Argument) (interface{}, error) {
+		return kn.Provider().Height(), nil
+	})
+	rm.Add("LastHash", func(kn *kernel.Kernel, ID interface{}, arg *rpc.Argument) (interface{}, error) {
+		return kn.Provider().LastHash(), nil
+	})
+	rm.Add("Hash", func(kn *kernel.Kernel, ID interface{}, arg *rpc.Argument) (interface{}, error) {
+		if arg.Len() < 1 {
+			return nil, rpc.ErrInvalidArgument
+		}
+		height, err := arg.Uint32(0)
+		if err != nil {
+			return nil, err
+		}
+		h, err := kn.Provider().Hash(height)
+		if err != nil {
+			return nil, err
+		}
+		return h, nil
+	})
+	rm.Add("Header", func(kn *kernel.Kernel, ID interface{}, arg *rpc.Argument) (interface{}, error) {
+		if arg.Len() < 1 {
+			return nil, rpc.ErrInvalidArgument
+		}
+		height, err := arg.Uint32(0)
+		if err != nil {
+			return nil, err
+		}
+		h, err := kn.Provider().Header(height)
+		if err != nil {
+			return nil, err
+		}
+		return h, nil
+	})
+	rm.Add("Block", func(kn *kernel.Kernel, ID interface{}, arg *rpc.Argument) (interface{}, error) {
+		if arg.Len() < 1 {
+			return nil, rpc.ErrInvalidArgument
+		}
+		height, err := arg.Uint32(0)
+		if err != nil {
+			return nil, err
+		}
+		cd, err := kn.Provider().Data(height)
+		if err != nil {
+			return nil, err
+		}
+		b := &block.Block{
+			Header: cd.Header.(*block.Header),
+			Body:   cd.Body.(*block.Body),
+		}
+		return b, nil
+	})
 
-		GameKernel = kn
-	}
+	GameKernel := kn
 
-	for i, ob := range obs {
-		go func(BindOb string, BindFr string, ob *observer.Observer) {
-			ob.Run(BindOb, BindFr)
-		}(":300"+strconv.Itoa(i+1), ":500"+strconv.Itoa(i+1), ob)
-	}
-
-	for _, fr := range frs {
-		go func(fr *formulator.Formulator) {
-			fr.Run()
-		}(fr)
+	var GameKey key.Key
+	if bs, err := hex.DecodeString(cfg.KeyHex); err != nil {
+		panic(err)
+	} else if Key, err := key.NewMemoryKeyFromBytes(bs); err != nil {
+		panic(err)
+	} else {
+		GameKey = Key
 	}
 
 	var CreateAccountChannelID uint64
@@ -371,29 +406,15 @@ func main() {
 		pubhash := common.NewPublicHash(pubkey)
 		KeyHashID := append(citygame.PrefixKeyHash, pubhash[:]...)
 		UserIDHashID := append(citygame.PrefixUserID, []byte(req.UserID)...)
-		RewardHashID := append(citygame.PrefixReward, []byte(req.Reward)...)
 
 		var TxHash hash.Hash256
 		loader := GameKernel.Loader()
 		var rootAddress common.Address
 		if bs := loader.AccountData(rootAddress, KeyHashID); len(bs) > 0 {
-			var addr common.Address
-			copy(addr[:], bs)
-			utxos := []uint64{}
-			for i := 0; i < citygame.GameCommandChannelSize; i++ {
-				utxos = append(utxos, util.BytesToUint64(loader.AccountData(addr, []byte("utxo"+strconv.Itoa(i)))))
-			}
-			res := &WebAccountRes{
-				Address: addr.String(),
-				UTXOs:   utxos,
-			}
-			return c.JSON(http.StatusOK, res)
+			return citygame.ErrExistKeyHash
 		}
 		if bs := loader.AccountData(rootAddress, UserIDHashID); len(bs) > 0 {
 			return citygame.ErrExistUserID
-		}
-		if bs := loader.AccountData(rootAddress, RewardHashID); len(bs) > 0 {
-			return citygame.ErrExistReward
 		}
 
 		t, err := loader.Transactor().NewByType(CreateAccountTransctionType)
@@ -419,7 +440,7 @@ func main() {
 
 		TxHash = tx.Hash()
 
-		if sig, err := Key.Sign(TxHash); err != nil {
+		if sig, err := GameKey.Sign(TxHash); err != nil {
 			return err
 		} else if err := GameKernel.AddTransaction(tx, []common.Signature{sig}); err != nil { //TEMP
 			return err
