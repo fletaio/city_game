@@ -514,6 +514,7 @@ func main() {
 			Tiles:        make([]*WebTile, len(gd.Tiles)),
 			Txs:          []*UTXO{},
 			DefineMap:    citygame.GBuildingDefine,
+			ExpDefines:   citygame.GExpDefine,
 		}
 
 		for i, tile := range gd.Tiles {
@@ -1164,6 +1165,7 @@ type WebGameRes struct {
 	Tiles        []*WebTile                                       `json:"tiles"`
 	Txs          []*UTXO                                          `json:"txs"`
 	DefineMap    map[citygame.AreaType][]*citygame.BuildingDefine `json:"define_map"`
+	ExpDefines   []*citygame.ExpDefine                            `json:"exp_defines"`
 }
 
 type WebHeightRes struct {

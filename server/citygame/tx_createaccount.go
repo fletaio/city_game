@@ -117,9 +117,8 @@ func init() {
 			ctx.CreateAccount(acc)
 
 			gd := NewGameData(ctx.TargetHeight())
-			hbs := util.Uint32ToBytes(ctx.TargetHeight())
-			h := hash.Hash(hbs)
-			for i := 0; i < 10; i++ {
+			h := hash.Hash(util.Uint32ToBytes(ctx.TargetHeight()))
+			for i := 0; i < 5; i++ {
 				x := uint8(util.BytesToUint16([]byte(h[i*2:i*2+2]))) % GTileSize
 				y := uint8(util.BytesToUint16([]byte(h[i*2+2:i*2+4]))) % GTileSize
 				gd.Coins = append(gd.Coins, &FletaCityCoin{

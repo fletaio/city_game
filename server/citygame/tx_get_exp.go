@@ -87,6 +87,26 @@ func init() {
 					}
 					gd.TotalExp += uint64(bds[e.Level-1].Exp)
 
+					var ed *ExpDefine
+					for _, v := range GExpDefine {
+						if ed.AccExp <= gd.TotalExp {
+							ed = v
+						} else {
+							break
+						}
+					}
+					h := hash.Hash(util.Uint32ToBytes(ctx.TargetHeight()))
+					for i := len(gd.Coins); i < int(ed.CoinGen); i++ {
+						x := uint8(util.BytesToUint16([]byte(h[i*2:i*2+2]))) % GTileSize
+						y := uint8(util.BytesToUint16([]byte(h[i*2+2:i*2+4]))) % GTileSize
+						gd.Coins = append(gd.Coins, &FletaCityCoin{
+							X:      x,
+							Y:      y,
+							Index:  uint8(i),
+							Height: ctx.TargetHeight() + TimeCoinGenTime*2,
+						})
+					}
+
 					if len(gd.Exps) == 1 {
 						gd.Exps = []*FletaCityExp{}
 					} else {

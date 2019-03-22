@@ -138,6 +138,7 @@ Game.prototype.Init = function(callback) {
 	this.Reload(function(d) {
 		gConfig.Size = Math.pow(d.tiles.length, 0.5);
 		_this.define_map = d.define_map;
+		_this.exp_defines = d.exp_defines;
 		_this.build_menu_ui.Init(d.define_map);
 		_this.txs = d.txs;
 		_this.coins = d.coins;
@@ -901,7 +902,7 @@ GameStatusUI.prototype.OnTotalExpUpdated = function(exp) {
 	var lvEXp = exp-(t.acc_exp-t.exp);
 
 	$("#expGauge").css("width", (lvEXp/t.exp*100)+"%")
-	$("#currentLevel").html(t.lv-1)
+	$("#currentLevel").html(t.level-1)
 	$("#currentExp").html(lvEXp)
 	$("#currentMaxExp").html(t.exp)
 }
@@ -1145,6 +1146,10 @@ UpgradeMenuUI.prototype.Open = function(tile) {
 		}
 	} else {
 		$upgrade.hide();
+	}
+
+	if(this.resource != null) {
+		this.OnResourceUpdated(this.resource);
 	}
 }
 

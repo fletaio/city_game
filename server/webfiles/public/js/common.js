@@ -251,53 +251,15 @@ function getAreaTypeName(area_type) {
 	}
 }
 
-var gGameExpDefine = [
-	{"lv":1	, "exp": 0,		"acc_exp":0,	"class":"lv_bronze"		},
-	{"lv":2	, "exp": 10,	"acc_exp":10,	"class":"lv_bronze"		},
-	{"lv":3	, "exp": 15,	"acc_exp":25,	"class":"lv_bronze"		},
-	{"lv":4	, "exp": 20,	"acc_exp":45,	"class":"lv_bronze"		},
-	{"lv":5	, "exp": 25,	"acc_exp":70,	"class":"lv_bronze"		},
-	{"lv":6	, "exp": 30,	"acc_exp":100,	"class":"lv_bronze"		},
-	{"lv":7	, "exp": 50,	"acc_exp":150,	"class":"lv_bronze"		},
-	{"lv":8	, "exp": 70,	"acc_exp":220,	"class":"lv_silver"		},
-	{"lv":9	, "exp": 100,	"acc_exp":320,	"class":"lv_silver"		},
-	{"lv":10, "exp": 140,	"acc_exp":460,	"class":"lv_silver"		},
-	{"lv":11, "exp": 190,	"acc_exp":650,	"class":"lv_silver"		},
-	{"lv":12, "exp": 250,	"acc_exp":900,	"class":"lv_silver"		},
-	{"lv":13, "exp": 320,	"acc_exp":1220,	"class":"lv_silver"		},
-	{"lv":14, "exp": 400,	"acc_exp":1620,	"class":"lv_silver"		},
-	{"lv":15, "exp": 500,	"acc_exp":2120,	"class":"lv_gold"		},
-	{"lv":16, "exp": 700,	"acc_exp":2820,	"class":"lv_gold"		},
-	{"lv":17, "exp": 800,	"acc_exp":3620,	"class":"lv_gold"		},
-	{"lv":18, "exp": 1000,	"acc_exp":4620,	"class":"lv_gold"		},
-	{"lv":19, "exp": 1500,	"acc_exp":6120,	"class":"lv_gold"		},
-	{"lv":20, "exp": 2000,	"acc_exp":8120,	"class":"lv_gold"		},
-	{"lv":21, "exp": 2500,	"acc_exp":10620,"class":"lv_gold"		},
-	{"lv":22, "exp": 3000,	"acc_exp":13620,"class":"lv_fleta"		},
-	{"lv":23, "exp": 3500,	"acc_exp":17120,"class":"lv_fleta"		},
-	{"lv":24, "exp": 4000,	"acc_exp":21120,"class":"lv_fleta"		},
-	{"lv":25, "exp": 4500,	"acc_exp":25620,"class":"lv_fleta"		},
-	{"lv":26, "exp": 5000,	"acc_exp":30620,"class":"lv_fleta"		},
-	{"lv":27, "exp": 5500,	"acc_exp":36120,"class":"lv_fleta"		},
-	{"lv":28, "exp": 6000,	"acc_exp":42120,"class":"lv_fleta"		},
-	{"lv":29, "exp": 6500,	"acc_exp":48620,"class":"lv_fleta"		},
-	{"lv":30, "exp": 7000,	"acc_exp":55620,"class":"lv_fleta"		},
-	{"lv":31, "exp": 7500,	"acc_exp":63120,"class":"lv_fleta"		},
-	{"lv":32, "exp": 8000,	"acc_exp":71120,"class":"lv_fleta"		},
-	{"lv":33, "exp": 8500,	"acc_exp":79620,"class":"lv_fleta"		},
-	{"lv":34, "exp": 9000,	"acc_exp":88620,"class":"lv_fleta"		},
-	{"lv":35, "exp": 9500,	"acc_exp":98120,"class":"lv_fleta"		}
-]
-
 function expIndexOf(searchAccExp) {
     var minIndex = 0;
-    var maxIndex = gGameExpDefine.length - 1;
+    var maxIndex = gGame.exp_defines.length - 1;
     var currentIndex;
     var currentAccExp;
 
     while (minIndex <= maxIndex) {
         currentIndex = (minIndex + maxIndex) / 2 | 0;
-        currentAccExp = gGameExpDefine[currentIndex].acc_exp;
+        currentAccExp = gGame.exp_defines[currentIndex].acc_exp;
 
         if (currentAccExp < searchAccExp) {
             minIndex = currentIndex + 1;
@@ -306,13 +268,13 @@ function expIndexOf(searchAccExp) {
             maxIndex = currentIndex - 1;
         }
         else {
-            return gGameExpDefine[+currentIndex+1];
+            return gGame.exp_defines[+currentIndex+1];
         }
     }
 
-    if ( gGameExpDefine[currentIndex].acc_exp > searchAccExp ) {
-        return gGameExpDefine[+currentIndex];
+    if ( gGame.exp_defines[currentIndex].acc_exp > searchAccExp ) {
+        return gGame.exp_defines[+currentIndex];
     } else {
-        return gGameExpDefine[+currentIndex+1];
+        return gGame.exp_defines[+currentIndex+1];
     }
 }

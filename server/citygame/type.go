@@ -712,3 +712,50 @@ var GBuildingDefine = map[AreaType][]*BuildingDefine{
 		},
 	},
 }
+
+// ExpDefine defines a exp level
+type ExpDefine struct {
+	Level   uint8  `json:"level"`
+	Exp     uint64 `json:"exp"`
+	AccExp  uint64 `json:"acc_exp"`
+	Class   string `json:"class"`
+	CoinGen uint8  `json:"coin_gen"`
+}
+
+var GExpDefine = []*ExpDefine{
+	&ExpDefine{Level: 1, Exp: 0, AccExp: 0, Class: "lv_bronze", CoinGen: 5},
+	&ExpDefine{Level: 2, Exp: 10, AccExp: 10, Class: "lv_bronze", CoinGen: 5},
+	&ExpDefine{Level: 3, Exp: 15, AccExp: 25, Class: "lv_bronze", CoinGen: 5},
+	&ExpDefine{Level: 4, Exp: 20, AccExp: 45, Class: "lv_bronze", CoinGen: 5},
+	&ExpDefine{Level: 5, Exp: 25, AccExp: 70, Class: "lv_bronze", CoinGen: 5},
+	&ExpDefine{Level: 6, Exp: 30, AccExp: 100, Class: "lv_bronze", CoinGen: 7},
+	&ExpDefine{Level: 7, Exp: 50, AccExp: 150, Class: "lv_bronze", CoinGen: 7},
+	&ExpDefine{Level: 8, Exp: 70, AccExp: 220, Class: "lv_silver", CoinGen: 7},
+	&ExpDefine{Level: 9, Exp: 100, AccExp: 320, Class: "lv_silver", CoinGen: 7},
+	&ExpDefine{Level: 10, Exp: 140, AccExp: 460, Class: "lv_silver", CoinGen: 7},
+	&ExpDefine{Level: 11, Exp: 190, AccExp: 650, Class: "lv_silver", CoinGen: 10},
+	&ExpDefine{Level: 12, Exp: 250, AccExp: 900, Class: "lv_silver", CoinGen: 10},
+	&ExpDefine{Level: 13, Exp: 320, AccExp: 1220, Class: "lv_silver", CoinGen: 10},
+	&ExpDefine{Level: 14, Exp: 400, AccExp: 1620, Class: "lv_silver", CoinGen: 10},
+	&ExpDefine{Level: 15, Exp: 500, AccExp: 2120, Class: "lv_gold", CoinGen: 10},
+	&ExpDefine{Level: 16, Exp: 700, AccExp: 2820, Class: "lv_gold", CoinGen: 13},
+	&ExpDefine{Level: 17, Exp: 800, AccExp: 3620, Class: "lv_gold", CoinGen: 13},
+	&ExpDefine{Level: 18, Exp: 1000, AccExp: 4620, Class: "lv_gold", CoinGen: 13},
+	&ExpDefine{Level: 19, Exp: 1500, AccExp: 6120, Class: "lv_gold", CoinGen: 13},
+	&ExpDefine{Level: 20, Exp: 2000, AccExp: 8120, Class: "lv_gold", CoinGen: 13},
+	&ExpDefine{Level: 21, Exp: 2500, AccExp: 10620, Class: "lv_gold", CoinGen: 15},
+	&ExpDefine{Level: 22, Exp: 3000, AccExp: 13620, Class: "lv_fleta", CoinGen: 15},
+	&ExpDefine{Level: 23, Exp: 3500, AccExp: 17120, Class: "lv_fleta", CoinGen: 15},
+	&ExpDefine{Level: 24, Exp: 4000, AccExp: 21120, Class: "lv_fleta", CoinGen: 20},
+	&ExpDefine{Level: 25, Exp: 4500, AccExp: 25620, Class: "lv_fleta", CoinGen: 20},
+	&ExpDefine{Level: 26, Exp: 5000, AccExp: 30620, Class: "lv_fleta", CoinGen: 20},
+	&ExpDefine{Level: 27, Exp: 5500, AccExp: 36120, Class: "lv_fleta", CoinGen: 20},
+	&ExpDefine{Level: 28, Exp: 6000, AccExp: 42120, Class: "lv_fleta", CoinGen: 20},
+	&ExpDefine{Level: 29, Exp: 6500, AccExp: 48620, Class: "lv_fleta", CoinGen: 20},
+	&ExpDefine{Level: 30, Exp: 7000, AccExp: 55620, Class: "lv_fleta", CoinGen: 20},
+	&ExpDefine{Level: 31, Exp: 7500, AccExp: 63120, Class: "lv_fleta", CoinGen: 20},
+	&ExpDefine{Level: 32, Exp: 8000, AccExp: 71120, Class: "lv_fleta", CoinGen: 20},
+	&ExpDefine{Level: 33, Exp: 8500, AccExp: 79620, Class: "lv_fleta", CoinGen: 20},
+	&ExpDefine{Level: 34, Exp: 9000, AccExp: 88620, Class: "lv_fleta", CoinGen: 20},
+	&ExpDefine{Level: 35, Exp: 9500, AccExp: 98120, Class: "lv_fleta", CoinGen: 20},
+}
