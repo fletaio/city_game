@@ -168,6 +168,16 @@ func (e *BlockExplorer) txDetailMap(tran *data.Transactor, height uint32, txInde
 		m["Address"] = tx.Address.String()
 		m["X"] = tx.X
 		m["Y"] = tx.Y
+	case "fletacity.Construction":
+		tx := t.(*citygame.ConstructionTx)
+		m["Vin Count"] = fmt.Sprint(len(tx.Vin))
+		m["Vins"] = extractVin(tx.Vin)
+
+		m["Address"] = tx.Address.String()
+		m["X"] = tx.X
+		m["Y"] = tx.Y
+
+		m["AreaType"] = tx.AreaType
 	case "fletacity.Upgrade":
 		tx := t.(*citygame.UpgradeTx)
 		m["Vin Count"] = fmt.Sprint(len(tx.Vin))
@@ -187,13 +197,8 @@ func (e *BlockExplorer) txDetailMap(tran *data.Transactor, height uint32, txInde
 		m["Address"] = tx.Address.String()
 		m["X"] = tx.X
 		m["Y"] = tx.Y
-
-		m["TargetHeight"] = tx.TargetHeight
-		m["TargetHash"] = tx.TargetHash
-		m["CoinType"] = tx.CoinType
-
-	case "fletacity.Construction":
-		tx := t.(*citygame.ConstructionTx)
+	case "fletacity.GetExp":
+		tx := t.(*citygame.GetExpTx)
 		m["Vin Count"] = fmt.Sprint(len(tx.Vin))
 		m["Vins"] = extractVin(tx.Vin)
 
@@ -202,8 +207,7 @@ func (e *BlockExplorer) txDetailMap(tran *data.Transactor, height uint32, txInde
 		m["Y"] = tx.Y
 
 		m["AreaType"] = tx.AreaType
-		m["TargetLevel"] = tx.TargetLevel
-
+		m["Level"] = tx.Level
 	case "consensus.RevokeFormulation":
 		tx := t.(*consensus.RevokeFormulation)
 		m["Seq_"] = tx.Seq_
