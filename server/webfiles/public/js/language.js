@@ -24,7 +24,7 @@ language.add("BuildProcessing not finished", "The construction was not completed
 language.add("not enough lv5 building", "not enough lv5 buildings")
 language.add("under construction", "It is not possible to build on a tile under construction.")
 language.add("Available after agreeing", "First Agree to Terms and Conditions and Privace Policy")
-language.add("Duplicate id or ether addr", "Duplicate entry. Need another ID or ethereum wallet address")
+language.add("Duplicate id", "Duplicate entry. Need another ID")
 language.add("Failed to execute demolation command", "Failed to execute the demolation command")
 language.add("Failed to execute upgrade command", "Failed to execute the upgrade command")
 language.add("Failed to execute build command", "Failed to execute the build command")
