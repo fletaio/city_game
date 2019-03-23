@@ -435,7 +435,7 @@ func main() {
 
 		if sig, err := GameKey.Sign(TxHash); err != nil {
 			return err
-		} else if err := GameKernel.AddTransaction(tx, []common.Signature{sig}); err != nil { //TEMP
+		} else if err := nd.CommitTransaction(tx, []common.Signature{sig}); err != nil { //TEMP
 			return err
 		}
 
@@ -514,6 +514,7 @@ func main() {
 			Tiles:        make([]*WebTile, len(gd.Tiles)),
 			Txs:          []*UTXO{},
 			DefineMap:    citygame.GBuildingDefine,
+			ExpDefines:   citygame.GExpDefine,
 		}
 
 		for i, tile := range gd.Tiles {
@@ -862,7 +863,7 @@ func main() {
 			return err
 		}
 
-		if err := GameKernel.AddTransaction(tx, []common.Signature{sig}); err != nil { //TEMP
+		if err := nd.CommitTransaction(tx, []common.Signature{sig}); err != nil { //TEMP
 			return err
 		}
 		return c.NoContent(http.StatusOK)
@@ -1164,6 +1165,7 @@ type WebGameRes struct {
 	Tiles        []*WebTile                                       `json:"tiles"`
 	Txs          []*UTXO                                          `json:"txs"`
 	DefineMap    map[citygame.AreaType][]*citygame.BuildingDefine `json:"define_map"`
+	ExpDefines   []*citygame.ExpDefine                            `json:"exp_defines"`
 }
 
 type WebHeightRes struct {

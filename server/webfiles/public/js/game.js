@@ -138,6 +138,7 @@ Game.prototype.Init = function(callback) {
 	this.Reload(function(d) {
 		gConfig.Size = Math.pow(d.tiles.length, 0.5);
 		_this.define_map = d.define_map;
+		_this.exp_defines = d.exp_defines;
 		_this.build_menu_ui.Init(d.define_map);
 		_this.txs = d.txs;
 		_this.coins = d.coins;
@@ -888,22 +889,21 @@ GameStatusUI.prototype.OnTotalExpUpdated = function(exp) {
 	var t = expIndexOf(exp)
 	console.log("GameStatusUI", "OnTotalExpUpdated", exp, t);
 	
-
 	var eh = $("#expHeader");
 	var ei = $("#expUI");
-	var c = ei.attr("class")
-	if (c != t["class"] && c != "" && typeof c != "undefined") {
-		eh.addClass("do_effect")
+	var c = ei.attr("class");
+	if (c != t.current["class"] && c != "" && typeof c != "undefined") {
+		eh.addClass("do_effect");
 	}
-	eh.attr("lvstep", t["class"])
-	ei.attr("class", t["class"])
+	eh.attr("lvstep", t.current["class"]);
+	ei.attr("class", t.current["class"]);
 
-	var lvEXp = exp-(t.acc_exp-t.exp);
+	var lvEXp = exp - t.current.acc_exp;
 
-	$("#expGauge").css("width", (lvEXp/t.exp*100)+"%")
-	$("#currentLevel").html(t.lv-1)
-	$("#currentExp").html(lvEXp)
-	$("#currentMaxExp").html(t.exp)
+	$("#expGauge").css("width", (lvEXp/t.next.exp*100)+"%");
+	$("#currentLevel").html(t.current.level);
+	$("#currentExp").html(lvEXp);
+	$("#currentMaxExp").html(t.next.exp);
 }
 
 GameStatusUI.prototype.OnCoinCountUpdated = function(coin) {
@@ -1145,6 +1145,10 @@ UpgradeMenuUI.prototype.Open = function(tile) {
 		}
 	} else {
 		$upgrade.hide();
+	}
+
+	if(this.resource != null) {
+		this.OnResourceUpdated(this.resource);
 	}
 }
 
