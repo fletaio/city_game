@@ -20,6 +20,7 @@ var (
 	ErrInvalidReward               = errors.New("invalid reward")
 	ErrInvalidTxInCount            = errors.New("invalid txin count")
 	ErrInvalidUTXO                 = errors.New("invalid utxo")
+	ErrExpiredAccount              = errors.New("expired account")
 	ErrShortUserID                 = errors.New("short userid")
 	ErrNotAllowed                  = errors.New("not allowed")
 	ErrNotExistTile                = errors.New("not exist tile")

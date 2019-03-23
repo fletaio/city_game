@@ -114,6 +114,7 @@ func init() {
 			acc := a.(*Account)
 			acc.Address_ = addr
 			acc.KeyHash = tx.KeyHash
+			acc.Height = ctx.TargetHeight()
 			ctx.CreateAccount(acc)
 
 			gd := NewGameData(ctx.TargetHeight())

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 
+	"github.com/fletaio/common/util"
 	"github.com/fletaio/core/amount"
 
 	"github.com/fletaio/common"
@@ -25,6 +26,9 @@ func init() {
 		if len(signers) != 1 {
 			return ErrInvalidSignerCount
 		}
+		if acc.Height+GExpireHeight < loader.TargetHeight() {
+			return ErrExpiredAccount
+		}
 		signer := signers[0]
 		if !acc.KeyHash.Equal(signer) {
 			return ErrInvalidAccountSigner
@@ -38,6 +42,7 @@ func init() {
 type Account struct {
 	account.Base
 	KeyHash common.PublicHash
+	Height  uint32
 }
 
 // Clone returns the clonend value of it
@@ -65,6 +70,11 @@ func (acc *Account) WriteTo(w io.Writer) (int64, error) {
 	} else {
 		wrote += n
 	}
+	if n, err := util.WriteUint32(w, acc.Height); err != nil {
+		return wrote, err
+	} else {
+		wrote += n
+	}
 	return wrote, nil
 }
 
@@ -80,6 +90,12 @@ func (acc *Account) ReadFrom(r io.Reader) (int64, error) {
 		return read, err
 	} else {
 		read += n
+	}
+	if v, n, err := util.ReadUint32(r); err != nil {
+		return read, err
+	} else {
+		read += n
+		acc.Height = v
 	}
 	return read, nil
 }

@@ -9,7 +9,8 @@ import (
 
 // consts
 const (
-	GTileSize = 32
+	GTileSize     = 32
+	GExpireHeight = 86400 * 2 * 5 // 5 days
 )
 
 // AreaType is a area type of the target tile
