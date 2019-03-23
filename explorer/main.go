@@ -292,44 +292,47 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 			wtn.Tx.Hash = t.Hash().String()
 			wtn.Tx.Height = b.Header.Height()
 			wtn.Tx.Type = int(t.Type())
-
-			clbs := ctx.AccountData(tx.Address, []byte("CoinList"))
-			bf := bytes.NewBuffer(clbs)
-			if cl, err := citygame.CLReadFrom(bf); err == nil {
-				wtn.CoinList = cl
-			}
+			wtn.Coins = gd.Coins
 			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "", wtn.CoinCount)
-		case *citygame.UpgradeTx, *citygame.ConstructionTx:
-			var utx *citygame.UpgradeTx
-			switch _tx := tx.(type) {
-			case *citygame.UpgradeTx:
-				utx = _tx
-			case *citygame.ConstructionTx:
-				utx = _tx.UpgradeTx
-			}
-			wtn, gd, err := getWebTileNotify(ctx, utx.Address, b.Header.Height(), i)
+		case *citygame.ConstructionTx:
+			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), i)
 			if err != nil {
 				continue
 			}
 
 			wtn.Type = 1
-			wtn.X = int(utx.X)
-			wtn.Y = int(utx.Y)
-			wtn.AreaType = int(utx.AreaType)
-			wtn.Level = int(utx.TargetLevel)
+			wtn.X = int(tx.X)
+			wtn.Y = int(tx.Y)
+			wtn.AreaType = int(tx.AreaType)
 
-			wtn.Tx.X = int(utx.X)
-			wtn.Tx.Y = int(utx.Y)
+			wtn.Tx.X = int(tx.X)
+			wtn.Tx.Y = int(tx.Y)
 			wtn.Tx.Hash = t.Hash().String()
 			wtn.Tx.Height = b.Header.Height()
 			wtn.Tx.Type = int(t.Type())
+			wtn.Coins = gd.Coins
 
-			clbs := ctx.AccountData(utx.Address, []byte("CoinList"))
-			bf := bytes.NewBuffer(clbs)
-			if cl, err := citygame.CLReadFrom(bf); err == nil {
-				wtn.CoinList = cl
+			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "", wtn.CoinCount)
+		case *citygame.UpgradeTx:
+			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), i)
+			if err != nil {
+				continue
 			}
-			ew.be.UpdateScore(gd, b.Header.Height(), utx.Address, "", wtn.CoinCount)
+
+			wtn.Type = 1
+			wtn.X = int(tx.X)
+			wtn.Y = int(tx.Y)
+			wtn.AreaType = int(tx.AreaType)
+			wtn.Level = int(tx.TargetLevel)
+
+			wtn.Tx.X = int(tx.X)
+			wtn.Tx.Y = int(tx.Y)
+			wtn.Tx.Hash = t.Hash().String()
+			wtn.Tx.Height = b.Header.Height()
+			wtn.Tx.Type = int(t.Type())
+			wtn.Coins = gd.Coins
+
+			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "", wtn.CoinCount)
 		case *citygame.GetCoinTx:
 			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), i)
 			if err != nil {
@@ -344,12 +347,8 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 			wtn.Tx.Hash = t.Hash().String()
 			wtn.Tx.Height = b.Header.Height()
 			wtn.Tx.Type = int(t.Type())
+			wtn.Coins = gd.Coins
 
-			clbs := ctx.AccountData(tx.Address, []byte("CoinList"))
-			bf := bytes.NewBuffer(clbs)
-			if cl, err := citygame.CLReadFrom(bf); err == nil {
-				wtn.CoinList = cl
-			}
 			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "", wtn.CoinCount)
 		}
 	}
@@ -376,7 +375,7 @@ func getWebTileNotify(ctx *data.Context, addr common.Address, height uint32, ind
 	}
 	id := transaction.MarshalID(height, uint16(index), 0)
 	var errorMsg string
-	for i := 0; i < citygame.GameAccountChannelSize; i++ {
+	for i := 0; i < citygame.GameCommandChannelSize; i++ {
 		data := ctx.AccountData(addr, []byte("utxo"+strconv.Itoa(index)))
 		if len(data) < 8 {
 			continue
@@ -408,19 +407,19 @@ func getWebTileNotify(ctx *data.Context, addr common.Address, height uint32, ind
 }
 
 type WebTileNotify struct {
-	Type         int                                `json:"type"`
-	X            int                                `json:"x"`
-	Y            int                                `json:"y"`
-	AreaType     int                                `json:"area_type"`
-	Level        int                                `json:"level"`
-	Height       int                                `json:"height"`
-	PointHeight  int                                `json:"point_height"`
-	PointBalance int                                `json:"point_balance"`
-	CoinCount    int                                `json:"coin_count"`
-	UTXO         int                                `json:"utxo"`
-	Tx           *UTXO                              `json:"tx"`
-	CoinList     map[string]*citygame.FletaCityCoin `json:"fleta_city_coins"`
-	Error        string                             `json:"error"`
+	Type         int                       `json:"type"`
+	X            int                       `json:"x"`
+	Y            int                       `json:"y"`
+	AreaType     int                       `json:"area_type"`
+	Level        int                       `json:"level"`
+	Height       int                       `json:"height"`
+	PointHeight  int                       `json:"point_height"`
+	PointBalance int                       `json:"point_balance"`
+	CoinCount    int                       `json:"coin_count"`
+	UTXO         int                       `json:"utxo"`
+	Tx           *UTXO                     `json:"tx"`
+	Coins        []*citygame.FletaCityCoin `json:"coins"`
+	Error        string                    `json:"error"`
 }
 
 type UTXO struct {
