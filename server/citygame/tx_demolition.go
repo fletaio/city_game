@@ -76,7 +76,7 @@ func init() {
 				return err
 			}
 
-			idx := tx.X + GTileSize*tx.Y
+			idx := int(tx.X) + GTileSize*int(tx.Y)
 			tile := gd.Tiles[idx]
 			if tile == nil {
 				return ErrNotExistTile

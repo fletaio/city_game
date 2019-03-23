@@ -102,7 +102,7 @@ func init() {
 				return ErrInsufficientResource
 			}
 
-			idx := tx.X + GTileSize*tx.Y
+			idx := int(tx.X) + GTileSize*int(tx.Y)
 			tile := gd.Tiles[idx]
 			if tile == nil {
 				return ErrInvalidLevel
@@ -123,25 +123,25 @@ func init() {
 				if tx.X < 1 || tx.Y < 1 {
 					return ErrInvalidPosition
 				}
-				if nearTile := gd.Tiles[tx.X-1+GTileSize*(tx.Y)]; nearTile == nil || nearTile.Level != 5 {
+				if nearTile := gd.Tiles[int(tx.X)-1+GTileSize*(int(tx.Y))]; nearTile == nil || nearTile.Level != 5 {
 					return ErrInvalidPosition
 				}
-				if nearTile := gd.Tiles[tx.X+GTileSize*(tx.Y-1)]; nearTile == nil || nearTile.Level != 5 {
+				if nearTile := gd.Tiles[int(tx.X)+GTileSize*(int(tx.Y)-1)]; nearTile == nil || nearTile.Level != 5 {
 					return ErrInvalidPosition
 				}
-				if nearTile := gd.Tiles[tx.X-1+GTileSize*(tx.Y-1)]; nearTile == nil || nearTile.Level != 5 {
+				if nearTile := gd.Tiles[int(tx.X)-1+GTileSize*(int(tx.Y)-1)]; nearTile == nil || nearTile.Level != 5 {
 					return ErrInvalidPosition
 				}
-				gd.Tiles[tx.X-1+GTileSize*(tx.Y)] = nil
-				gd.Tiles[tx.X+GTileSize*(tx.Y-1)] = nil
-				gd.Tiles[tx.X-1+GTileSize*(tx.Y-1)] = nil
+				gd.Tiles[int(tx.X)-1+GTileSize*(int(tx.Y))] = nil
+				gd.Tiles[int(tx.X)+GTileSize*(int(tx.Y)-1)] = nil
+				gd.Tiles[int(tx.X)-1+GTileSize*(int(tx.Y)-1)] = nil
 				tile.Level++
 				tile.BuildHeight = ctx.TargetHeight()
 			}
 
 			gd.UpdatePoint(ctx.TargetHeight(), res.Balance-bd.CostUsage)
 
-			MaxLevel := gd.MaxLevels[tx.X+tx.Y*GTileSize]
+			MaxLevel := gd.MaxLevels[int(tx.X)+int(tx.Y)*GTileSize]
 			if MaxLevel < tx.TargetLevel {
 				gd.Exps = append(gd.Exps, &FletaCityExp{
 					X:        tx.X,
@@ -149,7 +149,7 @@ func init() {
 					AreaType: tx.AreaType,
 					Level:    tx.TargetLevel,
 				})
-				gd.MaxLevels[tx.X+tx.Y*GTileSize] = tx.TargetLevel
+				gd.MaxLevels[int(tx.X)+int(tx.Y)*GTileSize] = tx.TargetLevel
 			}
 
 			var buffer bytes.Buffer
