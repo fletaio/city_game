@@ -497,7 +497,7 @@
 	filter: grayscale(100%);
     /* background-image: url(/public/images/ui/fletacoin.png); */
     background-image: url(/public/images/animate/EXP_Animation.gif);
-    background-size: 70%;
+    background-size: 42%;
     background-position: center;
     background-repeat: no-repeat;
     position: absolute;
@@ -649,10 +649,9 @@
 
 #expUI .exp_lv {
     width: 3vh;
-    top: 1.9vh;
+    top: 1.4vh;
     left: 11.05vh;
-    font-size: 1.5vh;
-    background-color: #000;
+    font-size: 2vh;
 }
 #expUI .exp_figure {
     width: 7.3vh;

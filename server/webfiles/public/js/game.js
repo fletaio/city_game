@@ -25,6 +25,8 @@ function Game(config) {
 	this.upgrade_menu_ui = new UpgradeMenuUI();
 	this.AddHandler(this.upgrade_menu_ui);
 
+	this.selectedInfo = $("#selectedInfo")
+
 	var _this = this;
 	this.touchpad.click(function(e) {
 		if (!islandMoved) {
@@ -262,6 +264,7 @@ Game.prototype.UnselectTile = function() {
 Game.prototype.CloseMenuUI = function() {
 	this.build_menu_ui.Close();
 	this.upgrade_menu_ui.Close();
+	this.closeSelectedInfo()
 }
 
 Game.prototype.UpdateResource = function(target_height) {
@@ -468,8 +471,10 @@ Game.prototype.OnTileClicked = function(x, y) {
 				} else {
 					this.upgrade_menu_ui.Open(tile);
 				}
+				this.openSelectedInfo(this.selected_tile)
 			} else {
 				this.upgrade_menu_ui.Open(tile);
+				this.openSelectedInfo(this.selected_tile)
 			}
 			this.is_menu_on = true;
 		}
@@ -589,6 +594,33 @@ Game.prototype.OnNotified = function(noti) {
 		break;
 	}
 }
+
+Game.prototype.closeSelectedInfo = function() {
+	this.selectedInfo.hide()
+}
+
+Game.prototype.openSelectedInfo = function(tile) {
+    if (tile.area_type) {
+        this.selectedInfo.attr("class", getAreaTypeName(tile.area_type)).show()
+        this.selectedInfo.find(".building_type").html(getAreaTypeName(tile.area_type))
+        var lv = tile.level
+        if (lv == 6) {
+            this.selectedInfo.find(".building_level").html("lvFLETA")
+        } else {
+            this.selectedInfo.find(".building_level").html("lv"+tile.level)
+        }
+
+        if (lv > 0) {
+            this.selectedInfo.find(".resource").html("+"+toShortUnit(gGame.define_map[tile.area_type][lv-1].output))
+        } else {
+            this.selectedInfo.find(".resource").html("under construction")
+        }
+    } else {
+        this.selectedInfo.hide()
+    }
+
+}
+
 
 function Tile(obj, x, y, tileData) {
 	this.obj = obj;
@@ -748,7 +780,6 @@ Tile.prototype.completEffect = function(zindex) {
 
 Tile.prototype.OnSelected = function() {
 	this.obj.find(".selected").addClass("selected_shown").css("filter", "").show();
-	printInfo(this);
 }
 
 Tile.prototype.OnAllocated = function() {
@@ -834,37 +865,37 @@ Tile.prototype.renderPending = function(level) {
 }
 
 Tile.prototype.renderBuilding = function(level, no_effect) {
-		if(level < 5) {
-			for(var i=1; i<=level; i++) {
-				if(this.obj.find(".lv"+i).length == 0) {
-					var $img = $("<img class='building lv"+i+"' src='/public/images/building/"+getAreaTypeName(this.area_type)+"_Lv1.png'/>").appendTo(this.obj);
-					var zindex = (this.x+this.y)*10+1+(3-Math.abs(3-i))
-					$img.css("z-index", zindex);
-					if(!no_effect) {
-						this.buildEffect("constructEffect", zindex)
-					}
+	if(level < 5) {
+		for(var i=1; i<=level; i++) {
+			if(this.obj.find(".lv"+i).length == 0) {
+				var $img = $("<img class='building lv"+i+"' src='/public/images/building/"+getAreaTypeName(this.area_type)+"_Lv1.png'/>").appendTo(this.obj);
+				var zindex = (this.x+this.y)*10+1+(3-Math.abs(3-i))
+				$img.css("z-index", zindex);
+				if(!no_effect) {
+					this.buildEffect("constructEffect", zindex)
 				}
 			}
-			this.obj.css("z-index", (this.x+this.y)*10);
-		} else if(level == 5) {
-			var $img = $("<img class='building lv"+level+"' src='/public/images/building/"+getAreaTypeName(this.area_type)+"_Lv5.png'/>").appendTo(this.obj);
-			var zindex = (this.x+this.y)*10+1+level
-			$img.css("z-index", zindex);
-			this.obj.css("z-index", (this.x+this.y)*10);
-			if(!no_effect) {
-				this.buildEffect("constructEffect", zindex)
-			}
-		} else {
-			var $img = $("<img class='building lv"+level+"' src='/public/images/tile/"+getAreaTypeName(this.area_type)+"_LvFLETA-Tile.png' style='opacity:1'/>").appendTo(this.obj);
-			$img.css("z-index", (this.x+this.y)*10+level);
-			var $img = $("<img class='building lv"+level+"' src='/public/images/building/"+getAreaTypeName(this.area_type)+"_LvFLETA.png'/>").appendTo(this.obj);
-			var zindex = (this.x+this.y)*10+1+level
-			$img.css("z-index", zindex);
-			this.obj.css("z-index", (this.x+this.y)*10-1);
-			if(!no_effect) {
-				this.buildEffect("constructEffect", zindex)
-			}
 		}
+		this.obj.css("z-index", (this.x+this.y)*10);
+	} else if(level == 5) {
+		var $img = $("<img class='building lv"+level+"' src='/public/images/building/"+getAreaTypeName(this.area_type)+"_Lv5.png'/>").appendTo(this.obj);
+		var zindex = (this.x+this.y)*10+1+level
+		$img.css("z-index", zindex);
+		this.obj.css("z-index", (this.x+this.y)*10);
+		if(!no_effect) {
+			this.buildEffect("constructEffect", zindex)
+		}
+	} else {
+		var $img = $("<img class='building lv"+level+"' src='/public/images/tile/"+getAreaTypeName(this.area_type)+"_LvFLETA-Tile.png' style='opacity:1'/>").appendTo(this.obj);
+		$img.css("z-index", (this.x+this.y)*10+level);
+		var $img = $("<img class='building lv"+level+"' src='/public/images/building/"+getAreaTypeName(this.area_type)+"_LvFLETA.png'/>").appendTo(this.obj);
+		var zindex = (this.x+this.y)*10+1+level
+		$img.css("z-index", zindex);
+		this.obj.css("z-index", (this.x+this.y)*10-1);
+		if(!no_effect) {
+			this.buildEffect("constructEffect", zindex)
+		}
+	}
 }
 
 function GameStatusUI(obj) {
@@ -1222,7 +1253,7 @@ var gConfig = {
 		Screen: "#screen",
 		Touchpad: "#touchpad",
 	},
-	Unit: 32,
+	Unit: 58,
 	Size: 32,
 };
 

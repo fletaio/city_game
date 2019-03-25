@@ -49,7 +49,7 @@
 							window.gNetwork = new Network(res.body.utxos);
 							gGame.Run();
 						}, function(err) {
-							Alert(language["Duplicate id or ether addr"]);
+							Alert(err.body);
 						});
 					},
 					getKeyPair: function(userid, userpw) {
