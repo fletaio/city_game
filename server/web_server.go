@@ -151,16 +151,16 @@ func (web *WebServer) SetupStatic(e *echo.Echo, prefix string, root string) {
 
 				header.Set("Content-Type", file.mime)
 				bUnzip := false
-				if file.size > 0 {
-					header.Set("Content-Length", strconv.Itoa(file.size))
-					if header.Get("Content-Encoding") == "" && strings.Contains(req.Header.Get("Accept-Encoding"), "gzip") {
-						header.Set("Content-Encoding", "gzip")
-					} else {
-						bUnzip = true
-					}
-				} else {
-					header.Set("Content-Length", strconv.Itoa(len(file.data)))
-				}
+				// if file.size > 0 {
+				// 	header.Set("Content-Length", strconv.Itoa(file.size))
+				// 	if header.Get("Content-Encoding") == "" && strings.Contains(req.Header.Get("Accept-Encoding"), "gzip") {
+				// 		header.Set("Content-Encoding", "gzip")
+				// 	} else {
+				// 		bUnzip = true
+				// 	}
+				// } else {
+				header.Set("Content-Length", strconv.Itoa(len(file.data)))
+				// }
 				c.Response().WriteHeader(http.StatusOK)
 				if bUnzip {
 					reader, err := gzip.NewReader(strings.NewReader(file.data))
