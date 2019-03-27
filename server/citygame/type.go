@@ -430,7 +430,6 @@ func init() {
 }
 
 // GBuildingDefine is ingame construction data
-/*
 var GBuildingDefine = map[AreaType][]*BuildingDefine{
 	CommercialAreaType: []*BuildingDefine{
 		&BuildingDefine{
@@ -571,8 +570,8 @@ var GBuildingDefine = map[AreaType][]*BuildingDefine{
 		},
 	},
 }
-*/
 
+/*
 var GBuildingDefine = map[AreaType][]*BuildingDefine{
 	CommercialAreaType: []*BuildingDefine{
 		&BuildingDefine{
@@ -713,6 +712,7 @@ var GBuildingDefine = map[AreaType][]*BuildingDefine{
 		},
 	},
 }
+*/
 
 // ExpDefine defines a exp level
 type ExpDefine struct {
