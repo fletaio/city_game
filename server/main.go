@@ -498,7 +498,7 @@ func main() {
 		}
 
 		gd := citygame.NewGameData(Height)
-		resource := gd.Resource(Height)
+		// res := gd.Resource(ctx.TargetHeight())
 
 		if _, err := gd.ReadFrom(bytes.NewReader(bs)); err != nil {
 			return err
@@ -507,7 +507,7 @@ func main() {
 		res := &WebGameRes{
 			Height:       int(Height),
 			PointHeight:  int(gd.PointHeight),
-			PointBalance: int(resource.Balance),
+			PointBalance: int(gd.PointBalance),
 			CoinCount:    int(gd.CoinCount),
 			TotalExp:     int(gd.TotalExp),
 			Coins:        gd.Coins,
@@ -1109,12 +1109,11 @@ func getWebTileNotify(ctx *data.Context, addr common.Address, height uint32, ind
 			break
 		}
 	}
-	resource := gd.Resource(height)
 
 	return &WebTileNotify{
 		Height:       int(height),
 		PointHeight:  int(gd.PointHeight),
-		PointBalance: int(resource.Balance),
+		PointBalance: int(gd.PointBalance),
 		CoinCount:    int(gd.CoinCount),
 		TotalExp:     int(gd.TotalExp),
 		UTXO:         int(id),
