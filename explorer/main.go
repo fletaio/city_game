@@ -10,6 +10,8 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/fletaio/citygame/explorer/city_explorer"
+
 	"github.com/dgraph-io/badger"
 	"github.com/fletaio/cmd/closer"
 	"github.com/fletaio/common/util"
@@ -17,7 +19,6 @@ import (
 	"github.com/fletaio/framework/router/evilnode"
 	"github.com/fletaio/framework/rpc"
 
-	"github.com/fletaio/citygame/explorer/blockexplorer"
 	"github.com/fletaio/citygame/server/citygame"
 	"github.com/fletaio/common"
 	"github.com/fletaio/core/block"
@@ -151,6 +152,7 @@ func main() {
 	cm.RemoveAll()
 	cm.Add("cmd.Node", nd)
 
+	go nd.Run()
 	rm := rpc.NewManager()
 	cm.RemoveAll()
 	cm.Add("rpc.Manager", rm)
@@ -222,37 +224,28 @@ func main() {
 		return b, nil
 	})
 
-	basePath := "./test/"
-	be, err := blockexplorer.NewBlockExplorer(basePath, kn)
+	dbPath := "./explorer_data/"
+	ce, err := cityexplorer.NewCityExplorer(dbPath, kn, "./city_explorer/webfiles")
 	if err != nil {
 		panic(err)
 	}
 
-	ew := NewEventWatcher(be)
+	ew := NewEventWatcher(ce)
 	kn.AddEventHandler(ew)
 
-	go nd.Run()
-	go be.StartExplorer(cfg.ExplorerPort)
-	go func() {
-		if err := rm.Run(kn, ":"+strconv.Itoa(cfg.APIPort)); err != nil {
-			if http.ErrServerClosed != err {
-				panic(err)
-			}
-		}
-	}()
-
-	cm.Wait()
+	go ce.StartExplorer(cfg.ExplorerPort)
+	select {}
 }
 
 // EventWatcher TODO
 type EventWatcher struct {
-	be *blockexplorer.BlockExplorer
+	ce *cityexplorer.CityExplorer
 }
 
 // NewEventWatcher returns a EventWatcher
-func NewEventWatcher(be *blockexplorer.BlockExplorer) *EventWatcher {
+func NewEventWatcher(ce *cityexplorer.CityExplorer) *EventWatcher {
 	ew := &EventWatcher{
-		be: be,
+		ce: ce,
 	}
 	return ew
 }
@@ -276,6 +269,11 @@ func (ew *EventWatcher) OnPushTransaction(kn *kernel.Kernel, tx transaction.Tran
 func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *block.ObserverSigned, ctx *data.Context) {
 	for i, t := range b.Body.Transactions {
 		switch tx := t.(type) {
+		case *citygame.CreateAccountTx:
+			coord := &common.Coordinate{Height: b.Header.Height(), Index: uint16(i)}
+			addr := common.NewAddress(coord, 0)
+			ew.ce.CreatAddr(addr, tx)
+			ew.ce.UpdateScore(nil, b.Header.Height(), addr, tx.UserID)
 		case *citygame.DemolitionTx:
 			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), i)
 			if err != nil {
@@ -293,7 +291,8 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 			wtn.Tx.Height = b.Header.Height()
 			wtn.Tx.Type = int(t.Type())
 			wtn.Coins = gd.Coins
-			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "", wtn.CoinCount)
+			ew.ce.UpdateScore(gd, b.Header.Height(), tx.Address, "")
+
 		case *citygame.ConstructionTx:
 			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), i)
 			if err != nil {
@@ -312,7 +311,7 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 			wtn.Tx.Type = int(t.Type())
 			wtn.Coins = gd.Coins
 
-			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "", wtn.CoinCount)
+			ew.ce.UpdateScore(gd, b.Header.Height(), tx.Address, "")
 		case *citygame.UpgradeTx:
 			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), i)
 			if err != nil {
@@ -332,7 +331,7 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 			wtn.Tx.Type = int(t.Type())
 			wtn.Coins = gd.Coins
 
-			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "", wtn.CoinCount)
+			ew.ce.UpdateScore(gd, b.Header.Height(), tx.Address, "")
 		case *citygame.GetCoinTx:
 			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), i)
 			if err != nil {
@@ -349,7 +348,7 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 			wtn.Tx.Type = int(t.Type())
 			wtn.Coins = gd.Coins
 
-			ew.be.UpdateScore(gd, b.Header.Height(), tx.Address, "", wtn.CoinCount)
+			ew.ce.UpdateScore(gd, b.Header.Height(), tx.Address, "")
 		}
 	}
 }
@@ -390,14 +389,10 @@ func getWebTileNotify(ctx *data.Context, addr common.Address, height uint32, ind
 		}
 	}
 
-	ccbs := ctx.AccountData(addr, []byte("GetCoinCount"))
-	coinCount := util.BytesToUint32(ccbs)
-
 	return &WebTileNotify{
 		Height:       int(height),
 		PointHeight:  int(gd.PointHeight),
 		PointBalance: int(gd.PointBalance),
-		CoinCount:    int(coinCount),
 		UTXO:         int(id),
 		Tx: &UTXO{
 			ID: id,
@@ -415,7 +410,6 @@ type WebTileNotify struct {
 	Height       int                       `json:"height"`
 	PointHeight  int                       `json:"point_height"`
 	PointBalance int                       `json:"point_balance"`
-	CoinCount    int                       `json:"coin_count"`
 	UTXO         int                       `json:"utxo"`
 	Tx           *UTXO                     `json:"tx"`
 	Coins        []*citygame.FletaCityCoin `json:"coins"`

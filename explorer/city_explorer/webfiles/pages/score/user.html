@@ -1,0 +1,165 @@
+{{define "headScript"}}
+<script>
+    var data = {{index . "data"}}
+
+    var Level = '{{index . "Level"}}'
+    var Coin = '{{index . "Coin"}}'
+    var Gold = '{{index . "Gold"}}'
+    var Population = '{{index . "Population"}}'
+    var Electricity = '{{index . "Electricity"}}'
+
+    var CommercialAreaType  = 1
+	var IndustrialAreaType  = 2
+	var ResidentialAreaType = 3
+    var map = {1 : {total : 0,lv1 : 0,lv2 : 0,lv3 : 0,lv4 : 0,lv5 : 0,lv6 : 0},2 : {total : 0,lv1 : 0,lv2 : 0,lv3 : 0,lv4 : 0,lv5 : 0,lv6 : 0},3 : {total : 0,lv1 : 0,lv2 : 0,lv3 : 0,lv4 : 0,lv5 : 0,lv6 : 0},}
+
+    var Score = parseInt(Gold)+parseInt(Population*4)+parseInt(Electricity*6)
+    for ( var i = 0 ; i< data.Tiles.length ; i++ ) {
+        if (data.Tiles[i]) {
+            map[data.Tiles[i].AreaType]["total"]++
+            map[data.Tiles[i].AreaType]["lv"+data.Tiles[i].Level]++
+        }
+    }
+
+    $(function () {
+        $("#Score").html(numberWithCommas(Score))
+        $("#Level").html(numberWithCommas(Level))
+        $("#Coin").html(numberWithCommas(Coin))
+        $("#Gold").html(numberWithCommas(Gold))
+        $("#Population").html(numberWithCommas(Population))
+        $("#Electricity").html(numberWithCommas(Electricity))
+        for (var i in map) {
+            if (i == 1) {
+                var key = "Business"
+            } else if (i == 2) {
+                var key = "Industrial"
+            } else if (i == 3) {
+                var key = "Residential"
+            }
+            for (var j in map[i]) {
+                $("#"+key+j).html(map[i][j])
+            }
+        }
+    })
+</script>
+{{end}}
+
+{{define "pageTitle"}}User{{end}}
+
+{{define "fletaBody"}}
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="portlet">
+                <div class="portlet_body" style="padding-top: 2.2rem;">
+                    <iframe src='/game/?addr={{index . "Addr"}}&userid={{index . "ID"}}' frameBorder="0" width="100%" height="500vh"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="portlet">
+                <div class="portlet_body">
+                    <div class="m-portlet ">
+                        <div class="m-portlet_body">
+                            <table class="table fleta-table fleta-table2">
+                                <thead>
+                                    <tr>
+                                        <!-- <th>RANK</th> -->
+                                        <th>ID</th>
+                                        <th>Level</th>
+                                        <th>Score</th>
+                                        <th>Coin</th>
+                                        <th>Gold</th>
+                                        <th>Population</th>
+                                        <th>Electricity</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <!-- <th>{{index . "RANK"}}</th> -->
+                                        <td>{{index . "ID"}}</td>
+                                        <td id="Level"></td>
+                                        <td id="Score"></td>
+                                        <td id="Coin"></td>
+                                        <td id="Gold"></td>
+                                        <td id="Population"></td>
+                                        <td id="Electricity"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="portlet_body">
+                    <div class="m-portlet">
+                        <div>
+                            <table class="table fleta-table fleta-table3">
+                                <tr>
+                                    <th>Business<br/>District</th>
+                                    <td id="Businesstotal"></td>
+                                    <th>Industrial<br/>District</th>
+                                    <td id="Industrialtotal"></td>
+                                    <th>Residential<br/>District</th>
+                                    <td id="Residentialtotal"></td>
+                                </tr>
+                                <tr>
+                                    <th>Lv FLETA</th>
+                                    <td id="Businesslv6"></td>
+                                    <th>Lv FLETA</th>
+                                    <td id="Industriallv6"></td>
+                                    <th>Lv FLETA</th>
+                                    <td id="Residentiallv6"></td>
+                                </tr>
+                                <tr>
+                                    <th>Lv 5</th>
+                                    <td id="Businesslv5"></td>
+                                    <th>Lv 5</th>
+                                    <td id="Industriallv5"></td>
+                                    <th>Lv 5</th>
+                                    <td id="Residentiallv5"></td>
+                                </tr>
+                                <tr>
+                                    <th>Lv 4</th>
+                                    <td id="Businesslv4"></td>
+                                    <th>Lv 4</th>
+                                    <td id="Industriallv4"></td>
+                                    <th>Lv 4</th>
+                                    <td id="Residentiallv4"></td>
+                                </tr>
+                                <tr>
+                                    <th>Lv 3</th>
+                                    <td id="Businesslv3"></td>
+                                    <th>Lv 3</th>
+                                    <td id="Industriallv3"></td>
+                                    <th>Lv 3</th>
+                                    <td id="Residentiallv3"></td>
+                                </tr>
+                                <tr>
+                                    <th>Lv 2</th>
+                                    <td id="Businesslv2"></td>
+                                    <th>Lv 2</th>
+                                    <td id="Industriallv2"></td>
+                                    <th>Lv 2</th>
+                                    <td id="Residentiallv2"></td>
+                                </tr>
+                                <tr>
+                                    <th>Lv 1</th>
+                                    <td id="Businesslv1"></td>
+                                    <th>Lv 1</th>
+                                    <td id="Industriallv1"></td>
+                                    <th>Lv 1</th>
+                                    <td id="Residentiallv1"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+{{end}}
+
+{{define "FooterIncludeScript"}}{{end}}

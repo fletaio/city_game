@@ -6,11 +6,11 @@ SeedNodes = [
 	"citygame_seednode5.fleta.io:51000"
 ]
 ObserverKeys = [
-	"3e5PNobd577YEdjeb59zG6N7BBZbyRKMja2s55QQMQE",
-	"4ry8UmsCbo1BPTmUhqjMWgy9UtLDFcebEsc4Lgjo9ba",
-	"4KT4crmdp5GDihPXufUonmAujjC1YH4viej8C1udjc4",
-	"3suqtMQWdUFUwDGMzH53KRJPFzqaP6YYRqRGMPLhhp5",
-	"3HLUjZYeUDc7nGKqCaRyqB8yJHwj3BgFMWUYNmMSYfE"
+	"cz6z1egYG1rMAcj8SDJYMh5rCyBfEXG7TXMjZVQSrV",
+	"3k4UM4ocDcExYuAxH9y1z7YL6C8EkWxdnr7mWZkHa4B",
+	"4Ub3zq1McCNBvrvUtxAagC7QWtCqzqfzYUW5cYpo6Uz",
+	"4SYZHismJGWgLEe9ty7zZVEVdYDnFLvg5YNh1pddakJ",
+	"BoL8aayw42NWUdgJKEscJLvnGwHHr9c5L2kkvbRyhM"
 ]
 Port = 51000
 APIPort = 58000

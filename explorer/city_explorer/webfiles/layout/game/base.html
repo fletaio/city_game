@@ -1,0 +1,132 @@
+{{define "base.html"}}
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<meta name="robots" content="noindex">
+	<title>FletaCity</title>
+
+	<script src="/resource/game/js/putEmptyPart.js"></script>
+	<link href="/resource/game/css/loading.css" rel="stylesheet" type="text/css" />
+	<link href="/resource/game/css/preset.css?1=1" rel="stylesheet" type="text/css" />
+	<link href="https://fonts.googleapis.com/css?family=Geo" rel="stylesheet">
+	<script src="/resource/game/js/jquery-2.2.0.min.js"></script>
+
+	<link rel="shortcut icon" href="/images/favicon.ico">
+	<script>
+		$(function () {
+			$("#PreLoadLayer").remove()
+		})
+	</script>
+	<script src="/resource/game/js/alert.js"></script>
+	<script src="/resource/game/js/common.js?1=7"></script>
+	<script src="/resource/game/js/error.js?1=7"></script>
+	<script src="/resource/game/js/event.js?1=9"></script>
+	<script src="/resource/game/js/menu.js?1=7"></script>
+	<script src="/resource/game/js/game.js?1=7"></script>
+	<!--
+	<script src="/resource/game/js/script.js?1=7"></script>
+	<script src="/resource/game/js/tile_object.js?1=7"></script>
+	<script src="/resource/game/js/tile_ui.js?1=10"></script>
+	<script src="/resource/game/js/gameCommand.js?1=8"></script>
+	<script src="/resource/game/js/fletaCityCoin.js?1=8"></script>
+	-->
+    <link href="/resource/game/css/background.css?1=71" rel="stylesheet" type="text/css" />
+    <link href="/resource/game/css/login.css?1=7" rel="stylesheet" type="text/css" />
+    <link href="/resource/game/css/object.css?1=7" rel="stylesheet" type="text/css" />
+    <link href="/resource/game/css/ui.css?1=7" rel="stylesheet" type="text/css" />
+    <link href="/resource/game/css/zindex.css?1=7" rel="stylesheet" type="text/css" />
+    <script src="/resource/game/js/language.js?1=7"></script>
+
+    <style id="cssControll"></style>
+</head>
+<body>
+	<div v-root-container>
+		{{template "loading" .}}
+	</div>
+	<div v-root-container>
+		{{template "loading" .}}
+
+		{{template "panel" .}}
+	</div>
+	<script src="/resource/game/js/vue.js"></script>
+	<script src="/resource/game/js/vue-resource.min.js"></script>
+	<script>
+	var convertHash = {
+		header: true,
+		content: true,
+		footer: true
+	};
+	function HTMLtoString(html) {
+		return html.trim().split("\n").join("").split("\t").join("").split('"').join('\\"')
+	}
+	function compileTarget(cont) {
+		var name = cont.get(0).tagName.toLowerCase();
+		var vues = cont.children().filter("script");
+		if(vues.length > 1 ) {
+			console.error("too many vue script");
+			return;
+		} else if (vues.length == 0) {
+			console.error("no vue script");
+			return;
+		}
+		var vue = vues.eq(0).detach().html();
+		cont.find("script[type='vue']").each(function() {
+			compileTarget($(this).parent());
+		});
+		var body = HTMLtoString(cont.html());
+		var compiled = ('Vue.component("' + name + '", {' + vue + ', template: "' + body + '"})');
+		var isEmbedded = (cont.parent().get(0) != document.body);
+		var isSuccess = evalCompileTarget(compiled);
+
+		var msg = "[vue-component](name : " + name + ")(embedded : " + isEmbedded + ")(result : " + isSuccess + ")";
+		if(isSuccess) {
+			if(isEmbedded) {
+				cont.empty();
+			} else {
+				cont.detach();
+			}
+			console.info(msg);
+		} else {
+			cont.detach();
+			console.warn(msg);
+		}
+	}
+	function evalCompileTarget(str) {
+		try {
+			eval(str);
+			return true;
+		} catch(ex) {
+			console.error(ex);
+		}
+		return false;
+	}
+
+	$("body > * > script[type='vue']").each(function() {
+		var cont = $(this).parent();
+		compileTarget(cont);
+	});
+
+	$("[v-root-container]").each(function() {
+		$(this).attr("v-root-container", null);
+		$(this).find("script[type='vue']").each(function() {
+			compileTarget($(this).parent());
+		});
+
+		var body = HTMLtoString($(this).clone().appendTo($('<div/>')).parent().html());
+		var compiled = ('Vue({template: "' + body + '"})');
+		
+		var vm = new Vue({
+			el: $(this).get(0),
+			template:  $(this).clone().appendTo($('<div/>')).parent().html()
+		});
+	});
+	$("[v-module]").each(function() {
+		$(this).attr("v-module", null);
+	});
+	</script>
+</body>
+</html>
+{{end}}

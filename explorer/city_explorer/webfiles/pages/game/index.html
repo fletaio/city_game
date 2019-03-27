@@ -1,0 +1,156 @@
+{{define "indexStyle"}}
+    <link href="/game/css/background.css?1=71" rel="stylesheet" type="text/css" />
+    <link href="/game/css/login.css?1=7" rel="stylesheet" type="text/css" />
+    <link href="/game/css/object.css?1=7" rel="stylesheet" type="text/css" />
+    <link href="/game/css/ui.css?1=7" rel="stylesheet" type="text/css" />
+    <link href="/game/css/zindex.css?1=7" rel="stylesheet" type="text/css" />
+    <script src="/game/js/language.js?1=7"></script>
+    <style id="cssControll"></style>
+    <script>
+        var UserTiles = {{index . "Tiles"}};
+        var DefineMap = {{index . "DefindMap"}};
+        var BlockHeight = {{index . "Height"}};
+    </script>
+{{end}}
+
+{{define "panel"}}
+<div class="after-loading-content">
+	<panel>
+		<section id="game">
+			<div>
+				<div class="islandCase">
+					<div class="islandMiddle">
+						<div class="skyBackground"></div>
+					</div>
+				</div>
+				<div id="starField"></div>
+				<div class="islandCase">
+					<div class="islandMiddle">
+						<div class="islandCenterDot">
+							<div class="island" style="top:0; left:0;">
+								<div id="tileCase">
+									<div id="touchpad"></div>
+									<div id="screen"></div>
+									<div id="build_menu" class="menu">
+										<div class="button commercial">
+											<span>Commercial</span>
+											<div class="tooltip">
+												<div class="tooltip needDemographic"></div>
+												<div class="tooltip needDollar"></div>
+												<div class="tooltip needPower"></div>
+												<div class="tooltip needTime"></div>
+												<div class="tooltip resource Commercial"></div>
+											</div>
+										</div>
+										<div class="button industrial">
+											<span>Industrial</span>
+											<div class="tooltip">
+												<div class="tooltip needDemographic"></div>
+												<div class="tooltip needDollar"></div>
+												<div class="tooltip needPower"></div>
+												<div class="tooltip needTime"></div>
+												<div class="tooltip resource Industrial"></div>
+											</div>
+										</div>
+										<div class="button residential">
+											<span>Residential</span>
+												
+											<div class="tooltip">
+												<div class="tooltip needDemographic"></div>
+												<div class="tooltip needDollar"></div>
+												<div class="tooltip needPower"></div>
+												<div class="tooltip needTime"></div>
+												<div class="tooltip resource Residential"></div>
+											</div>
+										</div>
+									</div>
+									<div id="upgrade_menu" class="menu">
+										<div class="button demolition">
+											<span>Demolition</span>
+											<div class="tooltip Demolition">
+												<div class="tooltip needDemographic"></div>
+												<div class="tooltip needDollar"></div>
+												<div class="tooltip needPower"></div>
+												<div class="tooltip needTime"></div>
+												<div class="tooltip resource"></div>
+											</div>
+										</div>
+										<div class="button upgrade">
+											<span>Upgrade</span>
+											<div class="tooltip">
+												<div class="tooltip needDemographic"></div>
+												<div class="tooltip needDollar"></div>
+												<div class="tooltip needPower"></div>
+												<div class="tooltip needTime"></div>
+												<div class="tooltip resource"></div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="tileBackground"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="ui_layout">
+					<div id="scoreboard">
+						<span id="dollar"><span class="balance"></span><br/><span class="add_balance"></span></span>
+						<span id="power"><span class="power_remained"></span></span></span>
+						<span id="demographic"><span class="man_remained"></span></span></span>
+						<span id="fletaCityCoinCount"><span class="coin_count"></span></span></span>
+						<div id="selectedInfo">
+							<div class="building_info">
+								<span class="building_type"></span>
+								<span class="building_level"></span>
+							</div>
+							<div class="resource"></div>
+						</div>
+					</div>
+					<div id="info" class="ui_element"></div>
+					<div class="bottom_ui_layout">
+						<div class="hide_building_case"><button id="hideBuilding" onclick="event.stopPropagation();ViewChanger()"></button></div>
+						<div id="expUI" class=""><!-- lv_bronze, lv_silver lv_gold lv_fleta -->
+							<div id="expHeader" class="">
+								<div id="expEffect" class=""></div>
+								<div class="exp_header"></div>
+								<p class="exp_lv" id="currentLevel">99</p>
+							</div>
+							<div class="exp_var"><div class="exp_gauge" id="expGauge" style="width:100%"></div></div>
+							<p class="exp_figure"><span id="currentExp">9999</span>/<span id="currentMaxExp">9999</span></p>
+						</div>
+					</div>
+				</div>
+				<!-- <div id="txLog"></div> -->
+				<div id="alertUI"><button class="alertUI_ok" onclick="event.stopPropagation();UIAlert.okOnclick()"></button><button class="alertUI_cancel" onclick="event.stopPropagation();UIAlert.cancelOnclick()"></button></div>
+			</div>
+		</section>
+		<script type="vue">
+		data: function() {
+			var obj = {};
+			return obj;
+		},
+		mounted: function() {
+			$(".islandCase:last")
+				.on('mousedown touchstart', mousedown)
+				.on('mouseup touchend touchcancel', mouseup)
+				.on('mousemove touchmove', mousemove)
+				.on('mousewheel', mousewheel)
+				.on('touchstart', touchstart)
+				.on('touchend', touchend)
+				.on('touchcancel', touchend)
+				.on('touchmove', touchmove)
+			;
+		}
+		</script>
+	</panel>
+</div>
+<div id="PreLoadLayer" style="width:1px;height:1px;opacity: 0.01;position: absolute;top:0;right:0;">
+    {{template "preloadResource" .}}
+</div>
+<div id="AlertBackground" style="display: none;">
+	<div class="AlertCase">
+		<p class="alertText"></p>
+		<button class="okBtn" onclick="AlertClose()"></button>
+	</div>
+</div>
+{{end}}

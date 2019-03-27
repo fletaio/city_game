@@ -1,0 +1,55 @@
+{{define "headScript"}}
+<script>
+    var fields = {{index . "fields"}}
+    var coin = {{index . "coin"}}
+
+
+    $(function () {
+        var head = $("<tr><th>id</th></tr>")
+        var template = "<tr><td>{id}</td>"
+        for (var name in fields) {
+            head.append("<th>"+name+"</th>")
+            template += "<td class='"+name+"'></td>"
+        }
+        template += "</tr>"
+        $("#countHead").append(head)
+    
+        for (var name in coin) {
+            var t = template
+            t = t.replace("{id}", name)
+            var tr = $(t);
+            for (var field in coin[name]) {
+                tr.find("."+field).html(coin[name][field])
+            }
+            $("#count").append(tr)
+        }
+    
+    })
+</script>
+{{end}}
+
+{{define "pageTitle"}}Coin Count{{end}}
+
+
+{{define "fletaBody"}}
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="portlet">
+                <div class="portlet_body">
+                    <div class="m-portlet ">
+                        <div class="m-portlet_body">
+                            <table class="table fleta-table fleta-table2">
+                                <thead id="countHead">
+                                </thead>
+                                <tbody id="count">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{{end}}
+
+{{define "FooterIncludeScript"}}{{end}}
