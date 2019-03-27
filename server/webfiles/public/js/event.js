@@ -256,6 +256,13 @@ function onMessage(ws,  e) {
 			var noti = e.data;
 		}
 
+		if (noti.type == 99) {
+			alert(language["duplicated connection"]);
+			location.reload();
+			return;
+		}
+
+
 		gNetwork.OnNotified(noti);
 		gGame.OnNotified(noti);
 		/*
