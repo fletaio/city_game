@@ -497,7 +497,7 @@ func main() {
 			return citygame.ErrNotExistAccount
 		}
 
-		gd := citygame.NewGameData(Height)
+		gd := citygame.NewGameData(Height + 1)
 		// res := gd.Resource(ctx.TargetHeight())
 
 		if _, err := gd.ReadFrom(bytes.NewReader(bs)); err != nil {
@@ -1085,7 +1085,7 @@ func (ew *EventWatcher) DoTransactionBroadcast(kn *kernel.Kernel, msg *message_d
 func (ew *EventWatcher) DebugLog(kn *kernel.Kernel, args ...interface{}) {}
 
 func getWebTileNotify(ctx *data.Context, addr common.Address, height uint32, index uint16) (*WebTileNotify, *citygame.GameData, error) {
-	gd := citygame.NewGameData(height)
+	gd := citygame.NewGameData(height + 1)
 	bs := ctx.AccountData(addr, []byte("game"))
 	if len(bs) == 0 {
 		return nil, nil, citygame.ErrNotExistGameData

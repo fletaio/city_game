@@ -492,6 +492,8 @@ Game.prototype.OnNotified = function(noti) {
 		return;
 	}
 	this.height = noti.height;
+	this.point_height = noti.point_height;
+	this.point_balance = noti.point_balance;
 
 	switch(noti.type) {
 	case DemolitionTransactionType:
