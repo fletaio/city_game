@@ -732,7 +732,7 @@ Tile.prototype.Update = function(height, force) {
 				}
 			}
 			
-			if(is_renderable || is_begin) {
+			if ((is_renderable || is_begin) && this.is_building != true){
 				this.renderBuilding(this.level, is_begin);
 			}
 		}
