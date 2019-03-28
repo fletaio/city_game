@@ -206,6 +206,12 @@ func (c *CityExplorer) initURL() {
 }
 
 func (c *CityExplorer) StartExplorer(port int) {
+	go func() {
+		for {
+			c.reflashAddrScore()
+			time.Sleep(10 * time.Minute)
+		}
+	}()
 	c.be.StartExplorer(port)
 }
 
@@ -222,6 +228,54 @@ func (c *CityExplorer) DataHandler(e echo.Context) (result interface{}, err erro
 		err = errors.New("There is no matching url")
 	}
 	return
+}
+
+func (c *CityExplorer) reflashAddrScore() {
+	addrs := []common.Address{}
+	userIDs := []string{}
+	if err := c.db.View(func(txn *badger.Txn) error {
+		opts := badger.DefaultIteratorOptions
+		opts.PrefetchValues = false
+		it := txn.NewIterator(opts)
+		defer it.Close()
+		prefix := []byte("GameAddr")
+
+		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
+			item := it.Item()
+			k := item.Key()
+			addrStr := strings.Replace(string(k), "GameAddr", "", -1)
+			addr, err := common.ParseAddress(addrStr)
+			if err != nil {
+				log.Println(addrStr, err)
+				continue
+			}
+			addrs = append(addrs, addr)
+
+			value, err := item.ValueCopy(nil)
+			if err != nil {
+				return err
+			}
+			userID := string(value)
+			userIDs = append(userIDs, userID)
+		}
+		return nil
+	}); err != nil {
+		log.Println(err)
+		return
+	}
+
+	if len(addrs) != len(userIDs) {
+		log.Println("not match addrs and userIDs length")
+		return
+	}
+
+	height := c.Kernel.Provider().Height()
+
+	for i, addr := range addrs {
+		userID := userIDs[i]
+		c.UpdateScore(nil, height, addr, userID)
+	}
+
 }
 
 func (c *CityExplorer) CreatAddr(addr common.Address, tx *citygame.CreateAccountTx) {
@@ -293,7 +347,7 @@ func (c *CityExplorer) UpdateScore(gd *citygame.GameData, height uint32, addr co
 
 func updateSortedKey(txn *badger.Txn, sType ScoreType, addrStr string, sc ScoreCase) error {
 	gameScoreAddr := []byte(fmt.Sprintf("%v:Addr:%v", getType(sType), addrStr))
-	v := []byte(fmt.Sprintf("%v:Score:%015v%v", getType(sType), sc.getValue(sType), addrStr))
+	v := []byte(fmt.Sprintf("%v:Score:%020v%v", getType(sType), sc.getValue(sType), addrStr))
 
 	item, err := txn.Get(gameScoreAddr)
 	if err != nil {
@@ -435,8 +489,8 @@ func getScore(txn *badger.Txn, prefixKey []byte, sType ScoreType, limit uint32) 
 			sc.ReadFrom(buf)
 
 			value := strings.TrimPrefix(string(k), getType(sType)+":Score:")
-			num := value[:15]
-			Addr := value[15:]
+			num := value[:20]
+			Addr := value[20:]
 			s = append(s, score{
 				Rank:     rank,
 				Addr:     Addr,
