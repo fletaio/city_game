@@ -258,7 +258,9 @@ function onMessage(ws,  e) {
 
 		if (noti.type == 99) {
 			alert(language["duplicated connection"]);
-			location.reload();
+			setTimeout(function () {
+				location.reload();
+			}, 10)
 			return;
 		}
 

@@ -97,7 +97,7 @@ Game.prototype.GetFletaTiles = function(tile) {
 		var dy = Math.floor(i/3) - 1;
 		if(0 <= tile.x + dx && tile.x + dx < gConfig.Size && 0 <= tile.y + dy && tile.y + dy < gConfig.Size) {
 			var subtile = this.tiles[tile.x + dx + (tile.y + dy)*gConfig.Size];
-			if(subtile.area_type == tile.area_type && subtile.level == 5) {
+			if(subtile.area_type == tile.area_type && subtile.level == 5 && subtile.is_building != true) {
 				subtiles.push(subtile);
 			} else {
 				subtiles.push(null);
@@ -963,22 +963,24 @@ BuildMenuUI.prototype.Init = function(define_map) {
 	$commercial.find(".resource").text(bd.output+"/s");
 	$commercial.click(function(e) {
 		e.stopPropagation();
-		if($(this).hasClass("disabled")) {
-			return;
-		}
-		var err = getBuildError(_this.resource, _this.define_map[CommercialAreaType][0]);
-		if(err != null) {
-			Alert(err);
-			return;
-		}
-		gGame.selected_tile.SetPending(CommercialAreaType, 1, false);
-		gNetwork.SendTX("construction", {
-			x: gGame.selected_tile.x,
-			y: gGame.selected_tile.y,
-			area_type: CommercialAreaType
-		});
-		_this.Close();
-		gGame.UnselectTile();
+		UIAlert.Alert("Commercial", function () {
+			if($(this).hasClass("disabled")) {
+				return;
+			}
+			var err = getBuildError(_this.resource, _this.define_map[CommercialAreaType][0]);
+			if(err != null) {
+				Alert(err);
+				return;
+			}
+			gGame.selected_tile.SetPending(CommercialAreaType, 1, false);
+			gNetwork.SendTX("construction", {
+				x: gGame.selected_tile.x,
+				y: gGame.selected_tile.y,
+				area_type: CommercialAreaType
+			});
+			_this.Close();
+			gGame.UnselectTile();
+		})
 	});
 
 	var $industrial = this.obj.find(".industrial");
@@ -989,22 +991,24 @@ BuildMenuUI.prototype.Init = function(define_map) {
 	$industrial.find(".resource").text(bd.output);
 	$industrial.click(function(e) {
 		e.stopPropagation();
-		if($(this).hasClass("disabled")) {
-			return;
-		}
-		var err = getBuildError(_this.resource, _this.define_map[IndustrialAreaType][0]);
-		if(err != null) {
-			Alert(err);
-			return;
-		}
-		gGame.selected_tile.SetPending(IndustrialAreaType, 1, false);
-		gNetwork.SendTX("construction", {
-			x: gGame.selected_tile.x,
-			y: gGame.selected_tile.y,
-			area_type: IndustrialAreaType
-		});
-		_this.Close();
-		gGame.UnselectTile();
+		UIAlert.Alert("Industrial", function () {
+			if($(this).hasClass("disabled")) {
+				return;
+			}
+			var err = getBuildError(_this.resource, _this.define_map[IndustrialAreaType][0]);
+			if(err != null) {
+				Alert(err);
+				return;
+			}
+			gGame.selected_tile.SetPending(IndustrialAreaType, 1, false);
+			gNetwork.SendTX("construction", {
+				x: gGame.selected_tile.x,
+				y: gGame.selected_tile.y,
+				area_type: IndustrialAreaType
+			});
+			_this.Close();
+			gGame.UnselectTile();
+		})
 	});
 
 	var $residential = this.obj.find(".residential");
@@ -1015,22 +1019,24 @@ BuildMenuUI.prototype.Init = function(define_map) {
 	$residential.find(".resource").text(bd.output);
 	$residential.click(function(e) {
 		e.stopPropagation();
-		if($(this).hasClass("disabled")) {
-			return;
-		}
-		var err = getBuildError(_this.resource, _this.define_map[ResidentialAreaType][0]);
-		if(err != null) {
-			Alert(err);
-			return;
-		}
-		gGame.selected_tile.SetPending(ResidentialAreaType, 1, false);
-		gNetwork.SendTX("construction", {
-			x: gGame.selected_tile.x,
-			y: gGame.selected_tile.y,
-			area_type: ResidentialAreaType
-		});
-		_this.Close();
-		gGame.UnselectTile();
+		UIAlert.Alert("Residential", function () {
+			if($(this).hasClass("disabled")) {
+				return;
+			}
+			var err = getBuildError(_this.resource, _this.define_map[ResidentialAreaType][0]);
+			if(err != null) {
+				Alert(err);
+				return;
+			}
+			gGame.selected_tile.SetPending(ResidentialAreaType, 1, false);
+			gNetwork.SendTX("construction", {
+				x: gGame.selected_tile.x,
+				y: gGame.selected_tile.y,
+				area_type: ResidentialAreaType
+			});
+			_this.Close();
+			gGame.UnselectTile();
+		})
 	});
 }
 
@@ -1091,49 +1097,53 @@ function UpgradeMenuUI() {
 	var $demolition = this.obj.find(".demolition");
 	$demolition.click(function(e) {
 		e.stopPropagation();
-		if($(this).hasClass("disabled")) {
-			return;
-		}
-		gGame.selected_tile.SetPending(0, 0, false);
-		gNetwork.SendTX("demolition", {
-			x: gGame.selected_tile.x,
-			y: gGame.selected_tile.y,
-		});
-		_this.Close();
-		gGame.UnselectTile();
+		UIAlert.Alert("Demolition", function () {
+			if($(this).hasClass("disabled")) {
+				return;
+			}
+			gGame.selected_tile.SetPending(0, 0, false);
+			gNetwork.SendTX("demolition", {
+				x: gGame.selected_tile.x,
+				y: gGame.selected_tile.y,
+			});
+			_this.Close();
+			gGame.UnselectTile();
+		})
 	});
 	var $upgrade = this.obj.find(".upgrade");
 	$upgrade.click(function(e) {
 		e.stopPropagation();
-		if($(this).hasClass("disabled")) {
-			return;
-		}
-		if(gGame.selected_tile.level < 6) {
-			var err = getBuildError(_this.resource, gGame.define_map[gGame.selected_tile.area_type][gGame.selected_tile.level]);
-			if(err != null) {
-				Alert(err);
+		UIAlert.Alert("Upgrade", function () {
+			if($(this).hasClass("disabled")) {
 				return;
 			}
-			var target_tile = gGame.selected_tile;
-			if(gGame.selected_tile.level == 5) {
-				var subtiles = gGame.GetFletaTiles(gGame.selected_tile);
-				if(subtiles != null) {
-					for(var i=1; i<subtiles.length; i++) {
-						subtiles[i].SetPending(0, 0, true);
-					}
-					target_tile = subtiles[0];
+			if(gGame.selected_tile.level < 6) {
+				var err = getBuildError(_this.resource, gGame.define_map[gGame.selected_tile.area_type][gGame.selected_tile.level]);
+				if(err != null) {
+					Alert(err);
+					return;
 				}
+				var target_tile = gGame.selected_tile;
+				if(gGame.selected_tile.level == 5) {
+					var subtiles = gGame.GetFletaTiles(gGame.selected_tile);
+					if(subtiles != null) {
+						for(var i=1; i<subtiles.length; i++) {
+							subtiles[i].SetPending(0, 0, true);
+						}
+						target_tile = subtiles[0];
+					}
+				}
+				target_tile.SetPending(target_tile.area_type, target_tile.level+1, false);
+				gNetwork.SendTX("upgrade", {
+					x: target_tile.x,
+					y: target_tile.y,
+					area_type: target_tile.area_type,
+					target_level: target_tile.level+1
+				});
+				_this.Close();
+				gGame.UnselectTile();
 			}
-			target_tile.SetPending(target_tile.area_type, target_tile.level+1, false);
-			gNetwork.SendTX("upgrade", {
-				x: target_tile.x,
-				y: target_tile.y,
-				area_type: target_tile.area_type,
-				target_level: target_tile.level+1
-			});
-			_this.Close();
-			gGame.UnselectTile();
-		}
+		})
 	});
 }
 

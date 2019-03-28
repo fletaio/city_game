@@ -38,6 +38,10 @@
     pointer-events: none;
     opacity: 0.15;
 }
+#screen.hideBuilding .construction.building.lv6{
+    pointer-events: none;
+    opacity: 1;
+}
 
 #touchpad >div,
 #screen >div {
