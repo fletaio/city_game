@@ -125,8 +125,6 @@ function touchstart (e) {
 		tpCache.push(ev.targetTouches[i])
 	}
 	if (tpCache.length >= 2) {
-		printLog("touchstart " + tpCache.length)
-		
 		startDiff = {}
 		startDiff.x = Math.abs(tpCache[0].clientX - tpCache[tpCache.length-1].clientX)
 		startDiff.y = Math.abs(tpCache[0].clientY - tpCache[tpCache.length-1].clientY)
@@ -137,14 +135,12 @@ function touchend (e) {
 	tpCache = []
 	startDiff = {}
 	startTouchPitch = false
-	printLog("touchend")
 }
 
 var startTouchPitch = false
 var timeIntervalFleg = true
 function touchmove (e) {
 	var ev = e.originalEvent
-	printLog("tpCache.length : " + tpCache.length)
 	if (tpCache.length >= 2) {
 		startTouchPitch = true
 		for (var i = 0 ; i < ev.targetTouches.length ; i++ ) {

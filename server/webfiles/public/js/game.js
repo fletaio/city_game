@@ -963,10 +963,10 @@ BuildMenuUI.prototype.Init = function(define_map) {
 	$commercial.find(".resource").text(bd.output+"/s");
 	$commercial.click(function(e) {
 		e.stopPropagation();
+		if($(this).hasClass("disabled")) {
+			return;
+		}
 		UIAlert.Alert("Commercial", function () {
-			if($(this).hasClass("disabled")) {
-				return;
-			}
 			var err = getBuildError(_this.resource, _this.define_map[CommercialAreaType][0]);
 			if(err != null) {
 				Alert(err);
@@ -991,10 +991,10 @@ BuildMenuUI.prototype.Init = function(define_map) {
 	$industrial.find(".resource").text(bd.output);
 	$industrial.click(function(e) {
 		e.stopPropagation();
+		if($(this).hasClass("disabled")) {
+			return;
+		}
 		UIAlert.Alert("Industrial", function () {
-			if($(this).hasClass("disabled")) {
-				return;
-			}
 			var err = getBuildError(_this.resource, _this.define_map[IndustrialAreaType][0]);
 			if(err != null) {
 				Alert(err);
@@ -1019,10 +1019,10 @@ BuildMenuUI.prototype.Init = function(define_map) {
 	$residential.find(".resource").text(bd.output);
 	$residential.click(function(e) {
 		e.stopPropagation();
+		if($(this).hasClass("disabled")) {
+			return;
+		}
 		UIAlert.Alert("Residential", function () {
-			if($(this).hasClass("disabled")) {
-				return;
-			}
 			var err = getBuildError(_this.resource, _this.define_map[ResidentialAreaType][0]);
 			if(err != null) {
 				Alert(err);
@@ -1097,10 +1097,10 @@ function UpgradeMenuUI() {
 	var $demolition = this.obj.find(".demolition");
 	$demolition.click(function(e) {
 		e.stopPropagation();
+		if($(this).hasClass("disabled")) {
+			return;
+		}
 		UIAlert.Alert("Demolition", function () {
-			if($(this).hasClass("disabled")) {
-				return;
-			}
 			gGame.selected_tile.SetPending(0, 0, false);
 			gNetwork.SendTX("demolition", {
 				x: gGame.selected_tile.x,
@@ -1113,10 +1113,10 @@ function UpgradeMenuUI() {
 	var $upgrade = this.obj.find(".upgrade");
 	$upgrade.click(function(e) {
 		e.stopPropagation();
+		if($(this).hasClass("disabled")) {
+			return;
+		}
 		UIAlert.Alert("Upgrade", function () {
-			if($(this).hasClass("disabled")) {
-				return;
-			}
 			if(gGame.selected_tile.level < 6) {
 				var err = getBuildError(_this.resource, gGame.define_map[gGame.selected_tile.area_type][gGame.selected_tile.level]);
 				if(err != null) {
