@@ -308,13 +308,18 @@ Game.prototype.UpdateResource = function(target_height) {
 			used.man_remained += bd.acc_man_usage;
 			used.power_remained += bd.acc_power_usage;
 			var construction_height = build_height + bd.build_time*2
+
+			if(level == 6) {
+				var bd2 = this.define_map[area_type][level-2];
+				used.power_remained += bd2.acc_power_usage * 3;
+				used.man_remained += bd2.acc_man_usage * 3;
+			}
+
 			if(target_height < construction_height) {
 				if(level == 1) {
 					continue;
 				} else if(level == 6) {
 					var bd2 = this.define_map[area_type][level-2];
-					used.power_remained += bd2.acc_power_usage * 3;
-					used.man_remained += bd2.acc_man_usage * 3;
 					switch(area_type) {
 					case CommercialAreaType:
 						provide.add_balance += Math.floor(bd2.output/2) * 3;

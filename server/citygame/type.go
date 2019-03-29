@@ -161,13 +161,16 @@ func (gd *GameData) Resource(TargetHeight uint32) *Resource {
 			used.PowerRemained += bd.AccPowerUsage
 			ConstructionHeight := tile.BuildHeight + bd.BuildTime*2
 
+			if tile.Level == 6 {
+				bd2 := GBuildingDefine[tile.AreaType][tile.Level-2]
+				used.ManRemained += bd2.AccManUsage * 3
+				used.PowerRemained += bd2.AccPowerUsage * 3
+			}
 			if TargetHeight < ConstructionHeight {
 				if tile.Level == 1 {
 					continue
 				} else if tile.Level == 6 {
 					bd2 := GBuildingDefine[tile.AreaType][tile.Level-2]
-					used.ManRemained += bd2.AccManUsage * 3
-					used.PowerRemained += bd2.AccPowerUsage * 3
 					switch tile.AreaType {
 					case CommercialAreaType:
 						provide.Balance += uint64(bd2.Output/2) * uint64(ForwardHeight) * 3
@@ -434,285 +437,142 @@ var GBuildingDefine = map[AreaType][]*BuildingDefine{
 	CommercialAreaType: []*BuildingDefine{
 		&BuildingDefine{
 			CostUsage:  400,
-			BuildTime:  30,
-			Output:     4,
+			BuildTime:  1,
+			Output:     400,
 			Exp:        1,
 			ManUsage:   2,
 			PowerUsage: 3,
 		},
 		&BuildingDefine{
 			CostUsage:  2400,
-			BuildTime:  140,
-			Output:     10,
+			BuildTime:  1,
+			Output:     900,
 			Exp:        2,
 			ManUsage:   3,
-			PowerUsage: 4,
+			PowerUsage: 5,
 		},
 		&BuildingDefine{
 			CostUsage:  12000,
-			BuildTime:  700,
-			Output:     24,
+			BuildTime:  7,
+			Output:     1400,
 			Exp:        3,
+			ManUsage:   5,
+			PowerUsage: 8,
+		},
+		&BuildingDefine{
+			CostUsage:  60000,
+			BuildTime:  35,
+			Output:     2100,
+			Exp:        4,
 			ManUsage:   8,
 			PowerUsage: 12,
 		},
 		&BuildingDefine{
-			CostUsage:  60000,
-			BuildTime:  3500,
-			Output:     64,
-			Exp:        4,
-			ManUsage:   40,
-			PowerUsage: 30,
-		},
-		&BuildingDefine{
 			CostUsage:  300000,
-			BuildTime:  18000,
-			Output:     160,
+			BuildTime:  180,
+			Output:     3200,
 			Exp:        5,
-			ManUsage:   200,
-			PowerUsage: 80,
+			ManUsage:   12,
+			PowerUsage: 18,
 		},
 		&BuildingDefine{
 			CostUsage:  6000000,
-			BuildTime:  86400,
-			Output:     1600,
+			BuildTime:  864,
+			Output:     19200,
 			Exp:        6,
-			ManUsage:   4000,
-			PowerUsage: 1500,
+			ManUsage:   72,
+			PowerUsage: 108,
 		},
 	},
 	IndustrialAreaType: []*BuildingDefine{
 		&BuildingDefine{
 			CostUsage: 200,
-			BuildTime: 60,
+			BuildTime: 1,
 			Output:    5,
 			Exp:       1,
 			ManUsage:  1,
 		},
 		&BuildingDefine{
-			CostUsage: 1700,
-			BuildTime: 200,
-			Output:    14,
+			CostUsage: 1200,
+			BuildTime: 2,
+			Output:    11,
 			Exp:       2,
 			ManUsage:  2,
 		},
 		&BuildingDefine{
-			CostUsage: 12000,
-			BuildTime: 700,
-			Output:    96,
+			CostUsage: 6000,
+			BuildTime: 7,
+			Output:    17,
 			Exp:       3,
+			ManUsage:  3,
+		},
+		&BuildingDefine{
+			CostUsage: 30000,
+			BuildTime: 27,
+			Output:    26,
+			Exp:       4,
+			ManUsage:  5,
+		},
+		&BuildingDefine{
+			CostUsage: 150000,
+			BuildTime: 120,
+			Output:    39,
+			Exp:       5,
 			ManUsage:  8,
 		},
 		&BuildingDefine{
-			CostUsage: 80000,
-			BuildTime: 2700,
-			Output:    390,
-			Exp:       4,
-			ManUsage:  54,
-		},
-		&BuildingDefine{
-			CostUsage: 450000,
-			BuildTime: 12000,
-			Output:    1440,
-			Exp:       5,
-			ManUsage:  300,
-		},
-		&BuildingDefine{
-			CostUsage: 9100000,
-			BuildTime: 57000,
-			Output:    33000,
+			CostUsage: 3000000,
+			BuildTime: 570,
+			Output:    234,
 			Exp:       6,
-			ManUsage:  6100,
+			ManUsage:  48,
 		},
 	},
 	ResidentialAreaType: []*BuildingDefine{
 		&BuildingDefine{
 			CostUsage:  300,
-			BuildTime:  45,
-			Output:     3,
+			BuildTime:  1,
+			Output:     2,
 			Exp:        1,
 			PowerUsage: 2,
 		},
 		&BuildingDefine{
-			CostUsage:  2000,
-			BuildTime:  170,
-			Output:     10,
+			CostUsage:  1800,
+			BuildTime:  1,
+			Output:     5,
 			Exp:        2,
 			PowerUsage: 3,
 		},
 		&BuildingDefine{
-			CostUsage:  12000,
-			BuildTime:  700,
-			Output:     64,
+			CostUsage:  9000,
+			BuildTime:  7,
+			Output:     8,
 			Exp:        3,
+			PowerUsage: 5,
+		},
+		&BuildingDefine{
+			CostUsage:  45000,
+			BuildTime:  32,
+			Output:     12,
+			Exp:        4,
+			PowerUsage: 8,
+		},
+		&BuildingDefine{
+			CostUsage:  225000,
+			BuildTime:  150,
+			Output:     18,
+			Exp:        5,
 			PowerUsage: 12,
 		},
 		&BuildingDefine{
-			CostUsage:  66000,
-			BuildTime:  3200,
-			Output:     564,
-			Exp:        4,
-			PowerUsage: 35,
-		},
-		&BuildingDefine{
-			CostUsage:  360000,
-			BuildTime:  15000,
-			Output:     4000,
-			Exp:        5,
-			PowerUsage: 100,
-		},
-		&BuildingDefine{
-			CostUsage:  7200000,
-			BuildTime:  72000,
-			Output:     101000,
+			CostUsage:  4500000,
+			BuildTime:  720,
+			Output:     108,
 			Exp:        6,
-			PowerUsage: 1800,
+			PowerUsage: 72,
 		},
 	},
 }
-
-/*
-var GBuildingDefine = map[AreaType][]*BuildingDefine{
-	CommercialAreaType: []*BuildingDefine{
-		&BuildingDefine{
-			CostUsage:  1,
-			BuildTime:  1,
-			Output:     4,
-			Exp:        1,
-			ManUsage:   2,
-			PowerUsage: 3,
-		},
-		&BuildingDefine{
-			CostUsage:  2,
-			BuildTime:  1,
-			Output:     10,
-			Exp:        2,
-			ManUsage:   3,
-			PowerUsage: 4,
-		},
-		&BuildingDefine{
-			CostUsage:  3,
-			BuildTime:  1,
-			Output:     24,
-			Exp:        3,
-			ManUsage:   8,
-			PowerUsage: 12,
-		},
-		&BuildingDefine{
-			CostUsage:  4,
-			BuildTime:  1,
-			Output:     64,
-			Exp:        4,
-			ManUsage:   40,
-			PowerUsage: 30,
-		},
-		&BuildingDefine{
-			CostUsage:  5,
-			BuildTime:  1,
-			Output:     160,
-			Exp:        5,
-			ManUsage:   200,
-			PowerUsage: 80,
-		},
-		&BuildingDefine{
-			CostUsage:  6,
-			BuildTime:  30,
-			Output:     1600,
-			Exp:        6,
-			ManUsage:   4000,
-			PowerUsage: 1500,
-		},
-	},
-	IndustrialAreaType: []*BuildingDefine{
-		&BuildingDefine{
-			CostUsage: 1,
-			BuildTime: 1,
-			Output:    5,
-			Exp:       1,
-			ManUsage:  1,
-		},
-		&BuildingDefine{
-			CostUsage: 2,
-			BuildTime: 1,
-			Output:    14,
-			Exp:       2,
-			ManUsage:  2,
-		},
-		&BuildingDefine{
-			CostUsage: 3,
-			BuildTime: 1,
-			Output:    96,
-			Exp:       3,
-			ManUsage:  8,
-		},
-		&BuildingDefine{
-			CostUsage: 4,
-			BuildTime: 1,
-			Output:    390,
-			Exp:       4,
-			ManUsage:  54,
-		},
-		&BuildingDefine{
-			CostUsage: 5,
-			BuildTime: 1,
-			Output:    1440,
-			Exp:       5,
-			ManUsage:  300,
-		},
-		&BuildingDefine{
-			CostUsage: 6,
-			BuildTime: 30,
-			Output:    33000,
-			Exp:       6,
-			ManUsage:  6100,
-		},
-	},
-	ResidentialAreaType: []*BuildingDefine{
-		&BuildingDefine{
-			CostUsage:  1,
-			BuildTime:  1,
-			Output:     3,
-			Exp:        1,
-			PowerUsage: 2,
-		},
-		&BuildingDefine{
-			CostUsage:  2,
-			BuildTime:  1,
-			Output:     10,
-			Exp:        2,
-			PowerUsage: 3,
-		},
-		&BuildingDefine{
-			CostUsage:  3,
-			BuildTime:  1,
-			Output:     64,
-			Exp:        3,
-			PowerUsage: 12,
-		},
-		&BuildingDefine{
-			CostUsage:  4,
-			BuildTime:  1,
-			Output:     564,
-			Exp:        4,
-			PowerUsage: 35,
-		},
-		&BuildingDefine{
-			CostUsage:  5,
-			BuildTime:  1,
-			Output:     4000,
-			Exp:        5,
-			PowerUsage: 100,
-		},
-		&BuildingDefine{
-			CostUsage:  6,
-			BuildTime:  30,
-			Output:     101000,
-			Exp:        6,
-			PowerUsage: 1800,
-		},
-	},
-}
-*/
 
 // ExpDefine defines a exp level
 type ExpDefine struct {

@@ -365,19 +365,19 @@ function addKeyShotcut () {
 				menuClose()
 				break;
 			case 73: //i 
-				$("button#Industrial").click()
+				$("#build_menu .button.industrial").click()
 				break;
 			case 82: //r
-				$("button#Residential").click()
+				$("#build_menu .button.residential").click()
 				break;
 			case 67: //c
-				$("button#Commercial").click()
+				$("#build_menu .button.commercial").click()
 				break;
 			case 68: //d
 				$("button#Demolition").click()
 				break;
 			case 85: //u
-				$("button#Upgrade").click()
+				$("#upgrade_menu .button.upgrade").click()
 				break;
 			case 72: //h
 				$("button#hideBuilding").click()
@@ -394,3 +394,12 @@ function addKeyShotcut () {
 		}
 	});
 }
+// 163 267
+// 전기 플레타
+// 271(+108) 390(+123)
+// 인구 플레타
+// 469(+198) 462(+72)
+// 전기 플레타
+// 577(+108) 585(+123)
+// 인구 플레타
+// 775(+198) 657(+72)
