@@ -915,7 +915,7 @@ GameStatusUI.prototype.OnResourceUpdated = function(resource) {
 		var $board = $scoreBoard.find("."+key);
 		if ($board.length > 0) {
 			if (key == "add_balance") {
-				$board.text("(+"+resource[key]+"/s)");
+				$board.text("(+"+(resource[key]*2)+"/s)");
 			} else {
 				$board.text(toShortUnit(resource[key]));
 			}

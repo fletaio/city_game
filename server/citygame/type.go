@@ -165,6 +165,9 @@ func (gd *GameData) Resource(TargetHeight uint32) *Resource {
 				bd2 := GBuildingDefine[tile.AreaType][tile.Level-2]
 				used.ManRemained += bd2.AccManUsage * 3
 				used.PowerRemained += bd2.AccPowerUsage * 3
+				if tile.AreaType == CommercialAreaType {
+					provide.Balance += uint64(bd2.Output/2) * uint64(ForwardHeight) * 3
+				}
 			}
 			if TargetHeight < ConstructionHeight {
 				if tile.Level == 1 {
@@ -172,8 +175,6 @@ func (gd *GameData) Resource(TargetHeight uint32) *Resource {
 				} else if tile.Level == 6 {
 					bd2 := GBuildingDefine[tile.AreaType][tile.Level-2]
 					switch tile.AreaType {
-					case CommercialAreaType:
-						provide.Balance += uint64(bd2.Output/2) * uint64(ForwardHeight) * 3
 					case IndustrialAreaType:
 						provide.PowerRemained += bd2.Output * 3
 					case ResidentialAreaType:
@@ -438,7 +439,7 @@ var GBuildingDefine = map[AreaType][]*BuildingDefine{
 		&BuildingDefine{
 			CostUsage:  400,
 			BuildTime:  1,
-			Output:     400,
+			Output:     4,
 			Exp:        1,
 			ManUsage:   2,
 			PowerUsage: 3,
@@ -446,7 +447,7 @@ var GBuildingDefine = map[AreaType][]*BuildingDefine{
 		&BuildingDefine{
 			CostUsage:  2400,
 			BuildTime:  1,
-			Output:     900,
+			Output:     9,
 			Exp:        2,
 			ManUsage:   3,
 			PowerUsage: 5,
@@ -454,7 +455,7 @@ var GBuildingDefine = map[AreaType][]*BuildingDefine{
 		&BuildingDefine{
 			CostUsage:  12000,
 			BuildTime:  7,
-			Output:     1400,
+			Output:     14,
 			Exp:        3,
 			ManUsage:   5,
 			PowerUsage: 8,
@@ -462,7 +463,7 @@ var GBuildingDefine = map[AreaType][]*BuildingDefine{
 		&BuildingDefine{
 			CostUsage:  60000,
 			BuildTime:  35,
-			Output:     2100,
+			Output:     21,
 			Exp:        4,
 			ManUsage:   8,
 			PowerUsage: 12,
@@ -470,7 +471,7 @@ var GBuildingDefine = map[AreaType][]*BuildingDefine{
 		&BuildingDefine{
 			CostUsage:  300000,
 			BuildTime:  180,
-			Output:     3200,
+			Output:     32,
 			Exp:        5,
 			ManUsage:   12,
 			PowerUsage: 18,
@@ -478,7 +479,7 @@ var GBuildingDefine = map[AreaType][]*BuildingDefine{
 		&BuildingDefine{
 			CostUsage:  6000000,
 			BuildTime:  864,
-			Output:     19200,
+			Output:     192,
 			Exp:        6,
 			ManUsage:   72,
 			PowerUsage: 108,

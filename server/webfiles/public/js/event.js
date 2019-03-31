@@ -342,7 +342,7 @@ function onMessage(ws,  e) {
 		}
 		*/
 	}
-}
+}//	25,769,850,398
 
 function addKeyShotcut () {
 	document.addEventListener('keydown', function(event) {
@@ -394,12 +394,3 @@ function addKeyShotcut () {
 		}
 	});
 }
-// 163 267
-// 전기 플레타
-// 271(+108) 390(+123)
-// 인구 플레타
-// 469(+198) 462(+72)
-// 전기 플레타
-// 577(+108) 585(+123)
-// 인구 플레타
-// 775(+198) 657(+72)
