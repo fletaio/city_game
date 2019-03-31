@@ -189,12 +189,18 @@ func (gd *GameData) Resource(TargetHeight uint32) *Resource {
 					provide.Balance += uint64(bd.Output/2) * uint64(ForwardHeight)
 				} else {
 					if tile.BuildHeight <= gd.PointHeight {
-						provide.Balance += uint64(bd.Output/2) * uint64(ForwardHeight-(ConstructionHeight-gd.PointHeight))
+						if ConstructionHeight > gd.PointHeight && ForwardHeight > (ConstructionHeight-gd.PointHeight) {
+							provide.Balance += uint64(bd.Output/2) * uint64(ForwardHeight-(ConstructionHeight-gd.PointHeight))
+						}
 					} else {
-						provide.Balance += uint64(bd.Output/2) * uint64(TargetHeight-ConstructionHeight)
+						if TargetHeight > ConstructionHeight {
+							provide.Balance += uint64(bd.Output/2) * uint64(TargetHeight-ConstructionHeight)
+						}
 						if tile.Level > 1 {
 							prevbd := GBuildingDefine[tile.AreaType][tile.Level-2]
-							provide.Balance += uint64(prevbd.Output/2) * uint64(tile.BuildHeight-gd.PointHeight)
+							if tile.BuildHeight > gd.PointHeight {
+								provide.Balance += uint64(prevbd.Output/2) * uint64(tile.BuildHeight-gd.PointHeight)
+							}
 						}
 					}
 				}

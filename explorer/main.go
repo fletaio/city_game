@@ -10,7 +10,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/fletaio/citygame/explorer/city_explorer"
+	cityexplorer "github.com/fletaio/citygame/explorer/city_explorer"
 
 	"github.com/dgraph-io/badger"
 	"github.com/fletaio/cmd/closer"
@@ -275,7 +275,7 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 			ew.ce.CreatAddr(addr, tx)
 			ew.ce.UpdateScore(nil, b.Header.Height(), addr, tx.UserID)
 		case *citygame.DemolitionTx:
-			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), i)
+			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), uint16(i))
 			if err != nil {
 				continue
 			}
@@ -294,7 +294,7 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 			ew.ce.UpdateScore(gd, b.Header.Height(), tx.Address, "")
 
 		case *citygame.ConstructionTx:
-			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), i)
+			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), uint16(i))
 			if err != nil {
 				continue
 			}
@@ -313,7 +313,7 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 
 			ew.ce.UpdateScore(gd, b.Header.Height(), tx.Address, "")
 		case *citygame.UpgradeTx:
-			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), i)
+			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), uint16(i))
 			if err != nil {
 				continue
 			}
@@ -333,7 +333,7 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 
 			ew.ce.UpdateScore(gd, b.Header.Height(), tx.Address, "")
 		case *citygame.GetCoinTx:
-			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), i)
+			wtn, gd, err := getWebTileNotify(ctx, tx.Address, b.Header.Height(), uint16(i))
 			if err != nil {
 				continue
 			}
@@ -363,8 +363,8 @@ func (ew *EventWatcher) DoTransactionBroadcast(kn *kernel.Kernel, msg *message_d
 // DebugLog TEMP
 func (ew *EventWatcher) DebugLog(kn *kernel.Kernel, args ...interface{}) {}
 
-func getWebTileNotify(ctx *data.Context, addr common.Address, height uint32, index int) (*WebTileNotify, *citygame.GameData, error) {
-	gd := citygame.NewGameData(height)
+func getWebTileNotify(ctx *data.Context, addr common.Address, height uint32, index uint16) (*WebTileNotify, *citygame.GameData, error) {
+	gd := citygame.NewGameData(height + 1)
 	bs := ctx.AccountData(addr, []byte("game"))
 	if len(bs) == 0 {
 		return nil, nil, citygame.ErrNotExistGameData
@@ -372,16 +372,16 @@ func getWebTileNotify(ctx *data.Context, addr common.Address, height uint32, ind
 	if _, err := gd.ReadFrom(bytes.NewReader(bs)); err != nil {
 		return nil, nil, err
 	}
-	id := transaction.MarshalID(height, uint16(index), 0)
+	id := transaction.MarshalID(height, index, 0)
 	var errorMsg string
 	for i := 0; i < citygame.GameCommandChannelSize; i++ {
-		data := ctx.AccountData(addr, []byte("utxo"+strconv.Itoa(index)))
-		if len(data) < 8 {
+		bs := ctx.AccountData(addr, []byte("utxo"+strconv.Itoa(i)))
+		if len(bs) < 8 {
 			continue
 		}
-		newid := util.BytesToUint64(data)
+		newid := util.BytesToUint64(bs)
 		if id == newid {
-			bs := ctx.AccountData(addr, []byte("result"+strconv.Itoa(index)))
+			bs := ctx.AccountData(addr, []byte("result"+strconv.Itoa(i)))
 			if len(bs) > 0 {
 				errorMsg = string(bs)
 			}
