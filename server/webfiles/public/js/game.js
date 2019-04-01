@@ -78,6 +78,11 @@ function Game(config) {
 			}
 		}
 		_this.touchpad.css("cursor", "inherit")
+
+
+		var t = _this.tiles[x + (y*gConfig.Size)];
+		_this.touchpad.find(".underconstruction.hover").removeClass("hover")
+		t.find(".underconstruction").addClass("hover")
 	});
 }
 

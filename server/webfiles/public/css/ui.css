@@ -430,6 +430,7 @@
     margin: 0.15rem 0.15rem;
     text-align: center;
     font-size: 0.17rem;
+    transition: top .2s ease-in,transform .2s ease-in, -moz-transform .2s ease-in, -webkit-transform .2s ease-in;
 }
 .underconstruction.fleta {
     position: relative;
@@ -441,7 +442,18 @@
     font-size: 0.34rem;
     display: inline-block;
 }
-
+.underconstruction.fleta.hover {
+    top: -0.9rem;
+    -moz-transform: scale(1.5);
+    -webkit-transform: scale(1.5);
+    transform: scale(1.5);
+}
+.underconstruction.hover {
+    top: -0.3rem;
+    -moz-transform: scale(1.5);
+    -webkit-transform: scale(1.5);
+    transform: scale(1.5);
+}
 #txLog {
     position: absolute;
     right: 0;

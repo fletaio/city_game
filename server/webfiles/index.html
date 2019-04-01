@@ -110,13 +110,18 @@
 							Alert(language["check pw"]);
 							return;
 						}
-						
+
+						var comment = ""
+						if (params && params.deconomy == "2019") {
+							comment = "deconomy"
+						}
 						var key = this.getKeyPair(this.userid, this.password);
 						var pk = key.getPublic().encodeCompressed("hex");
 						this.$http.post("/api/accounts", {
 							"public_key" : pk,
 							"user_id" : this.userid,
 							"reward": this.reward,
+							"comment": comment,
 						}).then(function(res) {
 							Alert(language["Address Issue Success : "]+ res.body.address + language[", go to login"]);
 							nextStep("login");

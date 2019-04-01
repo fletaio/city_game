@@ -47,7 +47,9 @@ function mousemove (e) {
 				islandMoved = true;
 			}
 		}
-		islandMoveFunc(o)
+		if (islandMoved == true) {
+			islandMoveFunc(o)
+		}
 	}
 }
 
@@ -218,13 +220,16 @@ function connectToServer (addr) {
 	}
 
 	var ws = connect();
-	function onOpen(ws,  e)
+	function onOpen(ws2,  e)
 	{
+		if (disconnectedCount>1) {
+			gGame.Reload()
+		}
 		disconnectedCount = 1
 		console.log("CONNECTED");
 	}
 
-	function onClose(ws,  e)
+	function onClose(ws2,  e)
 	{
 		disconnectedCount = (disconnectedCount+1) * 2
 		console.log("DISCONNECTED");
@@ -235,7 +240,7 @@ function connectToServer (addr) {
 		})()
 	}
 
-	function onError(ws,  e)
+	function onError(ws2,  e)
 	{
 		console.log("ERROR", e);
 	}
