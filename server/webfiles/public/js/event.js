@@ -226,9 +226,11 @@ function connectToServer (addr) {
 	function onOpen(ws2,  e)
 	{
 		if (disconnectedCount>1) {
-			gGame.Reload(function (d) {
-				gGame.addressDataProcess(d)
-			})
+			setTimeout(function () {
+				gGame.Reload(function (d) {
+					gGame.addressDataProcess(d)
+				})
+			}, 1000)
 		}
 		disconnectedCount = 1
 		console.log("CONNECTED");
