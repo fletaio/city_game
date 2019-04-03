@@ -430,6 +430,7 @@ func main() {
 		tx.KeyHash = pubhash
 		tx.UserID = req.UserID
 		tx.Reward = req.Reward
+		tx.Comment = req.Comment
 
 		TxHash = tx.Hash()
 
@@ -1138,6 +1139,7 @@ type WebAccountReq struct {
 	PublicKey string `json:"public_key"`
 	UserID    string `json:"user_id"`
 	Reward    string `json:"reward"`
+	Comment   string `json:"comment"`
 }
 
 type WebAccountRes struct {

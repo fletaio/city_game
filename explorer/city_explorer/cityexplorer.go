@@ -73,6 +73,10 @@ func NewCityExplorer(dbPath string, Kernel *kernel.Kernel, resourcePath string) 
 		db:     db,
 		be:     be,
 	}
+
+	ew := NewEventWatcher(c)
+	Kernel.AddEventHandler(ew)
+
 	c.be.AddAssets(Assets)
 	c.be.InitURL()
 	c.initURL()
@@ -284,6 +288,9 @@ func (c *CityExplorer) CreatAddr(addr common.Address, tx *citygame.CreateAccount
 			return err
 		}
 		if err := txn.Set([]byte("GameId"+tx.UserID), addr[:]); err != nil {
+			return err
+		}
+		if err := txn.Set([]byte("AddrComment"+tx.Comment), []byte(addr.String())); err != nil {
 			return err
 		}
 		return nil

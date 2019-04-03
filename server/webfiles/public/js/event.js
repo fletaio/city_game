@@ -88,6 +88,9 @@ function islandMoveFunc(o, wheelSign) {
 	toy = lockUpValueRange(toy, -topMax, topMax);
 	tox = lockUpValueRange(tox, -leftMax, leftMax);
 
+	tox = parseInt(tox)
+	toy = parseInt(toy)
+
 	$island.css("left", tox);
 	$island.css("top", toy);
 	islandMove = {x:o.x,y:o.y};
@@ -219,11 +222,13 @@ function connectToServer (addr) {
 		return ws;
 	}
 
-	var ws = connect();
+	window.ws = connect();
 	function onOpen(ws2,  e)
 	{
 		if (disconnectedCount>1) {
-			gGame.Reload()
+			gGame.Reload(function (d) {
+				gGame.addressDataProcess(d)
+			})
 		}
 		disconnectedCount = 1
 		console.log("CONNECTED");
@@ -351,23 +356,9 @@ function onMessage(ws,  e) {
 
 function addKeyShotcut () {
 	document.addEventListener('keydown', function(event) {
-		if (event.keyCode >= 37 && event.keyCode <= 40) {// arrow
-			direction = event.keyCode-37
-	
-			var t = $("#menu")[0].target
-			if (typeof t === "undefined") {
-				t = gGame.tiles[0]
-			}
-			var o = {x:t.x,y:t.y}
-			directByNum(o, direction)
-			menuClose()
-			if (gGame.tiles[o.x+o.y*gConfig.Size]) {
-				menuOpen(gGame.tiles[o.x+o.y*gConfig.Size].UI.Hover())
-			}
-		}
 		switch (event.keyCode) {
 			case 27: //esc
-				menuClose()
+				gGame.CloseMenuUI()
 				break;
 			case 73: //i 
 				$("#build_menu .button.industrial").click()
@@ -379,7 +370,7 @@ function addKeyShotcut () {
 				$("#build_menu .button.commercial").click()
 				break;
 			case 68: //d
-				$("button#Demolition").click()
+				// $("button#Demolition").click()
 				break;
 			case 85: //u
 				$("#upgrade_menu .button.upgrade").click()

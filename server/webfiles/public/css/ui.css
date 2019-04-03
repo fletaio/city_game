@@ -430,6 +430,7 @@
     margin: 0.15rem 0.15rem;
     text-align: center;
     font-size: 0.17rem;
+    top: 0rem;
     transition: top .2s ease-in,transform .2s ease-in, -moz-transform .2s ease-in, -webkit-transform .2s ease-in;
 }
 .underconstruction.fleta {
@@ -443,16 +444,14 @@
     display: inline-block;
 }
 .underconstruction.fleta.hover {
-    top: -0.9rem;
-    -moz-transform: scale(1.5);
-    -webkit-transform: scale(1.5);
-    transform: scale(1.5);
+    -moz-transform: scale(1.5) translate(0, -0.28rem);
+    -webkit-transform: scale(1.5) translate(0, -0.28rem);
+    transform: scale(1.5) translate(0, -0.28rem);
 }
 .underconstruction.hover {
-    top: -0.3rem;
-    -moz-transform: scale(1.5);
-    -webkit-transform: scale(1.5);
-    transform: scale(1.5);
+    -moz-transform: scale(1.5) translate(0, -0.28rem);
+    -webkit-transform: scale(1.5) translate(0, -0.28rem);
+    transform: scale(1.5) translate(0, -0.28rem);
 }
 #txLog {
     position: absolute;

@@ -135,6 +135,7 @@ func init() {
 				return
 			}
 			ctx.SetAccountData(addr, []byte("game"), buffer.Bytes())
+			ctx.SetAccountData(addr, []byte("comment"), []byte(tx.Comment))
 
 			ctx.SetAccountData(rootAddress, KeyHashID, addr[:])
 			ctx.SetAccountData(rootAddress, UserIDHashID, addr[:])
@@ -177,6 +178,7 @@ type CreateAccountTx struct {
 	KeyHash common.PublicHash
 	UserID  string `json:"user_id"`
 	Reward  string `json:"reward"`
+	Comment string `json:"comment"`
 }
 
 // Hash returns the hash value of it
@@ -203,6 +205,11 @@ func (tx *CreateAccountTx) WriteTo(w io.Writer) (int64, error) {
 		wrote += n
 	}
 	if n, err := util.WriteString(w, tx.Reward); err != nil {
+		return wrote, err
+	} else {
+		wrote += n
+	}
+	if n, err := util.WriteString(w, tx.Comment); err != nil {
 		return wrote, err
 	} else {
 		wrote += n
@@ -234,6 +241,12 @@ func (tx *CreateAccountTx) ReadFrom(r io.Reader) (int64, error) {
 	} else {
 		read += n
 		tx.Reward = v
+	}
+	if v, n, err := util.ReadString(r); err != nil {
+		return read, err
+	} else {
+		read += n
+		tx.Comment = v
 	}
 	return read, nil
 }
@@ -289,6 +302,14 @@ func (tx *CreateAccountTx) MarshalJSON() ([]byte, error) {
 
 	buffer.WriteString(`"reward":`)
 	if bs, err := json.Marshal(tx.Reward); err != nil {
+		return nil, err
+	} else {
+		buffer.Write(bs)
+	}
+	buffer.WriteString(`,`)
+
+	buffer.WriteString(`"comment":`)
+	if bs, err := json.Marshal(tx.Comment); err != nil {
 		return nil, err
 	} else {
 		buffer.Write(bs)

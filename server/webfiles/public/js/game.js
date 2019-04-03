@@ -77,12 +77,13 @@ function Game(config) {
 			
 			}
 		}
-		_this.touchpad.css("cursor", "inherit")
-
+		_this.touchpad.css("cursor", "inherit");
 
 		var t = _this.tiles[x + (y*gConfig.Size)];
-		_this.touchpad.find(".underconstruction.hover").removeClass("hover")
-		t.find(".underconstruction").addClass("hover")
+		$(".underconstruction.hover").removeClass("hover")
+		if (t && t.obj) {
+			t.obj.find(".underconstruction").addClass("hover")
+		}
 	});
 }
 
@@ -154,7 +155,7 @@ Game.prototype.Init = function(callback) {
 		$("[key='coin_count']").text(d.coin_count);
 		_this.total_exp = d.total_exp;
 		$("[key='total_exp']").text(d.total_exp);
-
+	
 		_this.height = d.height;
 		_this.point_height = d.point_height;
 		_this.point_balance = d.point_balance;
@@ -164,14 +165,16 @@ Game.prototype.Init = function(callback) {
 		_this.total_exp = d.total_exp;
 		_this.game_status_ui.OnTotalExpUpdated(d.total_exp);
 		for(var i=0; i<gConfig.Size*gConfig.Size; i++) {
-			var obj = $("<div></div>").appendTo(_this.obj);
+			var obj = $("<div objIndex='"+i+"'></div>").appendTo(_this.obj);
 			var x = i % gConfig.Size;
 			var y = Math.floor(i / gConfig.Size);
 			var tile = new Tile(obj, x, y);
-			_this.tiles.push(tile);
+			_this.tiles[i] = tile
 			var tileData = d.tiles[i];
 			if(tileData != null) {
 				tile.SetData(d.height, tileData);
+			} else {
+				tile.removeAllImages();
 			}
 		}
 		for(var i=0; i<_this.coins.length; i++) {
@@ -207,6 +210,47 @@ Game.prototype.Reload = function(callback) {
 			Alert(language["load fail"])
 		}
 	})
+}
+
+Game.prototype.addressDataProcess = function(d) {
+	console.log("reload tile")
+	this.txs = d.txs;
+	this.coins = d.coins;
+	this.exps = d.exps;
+	this.coin_count = d.coin_count;
+	$("[key='coin_count']").text(d.coin_count);
+	this.total_exp = d.total_exp;
+	$("[key='total_exp']").text(d.total_exp);
+
+	this.height = d.height;
+	this.loaded_height = d.height;
+	this.point_height = d.point_height;
+	this.point_balance = d.point_balance;
+	for(var i=0; i<gConfig.Size*gConfig.Size; i++) {
+		var obj = this.obj.find("[objIndex='"+i+"']")
+		var x = i % gConfig.Size;
+		var y = Math.floor(i / gConfig.Size);
+		var tile = new Tile(obj, x, y);
+		this.tiles[i] = tile
+		var tileData = d.tiles[i];
+		if(tileData != null) {
+			tile.SetData(d.height, tileData);
+		} else {
+			tile.removeAllImages();
+		}
+	}
+	for(var i=0; i<this.coins.length; i++) {
+		var c = this.coins[i];
+		if(c != null && c.height <= this.height) {
+			this.AddCoin(c);
+		}
+	}
+	for(var i=0; i<this.exps.length; i++) {
+		var e = this.exps[i];
+		this.AddExp(e);
+	}
+	this.txs = d.txs;
+	console.log("reload tile end")
 }
 
 Game.prototype.AddCoin = function(c) {
@@ -347,12 +391,18 @@ Game.prototype.UpdateResource = function(target_height) {
 					provide.balance += Math.floor(bd.output/2) * forward_height;
 				} else {
 					if(build_height <= this.point_height) {
-						provide.balance += Math.floor(bd.output/2) * (forward_height-(construction_height-this.point_height));
+						if (construction_height > this.point_height && forward_height > (construction_height-this.point_height)) {
+							provide.balance += Math.floor(bd.output/2) * (forward_height-(construction_height-this.point_height));
+						}
 					} else {
-						provide.balance += Math.floor(bd.output/2) * (target_height-construction_height);
+						if (target_height > construction_height) {
+							provide.balance += Math.floor(bd.output/2) * (target_height-construction_height);
+						}
 						if(level > 1) {
 							var prevbd = this.define_map[tile.area_type][level-2];
-							provide.balance += Math.floor(prevbd.output/2) * (build_height-this.point_height);
+							if (build_height > this.point_height) {
+								provide.balance += Math.floor(prevbd.output/2) * (build_height-this.point_height);
+							}
 						}
 					}
 				}
@@ -652,9 +702,15 @@ function Tile(obj, x, y, tileData) {
 	this.obj.css("width", (gConfig.Size/gConfig.Size) + "rem");
 	this.obj.css("height", (gConfig.Size/2/gConfig.Size) + "rem");
 	this.obj.css("z-index", (this.x+this.y)*10);
-	var $img = $("<img class='floor' src='/public/images/tile/base_floor/groundtiles_tile"+getNum(this.x, this.y)+".png'>").appendTo(this.obj);
+	var $img = this.obj.find(".floor")
+	if ($img.length == 0) {
+		$img = $("<img class='floor' src='/public/images/tile/base_floor/groundtiles_tile"+getNum(this.x, this.y)+".png'>").appendTo(this.obj);
+	}
 	$img.css("z-index", (this.x+this.y)*10);
-	var $selected = $("<div class='selected'>").appendTo(this.obj);
+	var $selected = this.obj.find(".selected");
+	if ($selected.length == 0) {
+		$selected = $("<div class='selected'>").appendTo(this.obj);
+	}
 	$selected.css("z-index", (this.x+this.y)*10+9);
 	this.obj.find(".selected").hide();
 }
@@ -961,14 +1017,17 @@ function BuildMenuUI(obj) {
 }
 
 BuildMenuUI.prototype.Init = function(define_map) {
+	if (typeof this.define_map == "object") {
+		return;
+	}
 	this.define_map = define_map;
 	var _this = this;
 
 	var $commercial = this.obj.find(".commercial");
 	var bd = this.define_map[CommercialAreaType][0];
-	$commercial.find(".needDemographic").text(bd.man_usage);
-	$commercial.find(".needDollar").text(bd.cost_usage);
-	$commercial.find(".needPower").text(bd.power_usage);
+	$commercial.find(".needDemographic").text(numberWithCommas(bd.man_usage));
+	$commercial.find(".needDollar").text(numberWithCommas(bd.cost_usage));
+	$commercial.find(".needPower").text(numberWithCommas(bd.power_usage));
 	$commercial.find(".needTime").text(secondToDate(bd.build_time));
 	$commercial.find(".resource").text(bd.output+"/s");
 	$commercial.click(function(e) {
@@ -995,10 +1054,10 @@ BuildMenuUI.prototype.Init = function(define_map) {
 
 	var $industrial = this.obj.find(".industrial");
 	var bd = this.define_map[IndustrialAreaType][0];
-	$industrial.find(".needDemographic").text(bd.man_usage);
-	$industrial.find(".needDollar").text(bd.cost_usage);
+	$industrial.find(".needDemographic").text(numberWithCommas(bd.man_usage));
+	$industrial.find(".needDollar").text(numberWithCommas(bd.cost_usage));
 	$industrial.find(".needTime").text(secondToDate(bd.build_time));
-	$industrial.find(".resource").text(bd.output);
+	$industrial.find(".resource").text(numberWithCommas(bd.output));
 	$industrial.click(function(e) {
 		e.stopPropagation();
 		if($(this).hasClass("disabled")) {
@@ -1023,10 +1082,10 @@ BuildMenuUI.prototype.Init = function(define_map) {
 
 	var $residential = this.obj.find(".residential");
 	var bd = this.define_map[ResidentialAreaType][0];
-	$residential.find(".needDollar").text(bd.cost_usage);
-	$residential.find(".needPower").text(bd.power_usage);
+	$residential.find(".needDollar").text(numberWithCommas(bd.cost_usage));
+	$residential.find(".needPower").text(numberWithCommas(bd.power_usage));
 	$residential.find(".needTime").text(secondToDate(bd.build_time));
-	$residential.find(".resource").text(bd.output);
+	$residential.find(".resource").text(numberWithCommas(bd.output));
 	$residential.click(function(e) {
 		e.stopPropagation();
 		if($(this).hasClass("disabled")) {
@@ -1173,9 +1232,9 @@ UpgradeMenuUI.prototype.Open = function(tile) {
 	}
 	var bd = gGame.define_map[gGame.selected_tile.area_type][gGame.selected_tile.level-1];
 	var $demolition = this.obj.find(".demolition");
-	$demolition.find(".needDemographic").text(bd.acc_man_usage);
+	$demolition.find(".needDemographic").text(numberWithCommas(bd.acc_man_usage));
 	$demolition.find(".needDollar").text(0);
-	$demolition.find(".needPower").text(bd.acc_power_usage);
+	$demolition.find(".needPower").text(numberWithCommas(bd.acc_power_usage));
 	$demolition.find(".needTime").text("1s");
 	$demolition.find(".resource").text("-" + bd.output+suffix).attr("class", "resource").addClass(getAreaTypeName(gGame.selected_tile.area_type));
 
@@ -1188,11 +1247,11 @@ UpgradeMenuUI.prototype.Open = function(tile) {
 	if(gGame.selected_tile.level < 6) {
 		$upgrade.show();
 		var bd = gGame.define_map[gGame.selected_tile.area_type][gGame.selected_tile.level];
-		$upgrade.find(".needDemographic").text(bd.man_usage);
-		$upgrade.find(".needDollar").text(bd.cost_usage);
-		$upgrade.find(".needPower").text(bd.power_usage);
+		$upgrade.find(".needDemographic").text(numberWithCommas(bd.man_usage));
+		$upgrade.find(".needDollar").text(numberWithCommas(bd.cost_usage));
+		$upgrade.find(".needPower").text(numberWithCommas(bd.power_usage));
 		$upgrade.find(".needTime").text(secondToDate(bd.build_time));
-		$upgrade.find(".resource").text(bd.output+suffix).attr("class", "resource").addClass(getAreaTypeName(gGame.selected_tile.area_type))
+		$upgrade.find(".resource").text(numberWithCommas(bd.output)+suffix).attr("class", "resource").addClass(getAreaTypeName(gGame.selected_tile.area_type))
 		if(this.resource != null) {
 			this.OnResourceUpdated(this.resource);
 		}
@@ -1343,12 +1402,17 @@ Network.prototype.Commit = function(data) {
 		success : function (d) {
 		},
 		error: function(d) {
-			if (data.type == 2) {
-				Alert(language["Failed to execute demolation command"])
-			} else if (data.type == 3) {
-				Alert(language["Failed to execute upgrade command"])
+			var msg = language[d.responseText]
+			if (typeof msg == "string") {
+				Alert(msg)
 			} else {
-				Alert(language["commit error"])
+				if (data.type == 2) {
+					Alert(language["Failed to execute demolation command"])
+				} else if (data.type == 3) {
+					Alert(language["Failed to execute upgrade command"])
+				} else {
+					Alert(language["commit error"])
+				}
 			}
 		}
 	})
