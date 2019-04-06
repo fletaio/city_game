@@ -42,6 +42,19 @@ func (e *ScoreController) User(r *http.Request) (map[string]string, error) {
 		return nil, citygame.ErrNotExistAccount
 	}
 
+	fromAcc, err := e.kn.Loader().Account(addr)
+	if err != nil {
+		return nil, err
+	}
+	acc, ok := fromAcc.(*citygame.Account)
+	if !ok {
+		return nil, err
+	}
+
+	if acc.Height+citygame.GExpireHeight < Height {
+		Height = acc.Height + citygame.GExpireHeight
+	}
+
 	gd := citygame.NewGameData(Height)
 	if _, err := gd.ReadFrom(bytes.NewReader(bs)); err != nil {
 		return nil, err

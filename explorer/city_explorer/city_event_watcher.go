@@ -69,7 +69,7 @@ func (ew *EventWatcher) AfterProcessBlock(kn *kernel.Kernel, b *block.Block, s *
 				continue
 			}
 		}
-		ew.ce.UpdateScore(gd, b.Header.Height(), addr, userID)
+		ew.ce.UpdateScore(gd, b.Header.Height(), addr, userID, kn.Loader())
 	}
 }
 
