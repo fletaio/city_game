@@ -14,7 +14,7 @@ import (
 	"github.com/labstack/echo"
 
 	"github.com/dgraph-io/badger"
-	"github.com/fletaio/block_explorer"
+	blockexplorer "github.com/fletaio/block_explorer"
 	"github.com/fletaio/citygame/server/citygame"
 	"github.com/fletaio/common"
 	"github.com/fletaio/core/data"
@@ -115,7 +115,7 @@ func (c *CityExplorer) initURL() {
 		addr := common.MustParseAddress(addrStr)
 
 		h := c.Kernel.Provider().Height()
-		c.UpdateScore(nil, h, addr, "")
+		c.UpdateScore(nil, h, addr, "", c.Kernel.Loader())
 
 		args, err := sc.User(e.Request())
 		if err != nil {
@@ -291,7 +291,7 @@ func (c *CityExplorer) reflashAddrScore() {
 
 	for i, addr := range addrs {
 		userID := userIDs[i]
-		c.UpdateScore(nil, height, addr, userID)
+		c.UpdateScore(nil, height, addr, userID, c.Kernel.Loader())
 	}
 
 }
@@ -313,7 +313,20 @@ func (c *CityExplorer) CreatAddr(addr common.Address, tx *citygame.CreateAccount
 	}
 }
 
-func (c *CityExplorer) UpdateScore(gd *citygame.GameData, height uint32, addr common.Address, userId string) {
+func (c *CityExplorer) UpdateScore(gd *citygame.GameData, height uint32, addr common.Address, userId string, loader data.Loader) {
+	fromAcc, err := loader.Account(addr)
+	if err != nil {
+		return
+	}
+	acc, ok := fromAcc.(*citygame.Account)
+	if !ok {
+		return
+	}
+
+	if acc.Height+citygame.GExpireHeight < height {
+		height = acc.Height + citygame.GExpireHeight
+	}
+
 	if gd == nil {
 		gd = citygame.NewGameData(height)
 		bs := c.Kernel.Loader().AccountData(addr, []byte("game"))
