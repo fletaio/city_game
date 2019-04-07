@@ -1,0 +1,69 @@
+{{define "headScript"}}
+<script>
+    var template = `
+<tr class="{oddeven}">
+    <td>{userID}</td>
+    <td>{addr}</a></td>
+    <td>{comment}</td>
+</tr>
+`;
+
+    var data = {{index . "data"}}
+
+    $(function () {
+
+        var $body = $("#data")
+        $body.empty()
+
+        for ( var i = 0 ; i< data.length ; i++ ) {
+            var t = template
+            t = t.replace(/{oddeven}/g, (i%2==0)?"odd":"even")
+
+            var row = data[i]
+
+            for (var k in row) {
+                if (row.hasOwnProperty(k)) {
+                    var v = row[k]
+                    if (k == "Score") {
+                        v = parseInt(v)
+                    }
+                    t = t.replace(new RegExp("{"+k+"}", 'g'), v)
+                }
+            }
+            $body.append(t)
+        }
+    })
+</script>
+{{end}}
+
+{{define "pageTitle"}}User{{end}}
+
+{{define "fletaBody"}}
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="portlet">
+                <div class="portlet_body">
+                    <div class="m-portlet ">
+                        <div class="m-portlet_body">
+                            <table class="table fleta-table fleta-table2">
+                                <thead>
+                                    <tr>
+                                        <!-- <th>RANK</th> -->
+                                        <th>ID</th>
+                                        <th>Addr</th>
+                                        <th>Comment</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="data">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+{{end}}
+
+{{define "FooterIncludeScript"}}{{end}}

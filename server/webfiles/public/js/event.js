@@ -230,7 +230,7 @@ function connectToServer (addr) {
 				gGame.Reload(function (d) {
 					gGame.addressDataProcess(d)
 				})
-			}, 1000)
+			})
 		}
 		disconnectedCount = 1
 		console.log("CONNECTED");
@@ -275,7 +275,6 @@ function onMessage(ws,  e) {
 			}, 10)
 			return;
 		}
-
 
 		gNetwork.OnNotified(noti);
 		gGame.OnNotified(noti);

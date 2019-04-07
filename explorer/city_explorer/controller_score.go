@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/dgraph-io/badger"
 	"github.com/fletaio/citygame/server/citygame"
 	"github.com/fletaio/common"
 	"github.com/fletaio/core/kernel"
@@ -14,6 +16,7 @@ import (
 
 type ScoreController struct {
 	kn *kernel.Kernel
+	db *badger.DB
 }
 
 func (e *ScoreController) All(r *http.Request) (map[string]string, error) {
@@ -139,4 +142,44 @@ func (e *ScoreController) Coincount(r *http.Request) (map[string]string, error) 
 		"coin":   string(jm),
 		"fields": string(jFields),
 	}, nil
+}
+
+func (e *ScoreController) UserList(r *http.Request) (map[string]string, error) {
+	data := []map[string]string{}
+	err := e.db.View(func(txn *badger.Txn) error {
+		opts := badger.DefaultIteratorOptions
+		opts.PrefetchSize = 10
+		it := txn.NewIterator(opts)
+		defer it.Close()
+
+		prefix := []byte("AddrComment")
+		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
+			item := it.Item()
+			k := item.Key()
+			userID := strings.Replace(string(k), "AddrComment", "", -1)
+			m := map[string]string{}
+			m["userID"] = userID
+
+			value, err := item.ValueCopy(nil)
+			if err != nil {
+				return err
+			}
+			idComment := string(value)
+			strs := strings.Split(idComment, ":")
+			if len(strs) > 1 {
+				addr := strs[0]
+				comment := strings.Join(strs[1:], ":")
+				m["addr"] = addr
+				m["comment"] = comment
+			}
+
+			data = append(data, m)
+		}
+		return nil
+	})
+
+	bs, err := json.Marshal(data)
+	return map[string]string{
+		"data": string(bs),
+	}, err
 }

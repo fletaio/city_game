@@ -87,7 +87,7 @@ func NewCityExplorer(dbPath string, Kernel *kernel.Kernel, resourcePath string) 
 
 func (c *CityExplorer) initURL() {
 	gc := &GameController{c.Kernel}
-	sc := &ScoreController{c.Kernel}
+	sc := &ScoreController{c.Kernel, c.db}
 
 	c.be.AddURL("/score/", "GET", func(c echo.Context) error {
 		args := map[string]interface{}{}
@@ -137,6 +137,19 @@ func (c *CityExplorer) initURL() {
 		}
 
 		err = c.Render(http.StatusOK, "score/coincount.html", args)
+		if err != nil {
+			log.Println(err)
+		}
+		return err
+	})
+	c.be.AddURL("/score/user_list", "GET", func(e echo.Context) error {
+		args, err := sc.UserList(e.Request())
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+
+		err = e.Render(http.StatusOK, "score/user_list.html", args)
 		if err != nil {
 			log.Println(err)
 		}
@@ -207,6 +220,7 @@ func (c *CityExplorer) initURL() {
 
 		return e.JSON(http.StatusOK, res)
 	})
+
 }
 
 func (c *CityExplorer) StartExplorer(port int) {
@@ -290,7 +304,7 @@ func (c *CityExplorer) CreatAddr(addr common.Address, tx *citygame.CreateAccount
 		if err := txn.Set([]byte("GameId"+tx.UserID), addr[:]); err != nil {
 			return err
 		}
-		if err := txn.Set([]byte("AddrComment"+tx.Comment), []byte(addr.String())); err != nil {
+		if err := txn.Set([]byte("AddrComment"+tx.UserID), []byte(addr.String()+":"+tx.Comment)); err != nil {
 			return err
 		}
 		return nil
