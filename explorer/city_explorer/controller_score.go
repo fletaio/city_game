@@ -175,16 +175,46 @@ func (e *ScoreController) UserList(r *http.Request) (map[string]string, error) {
 
 			value, err := item.ValueCopy(nil)
 			if err != nil {
-				return err
+				m["error"] = err.Error()
+				continue
 			}
 			idComment := string(value)
 			strs := strings.Split(idComment, ":")
+			var addr string
+			var comment string
 			if len(strs) > 1 {
-				addr := strs[0]
-				comment := strings.Join(strs[1:], ":")
-				m["addr"] = addr
-				m["comment"] = comment
+				addr = strs[0]
+				comment = strings.Join(strs[1:], ":")
 			}
+
+			loader := e.kn.Loader()
+			Addr, err := common.ParseAddress(addr)
+			if err != nil {
+				m["error"] = err.Error()
+				continue
+			}
+			fromAcc, err := loader.Account(Addr)
+			if err != nil {
+				m["error"] = err.Error()
+				continue
+			}
+			acc, ok := fromAcc.(*citygame.Account)
+			if !ok {
+				m["error"] = err.Error()
+				continue
+			}
+			b, err := e.kn.Block(acc.Height)
+			if err != nil {
+				m["error"] = err.Error()
+				continue
+			}
+
+			location, _ := time.LoadLocation("Asia/Seoul")
+			hTime := time.Unix(0, int64(b.Header.Timestamp())).In(location)
+
+			m["time"] = hTime.Format("2006-01-02T15:12:13")
+			m["addr"] = addr
+			m["comment"] = comment
 
 			data = append(data, m)
 		}
