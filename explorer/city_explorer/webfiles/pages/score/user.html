@@ -3,10 +3,17 @@
     var data = {{index . "data"}}
 
     var Level = '{{index . "Level"}}'
+    var CreateTime = '{{index . "CreateTime"}}'
     var Coin = '{{index . "Coin"}}'
     var Gold = '{{index . "Gold"}}'
     var Population = '{{index . "Population"}}'
     var Electricity = '{{index . "Electricity"}}'
+    var Expired = '{{index . "Expired"}}'
+
+    CreateTime = new Date(CreateTime/1000000)
+    if (Expired != "") {
+        CreateTime += "<br/>("+Expired+")"
+    }
 
     var CommercialAreaType  = 1
 	var IndustrialAreaType  = 2
@@ -21,13 +28,18 @@
         }
     }
 
+    function setValue (selector, value) {
+        $(selector).attr("title", value).html(value)
+    }
+
     $(function () {
-        $("#Score").html(numberWithCommas(Score))
-        $("#Level").html(numberWithCommas(Level))
-        $("#Coin").html(numberWithCommas(Coin))
-        $("#Gold").html(numberWithCommas(Gold))
-        $("#Population").html(numberWithCommas(Population))
-        $("#Electricity").html(numberWithCommas(Electricity))
+        setValue("#Score", numberWithCommas(Score))
+        setValue("#Level", numberWithCommas(Level))
+        setValue("#CreateTime", CreateTime)
+        setValue(".CoinField", numberWithCommas(Coin))
+        setValue(".GoldField", numberWithCommas(Gold))
+        setValue(".PopulationField", numberWithCommas(Population))
+        setValue(".ElectricityField", numberWithCommas(Electricity))
         for (var i in map) {
             if (i == 1) {
                 var key = "Business"
@@ -42,6 +54,18 @@
         }
     })
 </script>
+<style>
+@media (min-width: 1025px) {
+    .hideWide {display: none;}
+}
+@media (max-width: 1024px) {
+    .viewWide {display: none;}
+}
+.fleta-table2{
+    text-align: center;
+    vertical-align: middle;
+}
+</style>
 {{end}}
 
 {{define "pageTitle"}}User{{end}}
@@ -62,29 +86,41 @@
                 <div class="portlet_body">
                     <div class="m-portlet ">
                         <div class="m-portlet_body">
-                            <table class="table fleta-table fleta-table2">
+                            <table class="table fleta-table fleta-table3">
                                 <thead>
                                     <tr>
-                                        <!-- <th>RANK</th> -->
                                         <th>ID</th>
                                         <th>Level</th>
+                                        <th>Create Time</th>
                                         <th>Score</th>
+                                        <th class="viewWide">Coin</th>
+                                        <th class="viewWide">Gold</th>
+                                        <th class="viewWide">Population</th>
+                                        <th class="viewWide">Electricity</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>{{index . "ID"}}</td>
+                                        <td id="Level"></td>
+                                        <td id="CreateTime"></td>
+                                        <td id="Score"></td>
+                                        <td class="viewWide CoinField"></td>
+                                        <td class="viewWide GoldField"></td>
+                                        <td class="viewWide PopulationField"></td>
+                                        <td class="viewWide ElectricityField"></td>
+                                    </tr>
+                                    <tr class="hideWide">
                                         <th>Coin</th>
                                         <th>Gold</th>
                                         <th>Population</th>
                                         <th>Electricity</th>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <!-- <th>{{index . "RANK"}}</th> -->
-                                        <td>{{index . "ID"}}</td>
-                                        <td id="Level"></td>
-                                        <td id="Score"></td>
-                                        <td id="Coin"></td>
-                                        <td id="Gold"></td>
-                                        <td id="Population"></td>
-                                        <td id="Electricity"></td>
+                                    <tr class="hideWide">
+                                        <td class="CoinField"></td>
+                                        <td class="GoldField"></td>
+                                        <td class="PopulationField"></td>
+                                        <td class="ElectricityField"></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -97,19 +133,19 @@
                         <div>
                             <table class="table fleta-table fleta-table3">
                                 <tr>
-                                    <th>Business<br/>District</th>
+                                    <th title="Business District">Business<br/>District</th>
                                     <td id="Businesstotal"></td>
-                                    <th>Industrial<br/>District</th>
+                                    <th title="Industrial District">Industrial<br/>District</th>
                                     <td id="Industrialtotal"></td>
-                                    <th>Residential<br/>District</th>
+                                    <th title="Residential District">Residential<br/>District</th>
                                     <td id="Residentialtotal"></td>
                                 </tr>
                                 <tr>
-                                    <th>Lv FLETA</th>
+                                    <th title="Lv FLETA">Lv FLETA</th>
                                     <td id="Businesslv6"></td>
-                                    <th>Lv FLETA</th>
+                                    <th title="Lv FLETA">Lv FLETA</th>
                                     <td id="Industriallv6"></td>
-                                    <th>Lv FLETA</th>
+                                    <th title="Lv FLETA">Lv FLETA</th>
                                     <td id="Residentiallv6"></td>
                                 </tr>
                                 <tr>

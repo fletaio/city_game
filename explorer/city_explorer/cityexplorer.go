@@ -329,7 +329,7 @@ func (c *CityExplorer) UpdateScore(gd *citygame.GameData, height uint32, addr co
 
 	if gd == nil {
 		gd = citygame.NewGameData(height)
-		bs := c.Kernel.Loader().AccountData(addr, []byte("game"))
+		bs := loader.AccountData(addr, []byte("game"))
 		if len(bs) == 0 {
 			log.Println("addr : ", addr.String())
 			return

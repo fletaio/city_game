@@ -54,8 +54,10 @@ func (e *ScoreController) User(r *http.Request) (map[string]string, error) {
 		return nil, err
 	}
 
+	isExpired := ""
 	if acc.Height+citygame.GExpireHeight < Height {
 		Height = acc.Height + citygame.GExpireHeight
+		isExpired = "Expired"
 	}
 
 	gd := citygame.NewGameData(Height)
@@ -86,6 +88,12 @@ func (e *ScoreController) User(r *http.Request) (map[string]string, error) {
 	gr := gd.Resource(Height)
 	data, _ := json.Marshal(gd)
 
+	b, err := e.kn.Block(acc.Height)
+	if err != nil {
+		return nil, err
+	}
+	b.Header.Timestamp()
+
 	return map[string]string{
 		"ID":          userid,
 		"Addr":        addrStr,
@@ -95,6 +103,8 @@ func (e *ScoreController) User(r *http.Request) (map[string]string, error) {
 		"Population":  fmt.Sprintf("%v", gr.ManProvided),
 		"Electricity": fmt.Sprintf("%v", gr.PowerProvided),
 		"data":        string(data),
+		"CreateTime":  fmt.Sprintf("%v", b.Header.Timestamp()),
+		"Expired":     isExpired,
 	}, nil
 }
 
