@@ -186,36 +186,55 @@ func (e *ScoreController) UserList(r *http.Request) (map[string]string, error) {
 			value, err := item.ValueCopy(nil)
 			if err != nil {
 				m["error"] = err.Error()
+				data = append(data, m)
 				continue
 			}
 			idComment := string(value)
 			strs := strings.Split(idComment, ":")
-			var addr string
 			var comment string
 			if len(strs) > 1 {
-				addr = strs[0]
 				comment = strings.Join(strs[1:], ":")
 			}
+			m["comment"] = comment
 
-			loader := e.kn.Loader()
-			Addr, err := common.ParseAddress(addr)
+			userIDItem, err := txn.Get([]byte("GameId" + userID))
 			if err != nil {
 				m["error"] = err.Error()
+				data = append(data, m)
+				continue
+			}
+			value, err = userIDItem.ValueCopy(nil)
+			if err != nil {
+				m["error"] = err.Error()
+				data = append(data, m)
+				continue
+			}
+			var Addr common.Address
+			copy(Addr[:], value)
+			m["addr"] = Addr.String()
+
+			loader := e.kn.Loader()
+			if err != nil {
+				m["error"] = err.Error()
+				data = append(data, m)
 				continue
 			}
 			fromAcc, err := loader.Account(Addr)
 			if err != nil {
 				m["error"] = err.Error()
+				data = append(data, m)
 				continue
 			}
 			acc, ok := fromAcc.(*citygame.Account)
 			if !ok {
 				m["error"] = err.Error()
+				data = append(data, m)
 				continue
 			}
 			b, err := e.kn.Block(acc.Height)
 			if err != nil {
 				m["error"] = err.Error()
+				data = append(data, m)
 				continue
 			}
 
@@ -223,8 +242,6 @@ func (e *ScoreController) UserList(r *http.Request) (map[string]string, error) {
 			hTime := time.Unix(0, int64(b.Header.Timestamp())).In(location)
 
 			m["time"] = hTime.Format("2006-01-02T15:12:13")
-			m["addr"] = addr
-			m["comment"] = comment
 
 			data = append(data, m)
 		}

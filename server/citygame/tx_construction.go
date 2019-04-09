@@ -3,7 +3,6 @@ package citygame
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"strconv"
 
@@ -85,15 +84,15 @@ func init() {
 			res := gd.Resource(ctx.TargetHeight())
 			bd := bds[0]
 			if bd.CostUsage > res.Balance {
-				fmt.Println("Cost need ", bd.CostUsage, " but has ", res.Balance)
+				// fmt.Println("Cost need ", bd.CostUsage, " but has ", res.Balance)
 				return ErrInsufficientResource
 			}
 			if bd.ManUsage > res.ManRemained {
-				fmt.Println("Man need ", bd.ManUsage, " but has ", res.ManRemained)
+				// fmt.Println("Man need ", bd.ManUsage, " but has ", res.ManRemained)
 				return ErrInsufficientResource
 			}
 			if bd.PowerUsage > res.PowerRemained {
-				fmt.Println("Power need ", bd.PowerUsage, " but has ", res.PowerRemained)
+				// fmt.Println("Power need ", bd.PowerUsage, " but has ", res.PowerRemained)
 				return ErrInsufficientResource
 			}
 

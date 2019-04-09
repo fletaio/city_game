@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fletaio/common/util"
+
 	"github.com/labstack/echo"
 
 	"github.com/dgraph-io/badger"
@@ -226,6 +228,7 @@ func (c *CityExplorer) initURL() {
 func (c *CityExplorer) StartExplorer(port int) {
 	go func() {
 		for {
+			c.checkUserIdToAddr()
 			c.reflashAddrScore()
 			time.Sleep(10 * time.Minute)
 		}
@@ -248,6 +251,77 @@ func (c *CityExplorer) DataHandler(e echo.Context) (result interface{}, err erro
 	return
 }
 
+func (c *CityExplorer) checkUserIdToAddr() {
+	if err := c.db.Update(func(txn *badger.Txn) error {
+		opts := badger.DefaultIteratorOptions
+		opts.PrefetchValues = false
+		it := txn.NewIterator(opts)
+		defer it.Close()
+
+		prefix := []byte("GameId")
+
+		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
+			item := it.Item()
+			k := item.Key()
+			value, err := item.ValueCopy(nil)
+			if err != nil {
+				continue
+			}
+			var Addr common.Address
+			copy(Addr[:], value[:])
+
+			userID := strings.Replace(string(k), "GameId", "", -1)
+
+			loader := c.Kernel.Loader()
+			if c.hasAccount(loader, Addr) == true {
+				continue
+			}
+
+			height := util.BytesToUint32(Addr[:4])
+		ACCOUNT:
+			for height > 0 {
+				// index := util.BytesToUint16(Addr[4:6])
+				b, err := c.Kernel.Block(height)
+				if err != nil {
+					log.Println(err)
+					break ACCOUNT
+				}
+
+				txs := b.Body.Transactions
+				for i, tx := range txs {
+					if catx, ok := tx.(*citygame.CreateAccountTx); ok {
+						if catx.UserID == userID {
+							coord := common.NewCoordinate(height, uint16(i))
+							Addr = common.NewAddress(coord, 0)
+							if c.hasAccount(loader, Addr) == true {
+								if err := txn.Set([]byte("GameId"+userID), Addr[:]); err != nil {
+									return err
+								}
+								break ACCOUNT
+							}
+						}
+					}
+				}
+
+				log.Println(height)
+				height--
+			}
+		}
+
+		return nil
+	}); err != nil {
+
+	}
+}
+
+func (c *CityExplorer) hasAccount(loader data.Loader, Addr common.Address) bool {
+	_, err := loader.Account(Addr)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
 func (c *CityExplorer) reflashAddrScore() {
 	addrs := []common.Address{}
 	userIDs := []string{}
@@ -267,13 +341,14 @@ func (c *CityExplorer) reflashAddrScore() {
 				log.Println(addrStr, err)
 				continue
 			}
-			addrs = append(addrs, addr)
 
 			value, err := item.ValueCopy(nil)
 			if err != nil {
 				return err
 			}
 			userID := string(value)
+
+			addrs = append(addrs, addr)
 			userIDs = append(userIDs, userID)
 		}
 		return nil
@@ -298,15 +373,19 @@ func (c *CityExplorer) reflashAddrScore() {
 
 func (c *CityExplorer) CreatAddr(addr common.Address, tx *citygame.CreateAccountTx) {
 	if err := c.db.Update(func(txn *badger.Txn) error {
-		if err := txn.Set([]byte("GameAddr"+addr.String()), []byte(tx.UserID)); err != nil {
-			return err
+		_, err := txn.Get([]byte("GameId" + tx.UserID))
+		if err == badger.ErrKeyNotFound {
+			if err := txn.Set([]byte("GameAddr"+addr.String()), []byte(tx.UserID)); err != nil {
+				return err
+			}
+			if err := txn.Set([]byte("GameId"+tx.UserID), addr[:]); err != nil {
+				return err
+			}
+			if err := txn.Set([]byte("AddrComment"+tx.UserID), []byte(addr.String()+":"+tx.Comment)); err != nil {
+				return err
+			}
 		}
-		if err := txn.Set([]byte("GameId"+tx.UserID), addr[:]); err != nil {
-			return err
-		}
-		if err := txn.Set([]byte("AddrComment"+tx.UserID), []byte(addr.String()+":"+tx.Comment)); err != nil {
-			return err
-		}
+
 		return nil
 	}); err != nil {
 		log.Println(err)
