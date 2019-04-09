@@ -63,6 +63,11 @@
         scoreTable.load('{{index . "sort"}}')
     })
 </script>
+<style>
+.portlet_head-text span{
+    padding-right: 10px;
+}
+</style>
 {{end}}
 
 
@@ -77,7 +82,7 @@
                             All Score Chart
                     </h3>
                     <h3 class="portlet_head-text">
-                        <input id="search" onkeydown="event.which == 13?scoreTable.load(undefined, $('#search').val()):''">
+                        <span>Search</span><input id="search" onkeydown="event.which == 13?scoreTable.load(undefined, $('#search').val()):''">
                     </h3>
                 </div>
                 <div class="portlet_body">
