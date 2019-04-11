@@ -746,16 +746,16 @@ Tile.prototype.CancelPending = function(height) {
 Tile.prototype.SetPending = function(target_area_type, target_level, is_fletasub) {
 	if(this.is_pending != true) {
 		this.is_pending = true;
-		(function (tileIndex) {
-			setTimeout(function () {
-				var tile = gGame.tiles[tileIndex];
-				if (tile.is_pending == true) {
-					gGame.Reload(function (d) {
-						gGame.addressDataProcess(d);
-					});
-				}
-			}, 10000);
-		})(this.x + gConfig.Size * this.y)
+		// (function (tileIndex) {
+		// 	setTimeout(function () {
+		// 		var tile = gGame.tiles[tileIndex];
+		// 		if (tile.is_pending == true) {
+		// 			gGame.Reload(function (d) {
+		// 				gGame.addressDataProcess(d);
+		// 			});
+		// 		}
+		// 	}, 10000);
+		// })(this.x + gConfig.Size * this.y)
 		this.target_area_type = target_area_type;
 		this.target_level = target_level;
 		if(is_fletasub) {
