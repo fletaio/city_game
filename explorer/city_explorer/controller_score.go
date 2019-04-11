@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fletaio/common/util"
+
 	"github.com/dgraph-io/badger"
 	"github.com/fletaio/citygame/server/citygame"
 	"github.com/fletaio/common"
@@ -242,6 +244,22 @@ func (e *ScoreController) UserList(r *http.Request) (map[string]string, error) {
 			hTime := time.Unix(0, int64(b.Header.Timestamp())).In(location)
 
 			m["time"] = hTime.Format("2006-01-02T15:12:13")
+
+			h := util.BytesToUint32(Addr[:4])
+			i := util.BytesToUint16(Addr[4:6])
+			b, err = e.kn.Block(h)
+			if err != nil {
+				m["error"] = err.Error()
+				data = append(data, m)
+				continue
+			}
+			txs := b.Body.Transactions
+			if uint16(len(txs)) > i {
+				tx := txs[i]
+				if caTx, ok := tx.(*citygame.CreateAccountTx); ok {
+					m["eth"] = caTx.Reward
+				}
+			}
 
 			data = append(data, m)
 		}

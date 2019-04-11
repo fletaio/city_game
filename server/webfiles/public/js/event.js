@@ -238,13 +238,13 @@ function connectToServer (addr) {
 
 	function onClose(ws2,  e)
 	{
-		disconnectedCount = (disconnectedCount+1) * 2
 		console.log("DISCONNECTED");
 		(function () {
 			setTimeout(function () {
 				ws = connect();
-			}, 1000*disconnectedCount)
+			}, 1000*disconnectedCount-1)
 		})()
+		disconnectedCount = (disconnectedCount+1) * 2
 	}
 
 	function onError(ws2,  e)
@@ -353,7 +353,7 @@ function onMessage(ws,  e) {
 		}
 		*/
 	}
-}//	25,769,850,398
+}
 
 function addKeyShotcut () {
 	document.addEventListener('keydown', function(event) {
