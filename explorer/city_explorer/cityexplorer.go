@@ -157,6 +157,14 @@ func (c *CityExplorer) initURL() {
 		}
 		return err
 	})
+	c.be.AddURL("/score/v0.2_final", "GET", func(e echo.Context) error {
+		args := map[string]interface{}{}
+		err := e.Render(http.StatusOK, "score/v0.2_final.html", args)
+		if err != nil {
+			log.Println(err)
+		}
+		return err
+	})
 	c.be.AddURL("/game/", "GET", func(c echo.Context) error {
 		args, err := gc.Index(c.Request())
 		if err != nil {

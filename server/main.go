@@ -359,10 +359,12 @@ func main() {
 		if bs := loader.AccountData(rootAddress, KeyHashID); len(bs) > 0 {
 			var addr common.Address
 			copy(addr[:], bs)
-			utxos := []uint64{}
+			utxos := []string{}
 			for i := 0; i < citygame.GameCommandChannelSize; i++ {
-				utxos = append(utxos, util.BytesToUint64(loader.AccountData(addr, []byte("utxo"+strconv.Itoa(i)))))
+				utxo := util.BytesToUint64(loader.AccountData(addr, []byte("utxo"+strconv.Itoa(i))))
+				utxos = append(utxos, fmt.Sprintf("%v", utxo))
 			}
+
 			res := &WebAccountRes{
 				Address: addr.String(),
 				UTXOs:   utxos,
@@ -457,9 +459,10 @@ func main() {
 					if bs := loader.AccountData(rootAddress, KeyHashID); len(bs) > 0 {
 						var addr common.Address
 						copy(addr[:], bs)
-						utxos := []uint64{}
+						utxos := []string{}
 						for i := 0; i < citygame.GameCommandChannelSize; i++ {
-							utxos = append(utxos, util.BytesToUint64(loader.AccountData(addr, []byte("utxo"+strconv.Itoa(i)))))
+							bs := util.BytesToUint64(loader.AccountData(addr, []byte("utxo"+strconv.Itoa(i))))
+							utxos = append(utxos, fmt.Sprintf("%v", bs))
 						}
 						res := &WebAccountRes{
 							Address: addr.String(),
@@ -548,7 +551,7 @@ func main() {
 		if err := json.Unmarshal(body, &req); err != nil {
 			return err
 		}
-		if req.UTXO == 0 {
+		if req.UTXO == "" {
 			return citygame.ErrInvalidUTXO
 		}
 		if req.X > citygame.GTileSize {
@@ -573,7 +576,11 @@ func main() {
 
 		tx := t.(*citygame.DemolitionTx)
 		tx.Timestamp_ = uint64(time.Now().UnixNano())
-		tx.Vin = []*transaction.TxIn{transaction.NewTxIn(req.UTXO)}
+		utxo, err := strconv.ParseUint(req.UTXO, 10, 64)
+		if err != nil {
+			return citygame.ErrInvalidUTXO
+		}
+		tx.Vin = []*transaction.TxIn{transaction.NewTxIn(utxo)}
 		tx.Address = addr
 		tx.X = uint8(req.X)
 		tx.Y = uint8(req.Y)
@@ -606,7 +613,7 @@ func main() {
 		if err := json.Unmarshal(body, &req); err != nil {
 			return err
 		}
-		if req.UTXO == 0 {
+		if req.UTXO == "" {
 			return citygame.ErrInvalidUTXO
 		}
 		if req.X > citygame.GTileSize {
@@ -632,7 +639,11 @@ func main() {
 		}
 		tx := t.(*citygame.ConstructionTx)
 		tx.Timestamp_ = uint64(time.Now().UnixNano())
-		tx.Vin = []*transaction.TxIn{transaction.NewTxIn(req.UTXO)}
+		utxo, err := strconv.ParseUint(req.UTXO, 10, 64)
+		if err != nil {
+			return citygame.ErrInvalidUTXO
+		}
+		tx.Vin = []*transaction.TxIn{transaction.NewTxIn(utxo)}
 		tx.Address = addr
 		tx.X = uint8(req.X)
 		tx.Y = uint8(req.Y)
@@ -666,7 +677,7 @@ func main() {
 		if err := json.Unmarshal(body, &req); err != nil {
 			return err
 		}
-		if req.UTXO == 0 {
+		if req.UTXO == "" {
 			return citygame.ErrInvalidUTXO
 		}
 		if req.X > citygame.GTileSize {
@@ -695,7 +706,11 @@ func main() {
 		}
 		tx := t.(*citygame.UpgradeTx)
 		tx.Timestamp_ = uint64(time.Now().UnixNano())
-		tx.Vin = []*transaction.TxIn{transaction.NewTxIn(req.UTXO)}
+		utxo, err := strconv.ParseUint(req.UTXO, 10, 64)
+		if err != nil {
+			return citygame.ErrInvalidUTXO
+		}
+		tx.Vin = []*transaction.TxIn{transaction.NewTxIn(utxo)}
 		tx.Address = addr
 		tx.X = uint8(req.X)
 		tx.Y = uint8(req.Y)
@@ -730,7 +745,7 @@ func main() {
 		if err := json.Unmarshal(body, &req); err != nil {
 			return err
 		}
-		if req.UTXO == 0 {
+		if req.UTXO == "" {
 			return citygame.ErrInvalidUTXO
 		}
 		if req.X > citygame.GTileSize {
@@ -753,7 +768,11 @@ func main() {
 		}
 		tx := t.(*citygame.GetCoinTx)
 		tx.Timestamp_ = uint64(time.Now().UnixNano())
-		tx.Vin = []*transaction.TxIn{transaction.NewTxIn(req.UTXO)}
+		utxo, err := strconv.ParseUint(req.UTXO, 10, 64)
+		if err != nil {
+			return citygame.ErrInvalidUTXO
+		}
+		tx.Vin = []*transaction.TxIn{transaction.NewTxIn(utxo)}
 		tx.Address = addr
 		tx.X = uint8(req.X)
 		tx.Y = uint8(req.Y)
@@ -787,7 +806,7 @@ func main() {
 		if err := json.Unmarshal(body, &req); err != nil {
 			return err
 		}
-		if req.UTXO == 0 {
+		if req.UTXO == "" {
 			return citygame.ErrInvalidUTXO
 		}
 		if req.X > citygame.GTileSize {
@@ -810,7 +829,11 @@ func main() {
 		}
 		tx := t.(*citygame.GetExpTx)
 		tx.Timestamp_ = uint64(time.Now().UnixNano())
-		tx.Vin = []*transaction.TxIn{transaction.NewTxIn(req.UTXO)}
+		utxo, err := strconv.ParseUint(req.UTXO, 10, 64)
+		if err != nil {
+			return citygame.ErrInvalidUTXO
+		}
+		tx.Vin = []*transaction.TxIn{transaction.NewTxIn(utxo)}
 		tx.Address = addr
 		tx.X = uint8(req.X)
 		tx.Y = uint8(req.Y)
@@ -1117,7 +1140,7 @@ func getWebTileNotify(ctx *data.Context, addr common.Address, height uint32, ind
 		PointBalance: int(gd.PointBalance),
 		CoinCount:    int(gd.CoinCount),
 		TotalExp:     int(gd.TotalExp),
-		UTXO:         int(id),
+		UTXO:         fmt.Sprintf("%v", id),
 		Tx: &UTXO{
 			ID: id,
 		},
@@ -1144,7 +1167,7 @@ type WebAccountReq struct {
 
 type WebAccountRes struct {
 	Address string   `json:"address"`
-	UTXOs   []uint64 `json:"utxos"`
+	UTXOs   []string `json:"utxos"`
 }
 
 type WebReportRes struct {
@@ -1176,20 +1199,20 @@ type WebHeightRes struct {
 }
 
 type WebDemolitionReq struct {
-	UTXO uint64 `json:"utxo"`
+	UTXO string `json:"utxo"`
 	X    int    `json:"x"`
 	Y    int    `json:"y"`
 }
 
 type WebConstructionReq struct {
-	UTXO     uint64 `json:"utxo"`
+	UTXO     string `json:"utxo"`
 	X        int    `json:"x"`
 	Y        int    `json:"y"`
 	AreaType int    `json:"area_type"`
 }
 
 type WebUpgradeReq struct {
-	UTXO        uint64 `json:"utxo"`
+	UTXO        string `json:"utxo"`
 	X           int    `json:"x"`
 	Y           int    `json:"y"`
 	AreaType    int    `json:"area_type"`
@@ -1197,14 +1220,14 @@ type WebUpgradeReq struct {
 }
 
 type WebGetCoinReq struct {
-	UTXO  uint64 `json:"utxo"`
+	UTXO  string `json:"utxo"`
 	X     int    `json:"x"`
 	Y     int    `json:"y"`
 	Index int    `json:"index"`
 }
 
 type WebGetExpReq struct {
-	UTXO     uint64 `json:"utxo"`
+	UTXO     string `json:"utxo"`
 	X        int    `json:"x"`
 	Y        int    `json:"y"`
 	AreaType int    `json:"area_type"`
@@ -1234,7 +1257,7 @@ type WebTileNotify struct {
 	PointBalance int                     `json:"point_balance"`
 	CoinCount    int                     `json:"coin_count"`
 	TotalExp     int                     `json:"total_exp"`
-	UTXO         int                     `json:"utxo"`
+	UTXO         string                  `json:"utxo"`
 	Tx           *UTXO                   `json:"tx"`
 	Coin         *citygame.FletaCityCoin `json:"coin"`
 	Exp          *citygame.FletaCityExp  `json:"exp"`

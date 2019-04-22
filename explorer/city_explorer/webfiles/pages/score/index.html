@@ -49,11 +49,22 @@
         scoreTable.load()
     })
 </script>
+<style>
+    .final_score {
+        position: absolute;
+        top: 130px;
+        right: 60px;
+        font-size: 20px;
+    }
+</style>
 {{end}}
 
 {{define "pageTitle"}}Score{{end}}
 
 {{define "fletaBody"}}
+    <div class="final_score">
+        <a href="/score/v0.2_final">ver0.2 Final Score Ranking</a>
+    </div>
     <div class="row">
         <div class="col-xl-6">
             <div class="portlet">

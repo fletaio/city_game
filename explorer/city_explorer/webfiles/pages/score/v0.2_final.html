@@ -1,0 +1,294 @@
+{{define "headScript"}}
+<script>
+    $(function () {
+        $("#scoreTab [tabId]").click(function () {
+            var $t = $(this)
+            var tabId = $t.attr("tabId")
+            $("#scoreTab [tabId]").removeClass("active")
+            $t.addClass("active")
+            $("[tabContentId]").hide()
+            $("[tabContentId='"+tabId+"']").show()
+        })
+    })
+</script>
+<style>
+    #scoreTab {
+        position: relative;
+        top: 14px;
+        width:50% !important;
+        min-width: 300px;
+        background: white;
+    }
+    #scoreTab th {
+        background: white;
+        cursor: pointer;
+    }
+    #scoreTab th.active {
+        background-color: #1b2436;
+    }
+
+    .fleta-table {
+        display: none;
+    }
+    .fleta-table.activeTable {
+        display: table;
+    }
+    .to_right {
+        text-align: right;
+        font-weight: bold;
+    }
+    @media (max-width: 720px) {
+        .tabContentIdBefore tr td:nth-child(3),
+        .tabContentIdBefore tr th:nth-child(3),
+        .tabContentIdBefore tr td:nth-child(5),
+        .tabContentIdBefore tr th:nth-child(5),
+        .tabContentIdBefore tr td:nth-child(6),
+        .tabContentIdBefore tr th:nth-child(6),
+        .tabContentIdBefore tr td:nth-child(7),
+        .tabContentIdBefore tr th:nth-child(7)
+        {
+            display: none;
+        }
+    }
+    @media (max-width: 720px) {
+        .tabContentIdResult tr td:nth-child(3),
+        .tabContentIdResult tr th:nth-child(3),
+        .tabContentIdResult tr td:nth-child(5),
+        .tabContentIdResult tr th:nth-child(5)
+        {
+            display: none;
+        }
+    }
+</style>
+{{end}}
+
+{{define "pageTitle"}}ver0.2 Final Score Ranking{{end}}
+
+
+{{define "fletaBody"}}
+<table id="scoreTab" class="activeTable table fleta-table fleta-table2">
+    <thead>
+        <tr>
+            <th class="active" tabId="result">Final Reward Table</th>
+            <th tabId="before">Explorer Chart</th>
+            <th tabId="after">In-game Chart</th>
+        </tr>
+    </thead>
+</table>
+<div class="row">
+    <div class="col-xl-12">
+        <div class="portlet">
+            <div class="portlet_body">
+                <div class="m-portlet ">
+                    <div class="m-portlet_body">
+                            <table class="activeTable table fleta-table fleta-table2 tabContentIdResult" tabContentId="result">
+                                    <thead>
+                                        <tr>
+                                            <th>RANK</th>
+                                            <th>ID</th>
+                                            <th>Reward</th>
+                                            <th>FLETA</th>
+                                            <th>Deconomy</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+        
+        <tr><td>1</td><td>2ZMun!</td><td>0x55256E8a3966165a65cC9e742FeA68A585615288</td><td>200000</td><td></td></tr>
+        <tr><td>1</td><td>top111</td><td>0x2cEAd0Efe078CF98C7A2219E6bC7b748Bb53dcCd</td><td>200000</td><td></td></tr>
+        <tr><td>2</td><td>nuvola02</td><td>0x56Db1Edb717101d9F57332E2Ae9F4EcB2Ef181e3</td><td>50000</td><td></td></tr>
+        <tr><td>2</td><td>tonth</td><td>0x110db628905e3165c89927D3bF155a59Ea81eFE1</td><td>50000</td><td></td></tr>
+        <tr><td>3</td><td>jeremy00</td><td>0xdef5d16226ec593d513c74d5882eb2292dc59ebd</td><td>50000</td><td></td></tr>
+        <tr><td>3</td><td>oxox</td><td>0x00bb40fbe1588f320d6bc2a2e43664c39066dcdc</td><td>50000</td><td></td></tr>
+        <tr><td>4</td><td>besvborodu</td><td>0x8c976B2d3725FE86443a0D443F71ECBCf297e577</td><td>30000</td><td></td></tr>
+        <tr><td>4</td><td>LKH0130</td><td>0x66ccd2275fcf67811d395ba5b55b2d2813244843</td><td>30000</td><td></td></tr>
+        <tr><td>5</td><td>lsb00199</td><td>0x3111ba88f0dd9c84933a194ffba82cda9d2ca639</td><td>30000</td><td></td></tr>
+        <tr><td>6</td><td>top1</td><td>0x3aA635E4B6e4e2FF52ef50D11020e0816f493B28</td><td>30000</td><td></td></tr>
+        <tr><td>6</td><td>vh123</td><td>0xcd245A2cbCF2516bA136C532Bc6F06739f62ddcE</td><td>30000</td><td></td></tr>
+        <tr><td>7</td><td>better1</td><td>0xAfb5a7EAE3D074201611E8B72A987643DBe60B90</td><td>30000</td><td></td></tr>
+        <tr><td>7</td><td>Ace1</td><td>0x7B43718cE794c273Ac4823Cd8c71F4661D5B7a47</td><td>30000</td><td></td></tr>
+        <tr><td>8</td><td>ipconfig4</td><td>0x3b72b070e9DDa502c8FcdaB7fe9c3aA5567A01B9</td><td>33000</td><td>Deconomy</td></tr>
+        <tr><td>8</td><td>la222</td><td>0xc17217714f71651408ba271f8d24cd47a2cd1cc4</td><td>30000</td><td></td></tr>
+        <tr><td>9</td><td>pirate1212</td><td>0xC6F7AD6B0bB48D716b4dfaC5DFF61c9A3CBab5b0</td><td>30000</td><td></td></tr>
+        <tr><td>10</td><td>trytop1</td><td>0x5bde7CBe3082dbe56D3586aBf677dA597d61b6e3</td><td>30000</td><td></td></tr>
+        <tr><td>11</td><td>billar3</td><td>0xd2e77d5e60d17b35c90f731b6b9681bddcea0bf1</td><td>10000</td><td></td></tr>
+        <tr><td>12</td><td>big2</td><td>0x05c0b955a25bdf49dbefa1c8594aa7f1402c6e11</td><td>10000</td><td></td></tr>
+        <tr><td>13</td><td>Goodboy2</td><td>0xd8c625ddff671818a238683af4c285e0253289e5</td><td>10000</td><td></td></tr>
+        <tr><td>13</td><td>fletasck</td><td>0x3c74f5192f224e19a7bf9917a02bf7313464942b</td><td>10000</td><td></td></tr>
+        <tr><td>14</td><td>tongu</td><td>0x5D1463D00B4712f356D0c8201dADc3AC27dee451</td><td>10000</td><td></td></tr>
+        <tr><td>15</td><td>marco09</td><td>0xa94216f20233de31dfe4bf6a521ab1dd0653d283</td><td>10000</td><td></td></tr>
+        <tr><td>16</td><td>acidsun1</td><td>0x34B7F7e09181109eC618F38Adc094aA48Ee6f317</td><td>10000</td><td></td></tr>
+        <tr><td>17</td><td>ANANAN</td><td>0xb675b41F40e3515a1BBaa19b31bd668A68b1Bc8a</td><td>10000</td><td></td></tr>
+        <tr><td>19</td><td>blackdapps</td><td>0x7655ebf16Ded458Ab0c1bfB5764238BF970A0b9b</td><td>10000</td><td></td></tr>
+        <tr><td>19</td><td>tonsu</td><td>0x32aaEa53a7854A8c51D35E44b0AA4eC18426c2fd</td><td>10000</td><td></td></tr>
+        <tr><td>20</td><td>camrynumber1</td><td>0xE6C0aF7A10c293e3237A4024a2B71f4Dcb8A15B6</td><td>10000</td><td></td></tr>
+        <tr><td>21</td><td>goodman2</td><td>0x89c9e764Db609fd59706548fE4b5Aef10a4ba828</td><td>8000</td><td></td></tr>
+        <tr><td>22</td><td>vanhhhhha</td><td>0x80bae799ba3cae052Df9F5F32D31612B7f1E3eD8</td><td>8000</td><td></td></tr>
+        <tr><td>23</td><td>thelastscene</td><td>0x027447A706D0889c616d1e86ae630Bf7802CdA51</td><td>8000</td><td></td></tr>
+        <tr><td>24</td><td>elfin27</td><td>0xe21428dc9dea23c806f4736965eb2f7c3e8599f7</td><td>8000</td><td></td></tr>
+        <tr><td>25</td><td>tesseract</td><td>0x6B90A6c33a21587C81962F34FD06CB27959c70cF</td><td>8000</td><td></td></tr>
+        <tr><td>26</td><td>starohdh1</td><td>0x2552b90572BCd139e0f41F1fF633223035b3fF90</td><td>8000</td><td></td></tr>
+        <tr><td>28</td><td>BigPac</td><td>0x62EB3e90696D302f80c48D859943f0E244823436</td><td>8000</td><td></td></tr>
+        <tr><td>29</td><td>jamong</td><td>0x8dcdc06c2aCC184a2DEbF0Fc41deEae966e3ee43</td><td>8800</td><td>Deconomy</td></tr>
+        <tr><td>30</td><td>hhhhhhhhaaa</td><td>0x5b178740e09d99Fb8F9594D831b5Ff930c5D4636</td><td>8000</td><td></td></tr>
+        <tr><td>31</td><td>nyudds</td><td>0xabf1d7A7Ef47b3652CdBaEFb7D741aCCD119d92D</td><td>8000</td><td></td></tr>
+        <tr><td>32</td><td>horo</td><td>0xeA41e74f896dD6eC2cd5454d9bF7a3720bdC8C4B</td><td>8000</td><td></td></tr>
+        <tr><td>35</td><td>kibos5454</td><td>0x3028ae7ec87946ff8cc3dfccf2d1fa23949e7166</td><td>8000</td><td></td></tr>
+        <tr><td>36</td><td>Goodboy1</td><td>0xe06cc2c8e3421aea2dacc16207d8a77afd47ceb6</td><td>8000</td><td></td></tr>
+        <tr><td>37</td><td>막장이다</td><td>0x15b6973fD402bAC8Ee45cBd9568cA946419484F5</td><td>8000</td><td></td></tr>
+        <tr><td>39</td><td>ANAN</td><td>0xb8F1e8Abe3815F33ecfB44dCe8Cd8490795F8040</td><td>8000</td><td></td></tr>
+        <tr><td>40</td><td>ahchu</td><td>0x6A56d78bF53bcE2450A6e067F5f7C8D1CDA1F4Cf</td><td>8000</td><td></td></tr>
+        <tr><td>42</td><td>torike</td><td>0x4e66c8fea449D7aC5C2a55061c0FCf24C4106A9c</td><td>8000</td><td></td></tr>
+        <tr><td>43</td><td>keepwatukill</td><td>0xBc4DaC64Fa5C3FA2a26C6Ab1a51d5795970E690d</td><td>8000</td><td></td></tr>
+        <tr><td>44</td><td>mama99</td><td>0x30792BEb270afDfCe4408E860B7013FCfACcCBBa</td><td>8000</td><td></td></tr>
+        <tr><td>44</td><td>pocky64</td><td>0xBC311Ded11557Ad3F91657079a9576E34c2FC0CE</td><td>8000</td><td></td></tr>
+        <tr><td>45</td><td>wj1017</td><td>0x5b99292831A686E33F5F5f4d9618CF357959f4CC</td><td>8000</td><td></td></tr>
+        <tr><td>46</td><td>maxcoffee</td><td>0xc66279677dE897291caCC6B2855f718eEe834568</td><td>8000</td><td></td></tr>
+        <tr><td>48</td><td>buraki</td><td>0x8a19E6eCbA536Fe3A073A17B0b8F19FD1b5627a6</td><td>8000</td><td></td></tr>
+        <tr><td>49</td><td>jkhjkh</td><td>0x2807444415bf5735478d962b27e431106f272ae8</td><td>8000</td><td></td></tr>
+        
+                                    </tbody>
+                                </table>
+        
+
+                        <table class="table fleta-table fleta-table2 tabContentIdBefore" tabContentId="before">
+                            <thead>
+                                <tr>
+                                    <th>RANK</th>
+                                    <th>ID</th>
+                                    <th>Reward</th>
+                                    <th>Score</th>
+                                    <th>Gold</th>
+                                    <th>Population</th>
+                                    <th>Electricity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+<tr><td>1</td><td>2ZMun!</td><td>0x55256E8a3966165a65cC9e742FeA68A585615288</td><td>2,823,365,763</td><td>2,823,161,509</td><td>16,163</td><td>23,267</td></tr>
+<tr><td>2</td><td>nuvola02</td><td>0x56Db1Edb717101d9F57332E2Ae9F4EcB2Ef181e3</td><td>2,713,274,858</td><td>2,713,070,604</td><td>16,163</td><td>23,267</td></tr>
+<tr><td>3</td><td>jeremy00</td><td>0xdef5d16226ec593d513c74d5882eb2292dc59ebd</td><td>2,635,017,109</td><td>2,634,812,855</td><td>16,163</td><td>23,267</td></tr>
+<tr><td>4</td><td>besvborodu</td><td>0x8c976B2d3725FE86443a0D443F71ECBCf297e577</td><td>2,619,815,256</td><td>2,619,610,382</td><td>16,261</td><td>23,305</td></tr>
+<tr><td>5</td><td>LKH130</td><td>0x66ccd2275fcf67811d395ba5b55b2d2813244843</td><td>2,608,517,022</td><td>2,608,312,840</td><td>16,163</td><td>23,255</td></tr>
+<tr><td>6</td><td>top1</td><td>0x3aA635E4B6e4e2FF52ef50D11020e0816f493B28</td><td>2,569,674,764</td><td>2,569,474,962</td><td>15,803</td><td>22,765</td></tr>
+<tr><td>7</td><td>better1</td><td>0xAfb5a7EAE3D074201611E8B72A987643DBe60B90</td><td>2,464,377,831</td><td>2,464,189,309</td><td>14,843</td><td>21,525</td></tr>
+<tr><td>8</td><td>ipconfig4</td><td>0x3b72b070e9DDa502c8FcdaB7fe9c3aA5567A01B9</td><td>2,439,945,884</td><td>2,439,744,882</td><td>16,043</td><td>22,805</td></tr>
+<tr><td>9</td><td>top111</td><td>0x2cEAd0Efe078CF98C7A2219E6bC7b748Bb53dcCd</td><td>2,422,307,963</td><td>2,422,173,059</td><td>10,563</td><td>15,442</td></tr>
+<tr><td>10</td><td>tonth</td><td>0x110db628905e3165c89927D3bF155a59Ea81eFE1</td><td>2,415,616,073</td><td>2,415,464,431</td><td>11,908</td><td>17,335</td></tr>
+<tr><td>11</td><td>oxox</td><td>0x00bb40fbe1588f320d6bc2a2e43664c39066dcdc</td><td>2,414,425,462</td><td>2,414,237,660</td><td>14,843</td><td>21,405</td></tr>
+<tr><td>12</td><td>lsb00199</td><td>0x3111ba88f0dd9c84933a194ffba82cda9d2ca639</td><td>2,372,239,652</td><td>2,372,095,470</td><td>11,363</td><td>16,455</td></tr>
+<tr><td>13</td><td>Goodboy2</td><td>0xd8c625ddff671818a238683af4c285e0253289e5</td><td>2,352,818,878</td><td>2,352,617,846</td><td>15,923</td><td>22,890</td></tr>
+<tr><td>14</td><td>vh123</td><td>0xcd245A2cbCF2516bA136C532Bc6F06739f62ddcE</td><td>2,312,243,441</td><td>2,312,082,765</td><td>12,659</td><td>18,340</td></tr>
+<tr><td>15</td><td>Ace1</td><td>0x7B43718cE794c273Ac4823Cd8c71F4661D5B7a47</td><td>2,305,595,434</td><td>2,305,441,072</td><td>12,183</td><td>17,605</td></tr>
+<tr><td>16</td><td>la222</td><td>0xc17217714f71651408ba271f8d24cd47a2cd1cc4</td><td>2,298,560,382</td><td>2,298,391,840</td><td>13,403</td><td>19,155</td></tr>
+<tr><td>17</td><td>pirate1212</td><td>0xC6F7AD6B0bB48D716b4dfaC5DFF61c9A3CBab5b0</td><td>2,270,186,187</td><td>2,270,009,435</td><td>14,008</td><td>20,120</td></tr>
+<tr><td>18</td><td>trytop1</td><td>0x5bde7CBe3082dbe56D3586aBf677dA597d61b6e3</td><td>2,265,307,832</td><td>2,265,174,546</td><td>10,349</td><td>15,315</td></tr>
+<tr><td>19</td><td>blackdapps</td><td>0x7655ebf16Ded458Ab0c1bfB5764238BF970A0b9b</td><td>2,229,176,554</td><td>2,228,984,792</td><td>15,233</td><td>21,805</td></tr>
+<tr><td>20</td><td>marco09</td><td>0xa94216f20233de31dfe4bf6a521ab1dd0653d283</td><td>2,216,582,204</td><td>2,216,429,892</td><td>11,963</td><td>17,410</td></tr>
+<tr><td>21</td><td>fletasck</td><td>0x3c74f5192f224e19a7bf9917a02bf7313464942b</td><td>2,188,743,126</td><td>2,188,584,124</td><td>12,593</td><td>18,105</td></tr>
+<tr><td>22</td><td>billar3</td><td>0xd2e77d5e60d17b35c90f731b6b9681bddcea0bf1</td><td>2,187,303,196</td><td>2,187,139,414</td><td>12,963</td><td>18,655</td></tr>
+<tr><td>23</td><td>big2</td><td>0x05c0b955a25bdf49dbefa1c8594aa7f1402c6e11</td><td>2,176,538,819</td><td>2,176,359,417</td><td>14,168</td><td>20,455</td></tr>
+<tr><td>24</td><td>goodman2</td><td>0x89c9e764Db609fd59706548fE4b5Aef10a4ba828</td><td>2,135,897,186</td><td>2,135,730,864</td><td>13,118</td><td>18,975</td></tr>
+<tr><td>25</td><td>tongu</td><td>0x5D1463D00B4712f356D0c8201dADc3AC27dee451</td><td>2,131,066,050</td><td>2,130,969,688</td><td>7,283</td><td>11,205</td></tr>
+<tr><td>26</td><td>acidsun1</td><td>0x34B7F7e09181109eC618F38Adc094aA48Ee6f317</td><td>2,107,428,756</td><td>2,107,241,414</td><td>14,803</td><td>21,355</td></tr>
+<tr><td>27</td><td>vanhhhhha</td><td>0x80bae799ba3cae052Df9F5F32D31612B7f1E3eD8</td><td>2,102,420,132</td><td>2,102,292,070</td><td>9,958</td><td>14,705</td></tr>
+<tr><td>28</td><td>ANANAN</td><td>0xb675b41F40e3515a1BBaa19b31bd668A68b1Bc8a</td><td>2,100,633,205</td><td>2,100,499,623</td><td>10,408</td><td>15,325</td></tr>
+<tr><td>29</td><td>tonsu</td><td>0x32aaEa53a7854A8c51D35E44b0AA4eC18426c2fd</td><td>2,089,009,709</td><td>2,088,877,347</td><td>10,223</td><td>15,245</td></tr>
+<tr><td>30</td><td>camrynumber1</td><td>0xE6C0aF7A10c293e3237A4024a2B71f4Dcb8A15B6</td><td>2,051,269,286</td><td>2,051,132,644</td><td>10,588</td><td>15,715</td></tr>
+<tr><td>31</td><td>hhhhhhhhaaa</td><td>0x5b178740e09d99Fb8F9594D831b5Ff930c5D4636</td><td>2,036,279,696</td><td>2,036,107,084</td><td>13,498</td><td>19,770</td></tr>
+<tr><td>32</td><td>thelastscene</td><td>0x027447A706D0889c616d1e86ae630Bf7802CdA51</td><td>2,033,922,648</td><td>2,033,747,006</td><td>13,363</td><td>20,365</td></tr>
+<tr><td>33</td><td>starohdh1</td><td>0x2552b90572BCd139e0f41F1fF633223035b3fF90</td><td>2,033,391,394</td><td>2,033,248,032</td><td>11,098</td><td>16,495</td></tr>
+<tr><td>34</td><td>horo</td><td>0xeA41e74f896dD6eC2cd5454d9bF7a3720bdC8C4B</td><td>2,029,147,051</td><td>2,028,981,197</td><td>13,226</td><td>18,825</td></tr>
+<tr><td>35</td><td>elfin27</td><td>0xe21428dc9dea23c806f4736965eb2f7c3e8599f7</td><td>2,026,262,908</td><td>2,026,097,706</td><td>12,943</td><td>18,905</td></tr>
+<tr><td>36</td><td>tesseract</td><td>0x6B90A6c33a21587C81962F34FD06CB27959c70cF</td><td>2,007,985,099</td><td>2,007,866,057</td><td>9,173</td><td>13,725</td></tr>
+<tr><td>37</td><td>BigPac</td><td>0x62EB3e90696D302f80c48D859943f0E244823436</td><td>2,000,137,244</td><td>1,999,998,758</td><td>11,328</td><td>15,529</td></tr>
+<tr><td>38</td><td>jamong</td><td>0x8dcdc06c2aCC184a2DEbF0Fc41deEae966e3ee43</td><td>1,991,497,542</td><td>1,991,360,310</td><td>10,683</td><td>15,750</td></tr>
+<tr><td>39</td><td>nyudds</td><td>0xabf1d7A7Ef47b3652CdBaEFb7D741aCCD119d92D</td><td>1,948,726,933</td><td>1,948,594,771</td><td>10,083</td><td>15,305</td></tr>
+<tr><td>40</td><td>ahchu</td><td>0x6A56d78bF53bcE2450A6e067F5f7C8D1CDA1F4Cf</td><td>1,933,479,542</td><td>1,933,272,012</td><td>16,523</td><td>23,573</td></tr>
+<tr><td>41</td><td>Goodboy1</td><td>0xe06cc2c8e3421aea2dacc16207d8a77afd47ceb6</td><td>1,920,543,138</td><td>1,920,351,176</td><td>15,508</td><td>21,655</td></tr>
+<tr><td>42</td><td>kibos5454</td><td>0x3028ae7ec87946ff8cc3dfccf2d1fa23949e7166</td><td>1,907,564,987</td><td>1,907,430,105</td><td>10,598</td><td>15,415</td></tr>
+<tr><td>43</td><td>막장이다</td><td>0x15b6973fD402bAC8Ee45cBd9568cA946419484F5</td><td>1,871,947,034</td><td>1,871,793,832</td><td>12,118</td><td>17,455</td></tr>
+<tr><td>44</td><td>mama99</td><td>0x30792BEb270afDfCe4408E860B7013FCfACcCBBa</td><td>1,858,583,031</td><td>1,858,383,709</td><td>16,073</td><td>22,505</td></tr>
+<tr><td>45</td><td>ANAN</td><td>0xb8F1e8Abe3815F33ecfB44dCe8Cd8490795F8040</td><td>1,843,522,900</td><td>1,843,371,566</td><td>12,101</td><td>17,155</td></tr>
+<tr><td>46</td><td>maxcoffee</td><td>0xc66279677dE897291caCC6B2855f718eEe834568</td><td>1,762,227,906</td><td>1,762,025,234</td><td>16,108</td><td>23,040</td></tr>
+<tr><td>47</td><td>torike</td><td>0x4e66c8fea449D7aC5C2a55061c0FCf24C4106A9c</td><td>1,748,438,423</td><td>1,748,242,061</td><td>15,483</td><td>22,405</td></tr>
+<tr><td>48</td><td>buraki</td><td>0x8a19E6eCbA536Fe3A073A17B0b8F19FD1b5627a6</td><td>1,725,107,546</td><td>1,724,943,444</td><td>12,713</td><td>18,875</td></tr>
+<tr><td>49</td><td>keepwatukill</td><td>0xBc4DaC64Fa5C3FA2a26C6Ab1a51d5795970E690d</td><td>1,709,778,207</td><td>1,709,648,005</td><td>10,643</td><td>14,605</td></tr>
+<tr><td>50</td><td>pocky64</td><td>0xBC311Ded11557Ad3F91657079a9576E34c2FC0CE</td><td>1,703,249,308</td><td>1,703,160,234</td><td>6,736</td><td>10,355</td></tr>
+                            </tbody>
+                        </table>
+                        <table class="table fleta-table fleta-table2 tabContentIdBefore" tabContentId="after">
+                            <thead>
+                                <tr>
+                                    <th>RANK</th>
+                                    <th>ID</th>
+                                    <th>Reward</th>
+                                    <th>Score</th>
+                                    <th>Gold</th>
+                                    <th>Population</th>
+                                    <th>Electricity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+<tr><td>1</td><td>top111</td><td>0x2cEAd0Efe078CF98C7A2219E6bC7b748Bb53dcCd</td><td>2422307963</td><td>2422173059</td><td>10563</td><td>15442</td></tr>
+<tr><td>2</td><td>tonth</td><td>0x110db628905e3165c89927D3bF155a59Ea81eFE1</td><td>2415616073</td><td>2415464431</td><td>11908</td><td>17335</td></tr>
+<tr><td>3</td><td>oxox</td><td>0x00bb40fbe1588f320d6bc2a2e43664c39066dcdc</td><td>2414425462</td><td>2414237660</td><td>14843</td><td>21405</td></tr>
+<tr><td>4</td><td>LKH0130</td><td>0x66ccd2275fcf67811d395ba5b55b2d2813244843</td><td>2393909333</td><td>2393721411</td><td>14843</td><td>21425</td></tr>
+<tr><td>5</td><td>lsb00199</td><td>0x3111ba88f0dd9c84933a194ffba82cda9d2ca639     </td><td>2372239652</td><td>2372095470</td><td>11363</td><td>16455</td></tr>
+<tr><td>6</td><td>vh123</td><td>0xcd245A2cbCF2516bA136C532Bc6F06739f62ddcE</td><td>2312243441</td><td>2312082765</td><td>12659</td><td>18340</td></tr>
+<tr><td>7</td><td>Ace1</td><td>0x7B43718cE794c273Ac4823Cd8c71F4661D5B7a47</td><td>2305595434</td><td>2305441072</td><td>12183</td><td>17605</td></tr>
+<tr><td>8</td><td>la222</td><td>0xc17217714f71651408ba271f8d24cd47a2cd1cc4</td><td>2298560382</td><td>2298391840</td><td>13403</td><td>19155</td></tr>
+<tr><td>9</td><td>pirate1212</td><td>0xC6F7AD6B0bB48D716b4dfaC5DFF61c9A3CBab5b0</td><td>2270186187</td><td>2270009435</td><td>14008</td><td>20120</td></tr>
+<tr><td>10</td><td>trytop1</td><td>0x5bde7CBe3082dbe56D3586aBf677dA597d61b6e3</td><td>2225928536</td><td>2225795250</td><td>10349</td><td>15315</td></tr>
+<tr><td>11</td><td>billar3</td><td>0xd2e77d5e60d17b35c90f731b6b9681bddcea0bf1</td><td>2187303196</td><td>2187139414</td><td>12963</td><td>18655</td></tr>
+<tr><td>12</td><td>big2</td><td>0x05c0b955a25bdf49dbefa1c8594aa7f1402c6e11</td><td>2175862619</td><td>2175683217</td><td>14168</td><td>20455</td></tr>
+<tr><td>13</td><td>fletasck</td><td>0x3c74f5192f224e19a7bf9917a02bf7313464942b</td><td>2155026787</td><td>2154867785</td><td>12593</td><td>18105</td></tr>
+<tr><td>14</td><td>tongu</td><td>0x5D1463D00B4712f356D0c8201dADc3AC27dee451</td><td>2131066050</td><td>2130969688</td><td>7283</td><td>11205</td></tr>
+<tr><td>15</td><td>marco09</td><td>0xa94216f20233de31dfe4bf6a521ab1dd0653d283</td><td>2109771548</td><td>2109619236</td><td>11963</td><td>17410</td></tr>
+<tr><td>16</td><td>acidsun1</td><td>0x34B7F7e09181109eC618F38Adc094aA48Ee6f317</td><td>2107428756</td><td>2107241414</td><td>14803</td><td>21355</td></tr>
+<tr><td>17</td><td>ANANAN</td><td>0xb675b41F40e3515a1BBaa19b31bd668A68b1Bc8a</td><td>2100633205</td><td>2100499623</td><td>10408</td><td>15325</td></tr>
+<tr><td>18</td><td>sb0019</td><td>0x3111ba88f0dd9c84933a194ffba82cda9d2ca639</td><td>2092137636</td><td>2091946034</td><td>15643</td><td>21505</td></tr>
+<tr><td>19</td><td>tonsu</td><td>0x32aaEa53a7854A8c51D35E44b0AA4eC18426c2fd</td><td>2089009709</td><td>2088877347</td><td>10223</td><td>15245</td></tr>
+<tr><td>20</td><td>camrynumber1</td><td>0xE6C0aF7A10c293e3237A4024a2B71f4Dcb8A15B6</td><td>2051269286</td><td>2051132644</td><td>10588</td><td>15715</td></tr>
+<tr><td>21</td><td>goodman2</td><td>0x89c9e764Db609fd59706548fE4b5Aef10a4ba828</td><td>2041343234</td><td>2041176912</td><td>13118</td><td>18975</td></tr>
+<tr><td>22</td><td>vanhhhhha</td><td>0x80bae799ba3cae052Df9F5F32D31612B7f1E3eD8</td><td>2038720916</td><td>2038592854</td><td>9958</td><td>14705</td></tr>
+<tr><td>23</td><td>thelastscene</td><td>0x027447A706D0889c616d1e86ae630Bf7802CdA51</td><td>2033922648</td><td>2033747006</td><td>13363</td><td>20365</td></tr>
+<tr><td>24</td><td>elfin27</td><td>0xe21428dc9dea23c806f4736965eb2f7c3e8599f7</td><td>2026262908</td><td>2026097706</td><td>12943</td><td>18905</td></tr>
+<tr><td>25</td><td>tesseract</td><td>0x6B90A6c33a21587C81962F34FD06CB27959c70cF</td><td>2007985099</td><td>2007866057</td><td>9173</td><td>13725</td></tr>
+<tr><td>26</td><td>starohdh1</td><td>0x2552b90572BCd139e0f41F1fF633223035b3fF90</td><td>2006109538</td><td>2005966176</td><td>11098</td><td>16495</td></tr>
+<tr><td>27</td><td>better1</td><td>0xAfb5a7EAE3D074201611E8B72A987643DBe60B90</td><td>2005746951</td><td>2005558429</td><td>14843</td><td>21525</td></tr>
+<tr><td>28</td><td>BigPac</td><td>0x62EB3e90696D302f80c48D859943f0E244823436</td><td>2000137244</td><td>1999998758</td><td>11328</td><td>15529</td></tr>
+<tr><td>29</td><td>jamong</td><td>0x8dcdc06c2aCC184a2DEbF0Fc41deEae966e3ee43</td><td>1991497542</td><td>1991360310</td><td>10683</td><td>15750</td></tr>
+<tr><td>30</td><td>hhhhhhhhaaa</td><td>0x5b178740e09d99Fb8F9594D831b5Ff930c5D4636</td><td>1962412544</td><td>1962239932</td><td>13498</td><td>19770</td></tr>
+<tr><td>31</td><td>nyudds</td><td>0xabf1d7A7Ef47b3652CdBaEFb7D741aCCD119d92D</td><td>1918634293</td><td>1918502131</td><td>10083</td><td>15305</td></tr>
+<tr><td>32</td><td>horo</td><td>0xeA41e74f896dD6eC2cd5454d9bF7a3720bdC8C4B</td><td>1896705447</td><td>1896539593</td><td>13226</td><td>18825</td></tr>
+<tr><td>33</td><td>king</td><td>0x55256E8a3966165a65cC9e742FeA68A585615288</td><td>1885907417</td><td>1885832265</td><td>5663</td><td>8750</td></tr>
+<tr><td>34</td><td>blackdapps</td><td>0x7655ebf16Ded458Ab0c1bfB5764238BF970A0b9b</td><td>1876802314</td><td>1876610552</td><td>15233</td><td>21805</td></tr>
+<tr><td>35</td><td>kibos5454</td><td>0x3028ae7ec87946ff8cc3dfccf2d1fa23949e7166</td><td>1870580027</td><td>1870445145</td><td>10598</td><td>15415</td></tr>
+<tr><td>36</td><td>Goodboy1</td><td>0xe06cc2c8e3421aea2dacc16207d8a77afd47ceb6</td><td>1850323890</td><td>1850131928</td><td>15508</td><td>21655</td></tr>
+<tr><td>37</td><td>막장이다</td><td>0x15b6973fD402bAC8Ee45cBd9568cA946419484F5</td><td>1848831242</td><td>1848678040</td><td>12118</td><td>17455</td></tr>
+<tr><td>38</td><td>top1</td><td>0x3aA635E4B6e4e2FF52ef50D11020e0816f493B28</td><td>1796184620</td><td>1795984818</td><td>15803</td><td>22765</td></tr>
+<tr><td>39</td><td>ANAN</td><td>0xb8F1e8Abe3815F33ecfB44dCe8Cd8490795F8040</td><td>1739210644</td><td>1739059310</td><td>12101</td><td>17155</td></tr>
+<tr><td>40</td><td>Goodboy2</td><td>0xd8c625ddff671818a238683af4c285e0253289e5</td><td>1723156476</td><td>1722955444</td><td>15923</td><td>22890</td></tr>
+<tr><td>41</td><td>ipconfig4</td><td>0x3b72b070e9DDa502c8FcdaB7fe9c3aA5567A01B9</td><td>1714340751</td><td>1714139749</td><td>16043</td><td>22805</td></tr>
+<tr><td>42</td><td>torike</td><td>0x4e66c8fea449D7aC5C2a55061c0FCf24C4106A9c</td><td>1711361064</td><td>1711164702</td><td>15483</td><td>22405</td></tr>
+<tr><td>43</td><td>keepwatukill</td><td>0xBc4DaC64Fa5C3FA2a26C6Ab1a51d5795970E690d</td><td>1709778207</td><td>1709648005</td><td>10643</td><td>14605</td></tr>
+<tr><td>44</td><td>pocky64</td><td>0xBC311Ded11557Ad3F91657079a9576E34c2FC0CE</td><td>1703249308</td><td>1703160234</td><td>6736</td><td>10355</td></tr>
+<tr><td>45</td><td>wj1017</td><td>0x5b99292831A686E33F5F5f4d9618CF357959f4CC</td><td>1676991360</td><td>1676914498</td><td>5888</td><td>8885</td></tr>
+<tr><td>46</td><td>nuvola02</td><td>0x56Db1Edb717101d9F57332E2Ae9F4EcB2Ef181e3</td><td>1663584612</td><td>1663380358</td><td>16163</td><td>23267</td></tr>
+<tr><td>47</td><td>mama99</td><td>0x30792BEb270afDfCe4408E860B7013FCfACcCBBa</td><td>1630775031</td><td>1630575709</td><td>16073</td><td>22505</td></tr>
+<tr><td>48</td><td>maxcoffee</td><td>0xc66279677dE897291caCC6B2855f718eEe834568</td><td>1618509825</td><td>1618307153</td><td>16108</td><td>23040</td></tr>
+<tr><td>49</td><td>jkhjkh</td><td>0x2807444415bf5735478d962b27e431106f272ae8</td><td>1604197765</td><td>1604082273</td><td>9043</td><td>13220</td></tr>
+<tr><td>50</td><td>besvborodu</td><td>0x8c976B2d3725FE86443a0D443F71ECBCf297e577</td><td>1594542697</td><td>1594337823</td><td>16261</td><td>23305</td></tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}
+
+{{define "FooterIncludeScript"}}{{end}}
