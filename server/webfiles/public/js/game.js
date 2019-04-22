@@ -262,7 +262,7 @@ Game.prototype.AddCoin = function(c) {
 		obj.css("width", (gConfig.Size/gConfig.Size) + "rem");
 		obj.css("height", (gConfig.Size/2/gConfig.Size) + "rem");
 		obj.css("z-index", 10000);
-		var $img = $("<div class='fletaCoin'>").appendTo(obj);
+		var $img = $("<div class='fletaCoin' coinIndex='"+(c.x + gConfig.Size * c.y)+"'>").appendTo(obj);
 		this.coin_map[c.index] = obj;
 	}
 }
@@ -284,7 +284,7 @@ Game.prototype.AddExp = function(e) {
 		obj.css("width", (gConfig.Size/gConfig.Size) + "rem");
 		obj.css("height", (gConfig.Size/2/gConfig.Size) + "rem");
 		obj.css("z-index", 10000);
-		var $img = $("<div class='fletaExp'>").appendTo(obj);
+		var $img = $("<div class='fletaExp' expIndex='"+(e.x + gConfig.Size * e.y)+"'>").appendTo(obj);
 		this.exp_map[e.x + e.y*gConfig.Size] = obj;
 	}
 }
@@ -324,7 +324,7 @@ Game.prototype.UpdateResource = function(target_height) {
 		power_remained: 5,
 		power_provided: 5,
 		man_remained: 3,
-		man_provided: 3,
+		man_provided: 3
 	};
 	var used = {
 		balance: 0,
@@ -472,6 +472,8 @@ Game.prototype.OnTileClicked = function(x, y) {
 			return;
 		}
 	}
+	$(".fletaCoin[coinIndex='"+(x+gConfig.Size*y)+"']").remove()
+
 	for(var i=0; i<this.exps.length; i++) {
 		var e = this.exps[i];
 		if(e.x == x && e.y == y) {
@@ -479,6 +481,8 @@ Game.prototype.OnTileClicked = function(x, y) {
 			return;
 		}
 	}
+	$(".fletaExp[expIndex='"+(x+gConfig.Size*y)+"']").remove()
+
 	var tile = this.tiles[x + y*gConfig.Size];
 	if(tile.level == 0) {
 		for(var i=1; i<4; i++) {

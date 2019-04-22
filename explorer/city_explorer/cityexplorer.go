@@ -226,13 +226,13 @@ func (c *CityExplorer) initURL() {
 }
 
 func (c *CityExplorer) StartExplorer(port int) {
-	go func() {
-		for {
-			c.checkUserIdToAddr()
-			c.reflashAddrScore()
-			time.Sleep(10 * time.Minute)
-		}
-	}()
+	// go func() {
+	// 	for {
+	// 		c.checkUserIdToAddr()
+	// 		c.reflashAddrScore()
+	// 		time.Sleep(10 * time.Minute)
+	// 	}
+	// }()
 	c.be.StartExplorer(port)
 }
 
@@ -243,7 +243,9 @@ func (c *CityExplorer) DataHandler(e echo.Context) (result interface{}, err erro
 	case "totalScore.data":
 		result = c.totalScore(e.Request())
 	case "allScore.data":
-		result = c.allScore(e.Request())
+		result = c.allScore(e.Request(), 20)
+	case "allScoreLimit.data":
+		result = c.allScore(e.Request(), 0)
 	}
 	if result == nil {
 		err = errors.New("There is no matching url")
@@ -490,6 +492,7 @@ func updateSortedKey(txn *badger.Txn, sType ScoreType, addrStr string, sc ScoreC
 type score struct {
 	Rank     uint32
 	Addr     string
+	Reward   string
 	Score    string
 	AllScore *ScoreCase
 }
@@ -502,7 +505,7 @@ type allScore struct {
 	CoinCount   []score
 }
 
-func (c *CityExplorer) allScore(r *http.Request) (result []score) {
+func (c *CityExplorer) allScore(r *http.Request, limit uint32) (result []score) {
 	param := r.URL.Query()
 	sort := param.Get("sort")
 	keyword := param.Get("keyword")
@@ -542,7 +545,7 @@ func (c *CityExplorer) allScore(r *http.Request) (result []score) {
 			}
 		}
 
-		result, _ = getScore(txn, prefix, st, 20)
+		result, _ = c.getScore(txn, prefix, st, limit)
 		return nil
 	})
 
@@ -558,18 +561,18 @@ func (c *CityExplorer) totalScore(r *http.Request) (result *allScore) {
 		CoinCount:   []score{},
 	}
 	c.db.View(func(txn *badger.Txn) error {
-		result.Total, _ = getScore(txn, nil, Level, 10)
-		result.CoinCount, _ = getScore(txn, nil, CoinCount, 10)
-		result.Gold, _ = getScore(txn, nil, Balance, 5)
-		result.Population, _ = getScore(txn, nil, ManProvided, 5)
-		result.Electricity, _ = getScore(txn, nil, PowerProvided, 5)
+		result.Total, _ = c.getScore(txn, nil, Level, 10)
+		result.CoinCount, _ = c.getScore(txn, nil, CoinCount, 10)
+		result.Gold, _ = c.getScore(txn, nil, Balance, 5)
+		result.Population, _ = c.getScore(txn, nil, ManProvided, 5)
+		result.Electricity, _ = c.getScore(txn, nil, PowerProvided, 5)
 		return nil
 	})
 
 	return
 }
 
-func getScore(txn *badger.Txn, prefixKey []byte, sType ScoreType, limit uint32) ([]score, error) {
+func (c *CityExplorer) getScore(txn *badger.Txn, prefixKey []byte, sType ScoreType, limit uint32) ([]score, error) {
 	opts := badger.DefaultIteratorOptions
 	opts.PrefetchSize = 10
 	opts.Reverse = true
@@ -604,9 +607,33 @@ func getScore(txn *badger.Txn, prefixKey []byte, sType ScoreType, limit uint32) 
 			value := strings.TrimPrefix(string(k), getType(sType)+":Score:")
 			num := value[:20]
 			Addr := value[20:]
+
+			var Reward string
+			addr, err := common.ParseAddress(Addr)
+			if err == nil {
+				height := util.BytesToUint32(addr[:4])
+				i := util.BytesToUint16(addr[4:6])
+				b, err := c.Kernel.Block(height)
+				if err == nil {
+					if len(b.Body.Transactions) >= int(i) {
+						tx := b.Body.Transactions[i]
+						if catx, ok := tx.(*citygame.CreateAccountTx); ok {
+							Reward = catx.Reward
+						} else {
+							panic("is not create account")
+						}
+					}
+				} else {
+					log.Println(Addr, height)
+				}
+			} else {
+				log.Println(Addr)
+			}
+
 			s = append(s, score{
 				Rank:     rank,
 				Addr:     Addr,
+				Reward:   Reward,
 				Score:    num,
 				AllScore: sc,
 			})
@@ -615,7 +642,7 @@ func getScore(txn *badger.Txn, prefixKey []byte, sType ScoreType, limit uint32) 
 		if err != nil {
 			return nil, err
 		}
-		if rank >= limit {
+		if limit != 0 && rank >= limit {
 			break
 		}
 	}

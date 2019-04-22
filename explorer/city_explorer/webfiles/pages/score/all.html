@@ -47,11 +47,12 @@
             scoreTable.sort = sort||scoreTable.sort
             scoreTable.keyword = keyword||scoreTable.keyword||""
             $.ajax({
-                url : "/data/allScore.data",
+                url : "/data/allScoreLimit.data",
                 dataType: "JSON",
                 data : {
                     sort : sort,
-                    keyword : scoreTable.keyword
+                    keyword : scoreTable.keyword,
+                    limit : 20
                 },
                 success : function (data) {
                     scoreTable.templateLoad(data, "dataBody", sort)
