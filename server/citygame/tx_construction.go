@@ -141,6 +141,21 @@ func init() {
 				return err
 			}
 			ctx.SetAccountData(tx.Address, []byte("game"), buffer.Bytes())
+
+			e, err := ctx.Eventer().NewByTypeName("fletacity.Construction")
+			if err != nil {
+				return err
+			}
+			ev := e.(*ConstructionEvent)
+			ev.Base.Coord_ = coord
+			ev.Address = tx.Address
+			ev.X = tx.X
+			ev.Y = tx.Y
+			ev.AreaType = tx.AreaType
+			ev.CompleteHeight = ctx.TargetHeight() + bd.BuildTime*2
+
+			ctx.EmitEvent(e)
+
 			ctx.Commit(sn)
 
 			return nil

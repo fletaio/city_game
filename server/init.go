@@ -11,6 +11,7 @@ import (
 	"github.com/fletaio/core/amount"
 	"github.com/fletaio/core/consensus"
 	"github.com/fletaio/core/data"
+	"github.com/fletaio/core/event"
 	"github.com/fletaio/core/transaction"
 
 	"github.com/fletaio/extension/account_def"
@@ -46,7 +47,18 @@ const (
 	FormulationAccountType = account.Type(60)
 )
 
-func initChainComponent(act *data.Accounter, tran *data.Transactor) error {
+// event_type event types
+const (
+	// Game Events
+	CreateAccountEventType = event.Type(1)
+	ConstructionEventType  = event.Type(2)
+	UpgradeEventType       = event.Type(3)
+	DemolitionEventType    = event.Type(4)
+	GetCoinEventType       = event.Type(5)
+	GetExpEventType        = event.Type(6)
+)
+
+func initChainComponent(act *data.Accounter, tran *data.Transactor, evt *data.Eventer) error {
 	type txFee struct {
 		Type transaction.Type
 		Fee  *amount.Amount
@@ -79,11 +91,26 @@ func initChainComponent(act *data.Accounter, tran *data.Transactor) error {
 			return err
 		}
 	}
+
+	EventTable := map[string]event.Type{
+		"fletacity.CreateAccount": CreateAccountEventType,
+		"fletacity.Construction":  ConstructionEventType,
+		"fletacity.Upgrade":       UpgradeEventType,
+		"fletacity.Demolition":    DemolitionEventType,
+		"fletacity.GetCoin":       GetCoinEventType,
+		"fletacity.GetExp":        GetExpEventType,
+	}
+	for name, t := range EventTable {
+		if err := evt.RegisterType(name, t); err != nil {
+			log.Println(name, t, err)
+			return err
+		}
+	}
 	return nil
 }
 
-func initGenesisContextData(act *data.Accounter, tran *data.Transactor) (*data.ContextData, error) {
-	loader := data.NewEmptyLoader(act.ChainCoord(), act, tran)
+func initGenesisContextData(act *data.Accounter, tran *data.Transactor, evt *data.Eventer) (*data.ContextData, error) {
+	loader := data.NewEmptyLoader(act.ChainCoord(), act, tran, evt)
 	ctd := data.NewContextData(loader, nil)
 
 	acg := &accCoordGenerator{}

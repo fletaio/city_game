@@ -104,6 +104,18 @@ func init() {
 			}
 			ctx.SetAccountData(tx.Address, []byte("game"), buffer.Bytes())
 
+			e, err := ctx.Eventer().NewByTypeName("fletacity.Demolition")
+			if err != nil {
+				return err
+			}
+			ev := e.(*DemolitionEvent)
+			ev.Base.Coord_ = coord
+			ev.Address = tx.Address
+			ev.X = tx.X
+			ev.Y = tx.Y
+
+			ctx.EmitEvent(e)
+
 			ctx.Commit(sn)
 			return nil
 		}()

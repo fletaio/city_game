@@ -125,6 +125,19 @@ func init() {
 					}
 					ctx.SetAccountData(tx.Address, []byte("game"), buffer.Bytes())
 
+					e, err := ctx.Eventer().NewByTypeName("fletacity.GetExp")
+					if err != nil {
+						return err
+					}
+					ev := e.(*GetExpEvent)
+					ev.Base.Coord_ = coord
+					ev.Address = tx.Address
+					ev.X = tx.X
+					ev.Y = tx.Y
+					ev.TotalExp = gd.TotalExp
+
+					ctx.EmitEvent(e)
+
 					ctx.Commit(sn)
 					return nil
 				}

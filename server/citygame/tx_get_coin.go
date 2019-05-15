@@ -99,6 +99,19 @@ func init() {
 				}
 				ctx.SetAccountData(tx.Address, []byte("game"), buffer.Bytes())
 
+				e, err := ctx.Eventer().NewByTypeName("fletacity.GetCoin")
+				if err != nil {
+					return err
+				}
+				ev := e.(*GetCoinEvent)
+				ev.Base.Coord_ = coord
+				ev.Address = tx.Address
+				ev.X = tx.X
+				ev.Y = tx.Y
+				ev.CoinCount = gd.CoinCount
+
+				ctx.EmitEvent(e)
+
 				ctx.Commit(sn)
 				return nil
 			}

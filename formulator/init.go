@@ -46,7 +46,7 @@ const (
 	FormulationAccountType = account.Type(60)
 )
 
-func initChainComponent(act *data.Accounter, tran *data.Transactor) error {
+func initChainComponent(act *data.Accounter, tran *data.Transactor, evt *data.Eventer) error {
 	type txFee struct {
 		Type transaction.Type
 		Fee  *amount.Amount
@@ -82,8 +82,8 @@ func initChainComponent(act *data.Accounter, tran *data.Transactor) error {
 	return nil
 }
 
-func initGenesisContextData(act *data.Accounter, tran *data.Transactor) (*data.ContextData, error) {
-	loader := data.NewEmptyLoader(act.ChainCoord(), act, tran)
+func initGenesisContextData(act *data.Accounter, tran *data.Transactor, evt *data.Eventer) (*data.ContextData, error) {
+	loader := data.NewEmptyLoader(act.ChainCoord(), act, tran, evt)
 	ctd := data.NewContextData(loader, nil)
 
 	acg := &accCoordGenerator{}
