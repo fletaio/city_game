@@ -29,6 +29,7 @@ var (
 	ErrExistKeyHash                = errors.New("exist key hash")
 	ErrExistUserID                 = errors.New("exist userid")
 	ErrExistReward                 = errors.New("exist reward")
+	ErrExistAccountName            = errors.New("exist account name")
 	ErrQueueFull                   = errors.New("queue full")
 	ErrInsufficientResource        = errors.New("insufficient resource")
 	ErrCoinNotExist                = errors.New("coin not exist")
