@@ -59,7 +59,7 @@ func initChainComponent(act *data.Accounter, tran *data.Transactor, evt *data.Ev
 		"fletacity.Upgrade":           &txFee{UpgradeTransactionType, amount.COIN.MulC(10)},
 		"fletacity.GetCoin":           &txFee{GetCoinTransactionType, amount.COIN.MulC(10)},
 		"fletacity.GetExp":            &txFee{GetExpTransactionType, amount.COIN.MulC(10)},
-		"consensus.CreateFormulation": &txFee{CreateFormulationTransctionType, amount.COIN.MulC(50000)},
+		"consensus.CreateFormulation": &txFee{CreateFormulationTransctionType, amount.COIN.DivC(10)},
 		"consensus.RevokeFormulation": &txFee{RevokeFormulationTransctionType, amount.COIN.DivC(10)},
 	}
 	for name, item := range TxFeeTable {
