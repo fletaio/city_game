@@ -165,9 +165,6 @@ func (gd *GameData) Resource(TargetHeight uint32) *Resource {
 				bd2 := GBuildingDefine[tile.AreaType][tile.Level-2]
 				used.ManRemained += bd2.AccManUsage * 3
 				used.PowerRemained += bd2.AccPowerUsage * 3
-				if tile.AreaType == CommercialAreaType {
-					provide.Balance += uint64(bd2.Output/2) * uint64(ForwardHeight) * 3
-				}
 			}
 			if TargetHeight < ConstructionHeight {
 				if tile.Level == 1 {
@@ -175,6 +172,8 @@ func (gd *GameData) Resource(TargetHeight uint32) *Resource {
 				} else if tile.Level == 6 {
 					bd2 := GBuildingDefine[tile.AreaType][tile.Level-2]
 					switch tile.AreaType {
+					case CommercialAreaType:
+						provide.Balance += uint64(bd2.Output/2) * uint64(ForwardHeight) * 3
 					case IndustrialAreaType:
 						provide.PowerRemained += bd2.Output * 3
 					case ResidentialAreaType:
