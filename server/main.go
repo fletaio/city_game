@@ -18,10 +18,8 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger"
-	"github.com/fletaio/cmd/closer"
-	"github.com/fletaio/framework/config"
-	"github.com/fletaio/framework/router/evilnode"
-	"github.com/fletaio/framework/rpc"
+	"github.com/gorilla/websocket"
+	"github.com/labstack/echo"
 
 	"github.com/fletaio/citygame/server/citygame"
 	"github.com/fletaio/common"
@@ -35,11 +33,12 @@ import (
 	"github.com/fletaio/core/node"
 	"github.com/fletaio/core/reward"
 	"github.com/fletaio/core/transaction"
+	"github.com/fletaio/framework/closer"
+	"github.com/fletaio/framework/config"
 	"github.com/fletaio/framework/peer"
 	"github.com/fletaio/framework/router"
-
-	"github.com/gorilla/websocket"
-	"github.com/labstack/echo"
+	"github.com/fletaio/framework/router/evilnode"
+	"github.com/fletaio/framework/rpc"
 )
 
 // consts
