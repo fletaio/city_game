@@ -110,10 +110,25 @@ func initChainComponent(act *data.Accounter, tran *data.Transactor, evt *data.Ev
 }
 
 func initGenesisContextData(act *data.Accounter, tran *data.Transactor, evt *data.Eventer) (*data.ContextData, error) {
-	consensus.SetFormulatorPolicy(act.ChainCoord(), &consensus.FormulatorPolicy{
-		CreateFormulationAmount: amount.NewCoinAmount(200000, 0),
-		OmegaRequiredLockBlocks: 5184000,
-		SigmaRequiredLockBlocks: 5184000,
+	consensus.SetConsensusPolicy(act.ChainCoord(), &consensus.ConsensusPolicy{
+		RewardPerBlock:                amount.NewCoinAmount(0, 500000000000000000),
+		PayRewardEveryBlocks:          500,
+		FormulatorCreationLimitHeight: 1000,
+		AlphaFormulationAmount:        amount.NewCoinAmount(1000, 0),
+		AlphaEfficiency1000:           1000,
+		AlphaUnlockRequiredBlocks:     1000,
+		SigmaRequiredAlphaBlocks:      1000,
+		SigmaRequiredAlphaCount:       4,
+		SigmaEfficiency1000:           1000,
+		SigmaUnlockRequiredBlocks:     1000,
+		OmegaRequiredSigmaBlocks:      1000,
+		OmegaRequiredSigmaCount:       2,
+		OmegaEfficiency1000:           1000,
+		OmegaUnlockRequiredBlocks:     1000,
+		HyperFormulationAmount:        amount.NewCoinAmount(1000, 0),
+		HyperEfficiency1000:           1000,
+		HyperUnlockRequiredBlocks:     1000,
+		StakingEfficiency1000:         1000,
 	})
 
 	loader := data.NewEmptyLoader(act.ChainCoord(), act, tran, evt)
@@ -185,6 +200,10 @@ func addSingleAccount(loader data.Loader, ctd *data.ContextData, KeyHash common.
 }
 
 func addFormulator(loader data.Loader, ctd *data.ContextData, KeyHash common.PublicHash, addr common.Address, name string) {
+	policy, err := consensus.GetConsensusPolicy(loader.ChainCoord())
+	if err != nil {
+		panic(err)
+	}
 	a, err := loader.Accounter().NewByTypeName("consensus.FormulationAccount")
 	if err != nil {
 		panic(err)
@@ -193,6 +212,8 @@ func addFormulator(loader data.Loader, ctd *data.ContextData, KeyHash common.Pub
 	acc.Address_ = addr
 	acc.Name_ = name
 	acc.Balance_ = amount.NewCoinAmount(0, 0)
+	acc.FormulationType = consensus.AlphaFormulatorType
+	acc.Amount = policy.AlphaFormulationAmount.Clone()
 	acc.KeyHash = KeyHash
 	ctd.CreatedAccountMap[acc.Address_] = acc
 }

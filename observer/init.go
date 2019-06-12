@@ -11,6 +11,7 @@ import (
 	"github.com/fletaio/core/amount"
 	"github.com/fletaio/core/consensus"
 	"github.com/fletaio/core/data"
+	"github.com/fletaio/core/event"
 	"github.com/fletaio/core/transaction"
 
 	"github.com/fletaio/extension/account_def"
@@ -46,6 +47,17 @@ const (
 	FormulationAccountType = account.Type(60)
 )
 
+// event_type event types
+const (
+	// Game Events
+	CreateAccountEventType = event.Type(1)
+	ConstructionEventType  = event.Type(2)
+	UpgradeEventType       = event.Type(3)
+	DemolitionEventType    = event.Type(4)
+	GetCoinEventType       = event.Type(5)
+	GetExpEventType        = event.Type(6)
+)
+
 func initChainComponent(act *data.Accounter, tran *data.Transactor, evt *data.Eventer) error {
 	type txFee struct {
 		Type transaction.Type
@@ -79,14 +91,44 @@ func initChainComponent(act *data.Accounter, tran *data.Transactor, evt *data.Ev
 			return err
 		}
 	}
+
+	EventTable := map[string]event.Type{
+		"fletacity.CreateAccount": CreateAccountEventType,
+		"fletacity.Construction":  ConstructionEventType,
+		"fletacity.Upgrade":       UpgradeEventType,
+		"fletacity.Demolition":    DemolitionEventType,
+		"fletacity.GetCoin":       GetCoinEventType,
+		"fletacity.GetExp":        GetExpEventType,
+	}
+	for name, t := range EventTable {
+		if err := evt.RegisterType(name, t); err != nil {
+			log.Println(name, t, err)
+			return err
+		}
+	}
 	return nil
 }
 
 func initGenesisContextData(act *data.Accounter, tran *data.Transactor, evt *data.Eventer) (*data.ContextData, error) {
-	consensus.SetFormulatorPolicy(act.ChainCoord(), &consensus.FormulatorPolicy{
-		CreateFormulationAmount: amount.NewCoinAmount(200000, 0),
-		OmegaRequiredLockBlocks: 5184000,
-		SigmaRequiredLockBlocks: 5184000,
+	consensus.SetConsensusPolicy(act.ChainCoord(), &consensus.ConsensusPolicy{
+		RewardPerBlock:                amount.NewCoinAmount(0, 500000000000000000),
+		PayRewardEveryBlocks:          500,
+		FormulatorCreationLimitHeight: 1000,
+		AlphaFormulationAmount:        amount.NewCoinAmount(1000, 0),
+		AlphaEfficiency1000:           1000,
+		AlphaUnlockRequiredBlocks:     1000,
+		SigmaRequiredAlphaBlocks:      1000,
+		SigmaRequiredAlphaCount:       4,
+		SigmaEfficiency1000:           1000,
+		SigmaUnlockRequiredBlocks:     1000,
+		OmegaRequiredSigmaBlocks:      1000,
+		OmegaRequiredSigmaCount:       2,
+		OmegaEfficiency1000:           1000,
+		OmegaUnlockRequiredBlocks:     1000,
+		HyperFormulationAmount:        amount.NewCoinAmount(1000, 0),
+		HyperEfficiency1000:           1000,
+		HyperUnlockRequiredBlocks:     1000,
+		StakingEfficiency1000:         1000,
 	})
 
 	loader := data.NewEmptyLoader(act.ChainCoord(), act, tran, evt)
@@ -158,6 +200,10 @@ func addSingleAccount(loader data.Loader, ctd *data.ContextData, KeyHash common.
 }
 
 func addFormulator(loader data.Loader, ctd *data.ContextData, KeyHash common.PublicHash, addr common.Address, name string) {
+	policy, err := consensus.GetConsensusPolicy(loader.ChainCoord())
+	if err != nil {
+		panic(err)
+	}
 	a, err := loader.Accounter().NewByTypeName("consensus.FormulationAccount")
 	if err != nil {
 		panic(err)
@@ -166,6 +212,8 @@ func addFormulator(loader data.Loader, ctd *data.ContextData, KeyHash common.Pub
 	acc.Address_ = addr
 	acc.Name_ = name
 	acc.Balance_ = amount.NewCoinAmount(0, 0)
+	acc.FormulationType = consensus.AlphaFormulatorType
+	acc.Amount = policy.AlphaFormulationAmount.Clone()
 	acc.KeyHash = KeyHash
 	ctd.CreatedAccountMap[acc.Address_] = acc
 }
